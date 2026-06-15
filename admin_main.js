@@ -2540,18 +2540,23 @@ async function loadPlans() {
 
 /* ── Landing Page CMS ── */
 async function loadLandingPage() {
-  // Load from site_settings table (tenant_id=0 or global)
-  const d = await fetch('admin.php?api=get_settings',{credentials:'include'}).then(r=>r.json()).catch(()=>({ok:false}));
+  const d = await fetch('site_settings.php?action=get').then(r=>r.json()).catch(()=>({ok:false}));
   if(!d.ok||!d.settings) return;
   const s = d.settings;
   const set=(id,v)=>{const el=document.getElementById(id);if(el)el.value=v||'';};
-  set('lp-title1', s.hero_title_line1);
-  set('lp-title2', s.hero_title_line2);
+  set('lp-title1',   s.hero_title_line1);
+  set('lp-title2',   s.hero_title_line2);
   set('lp-subtitle', s.hero_subtitle);
-  set('lp-emoji', s.store_emoji||s.hero_emoji);
+  set('lp-emoji',    s.store_emoji||s.hero_emoji);
   set('lp-ann-text', s.announcement_text);
+  set('lp-cta1',     s.cta_primary_text);
+  set('lp-cta2',     s.cta_demo_text);
+  set('lp-demo-url', s.cta_demo_url);
   const annOn = document.getElementById('lp-ann-on');
-  if(annOn) annOn.checked = s.announcement_on=='1';
+  if(annOn) annOn.checked = s.announcement_on==='1';
+  // Preview
+  const prev = document.getElementById('lp-preview-hero');
+  if(prev) prev.textContent = (s.hero_title_line1||'') + ' / ' + (s.hero_title_line2||'');
 }
 
 async function saveLandingPage() {
@@ -2564,11 +2569,11 @@ async function saveLandingPage() {
     announcement_text:g('lp-ann-text'),
     announcement_on:  document.getElementById('lp-ann-on')?.checked?'1':'0',
   };
-  const r = await fetch('admin.php?api=save_settings',{
+  const r = await fetch('site_settings.php?action=save',{
     method:'POST', headers:{'Content-Type':'application/json'}, credentials:'include',
     body: JSON.stringify(payload)
   }).then(r=>r.json());
-  if(r.ok) toast('✅ Landing page saved');
+  if(r.ok){ toast('✅ Landing page saved'); window.open('landing-page.html','_blank'); }
   else toast(r.msg||'Error','err');
 }
 
@@ -2599,7 +2604,7 @@ async function saveAnnouncement() {
   const msg = document.getElementById('ann-message')?.value?.trim()||'';
   const type = document.getElementById('ann-type')?.value||'info';
   const active = document.getElementById('ann-active')?.checked||false;
-  const r = await fetch('admin.php?api=save_settings',{
+  const r = await fetch('site_settings.php?action=save',{
     method:'POST', headers:{'Content-Type':'application/json'}, credentials:'include',
     body: JSON.stringify({announcement_text:msg, announcement_on:active?'1':'0'})
   }).then(r=>r.json());
