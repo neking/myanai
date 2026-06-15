@@ -1,0 +1,27 @@
+{
+  "packageId": "com.noodlehaus.pos",
+  "host": "noodlehaus-pos.duckdns.org",
+  "name": "NoodleHaus POS",
+  "launcherName": "NoodleHaus",
+  "display": "standalone",
+  "themeColor": "#e84c2b",
+  "navigationColor": "#2a2520",
+  "backgroundColor": "#faf8f5",
+  "enableNotifications": true,
+  "startUrl": "/index.html",
+  "iconUrl": "https://noodlehaus-pos.duckdns.org/icons/icon-512.png",
+  "maskableIconUrl": "https://noodlehaus-pos.duckdns.org/icons/icon-512.png",
+  "splashScreenFadeOutDuration": 300,
+  "signingKey": {
+    "path": "./noodlehaus.keystore",
+    "alias": "noodlehaus"
+  },
+  "appVersionCode": 1,
+  "appVersionName": "1.0.0",
+  "shortcuts": [
+    {"name": "Order Food", "url": "/index.html", "icons": [{"src": "/icons/icon-192.png"}]},
+    {"name": "Admin", "url": "/admin.php", "icons": [{"src": "/icons/icon-192.png"}]}
+  ],
+  "generatorApp": "bubblewrap-cli",
+  "_comment": "Run: npx @nickmomrik/nickmomrik bubblewrap init --manifest https://noodlehaus-pos.duckdns.org/manifest.json"
+}
