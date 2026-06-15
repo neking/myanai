@@ -867,6 +867,29 @@ if (isset($_GET['api'])) { // GET+POST both handled
         exit;
     }
 
+    /* ── GET SITE SETTINGS (landing page CMS) ── */
+    if ($_GET['api'] === 'get_settings') {
+        $rows = db()->query("SELECT setting_key,setting_value FROM site_settings")->fetchAll();
+        $out = [];
+        foreach($rows as $r) $out[$r['setting_key']] = $r['setting_value'];
+        echo json_encode(['ok'=>true,'settings'=>$out]);
+        exit;
+    }
+
+    /* ── SAVE SITE SETTINGS (landing page CMS) ── */
+    if ($_GET['api'] === 'save_settings') {
+        $b = json_decode(file_get_contents('php://input'), true) ?? [];
+        $stmt = db()->prepare("INSERT INTO site_settings (setting_key,setting_value) VALUES (:k,:v)
+                               ON DUPLICATE KEY UPDATE setting_value=:v2");
+        foreach($b as $k => $v) {
+            $key = preg_replace('/[^a-z0-9_]/', '', strtolower($k));
+            if(!$key) continue;
+            $stmt->execute([':k'=>$key,':v'=>$v,':v2'=>$v]);
+        }
+        echo json_encode(['ok'=>true]);
+        exit;
+    }
+
     /* get tenant payment settings */
     if ($_GET['api'] === 'get_payment_settings') {
         $tid = (int)($_SESSION['tenant_id'] ?? 0);
