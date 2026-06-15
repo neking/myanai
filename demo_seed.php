@@ -7,7 +7,8 @@ require_once __DIR__ . '/db_connect.php';
 $pdo = getPDO();
 
 $key = $_GET['key'] ?? '';
-if ($key !== 'myanai_seed_2026') {
+$cliMode = php_sapi_name() === 'cli';
+if (!$cliMode && $key !== 'myanai_seed_2026') {
     echo json_encode(['ok'=>false,'msg'=>'Unauthorized']); exit;
 }
 
