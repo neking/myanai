@@ -1579,7 +1579,21 @@ async function doLogin() {
           <button class="btn btn-ghost btn-sm" style="margin-top:.5rem" onclick="showPage('upgrades')">View all →</button>
         </div>
       </div>
+
+      <!-- Analytics mini panel -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1rem">
+        <div class="table-wrap" style="padding:.9rem">
+          <div style="font-size:.78rem;font-weight:600;color:var(--muted);margin-bottom:.6rem">📊 Tenants by plan</div>
+          <div id="plan-dist-mini"></div>
+        </div>
+        <div class="table-wrap" style="padding:.9rem">
+          <div style="font-size:.78rem;font-weight:600;color:var(--muted);margin-bottom:.6rem">⏰ Expiring (7 days)</div>
+          <div id="expiry-mini" style="font-size:.82rem;color:var(--muted)">—</div>
+        </div>
+      </div>
     </div>
+  </div>
+</div>
 
 
 
