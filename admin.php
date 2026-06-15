@@ -1146,6 +1146,9 @@ tr:hover td{background:#fef9f4;}
 .cat-tab:hover,.cat-tab.on{background:var(--ink);color:#fff;border-color:var(--ink);}
 
 /* TOAST */
+.lp-tab{background:none;border:none;border-bottom:2px solid transparent;padding:.6rem 1.1rem;font-size:.83rem;font-weight:500;cursor:pointer;color:var(--muted);transition:all .15s;white-space:nowrap}
+.lp-tab:hover{color:var(--ink)}
+.lp-tab.active{color:var(--ink);border-bottom-color:var(--accent)}
 .toast{position:fixed;bottom:1.5rem;right:1.5rem;z-index:999;background:var(--ink);color:var(--paper);padding:.65rem 1.1rem;border-radius:10px;font-size:.84rem;font-weight:500;box-shadow:0 8px 24px rgba(0,0,0,.2);transform:translateY(70px);opacity:0;transition:all .3s ease;max-width:280px;}
 .toast.show{transform:translateY(0);opacity:1;}
 .toast.ok{border-left:4px solid var(--green);}
@@ -3138,56 +3141,175 @@ document.addEventListener('DOMContentLoaded', function() {
   <div class="page-head">
     <div style="display:flex;align-items:center;gap:.5rem">
       <button class="hamburger" onclick="openSidebar()">☰</button>
-      <div class="page-title">🌐 Landing Page</div>
+      <div class="page-title">🌐 Landing Page Editor</div>
     </div>
-    <div style="display:flex;gap:.5rem">
-      <a href="/" target="_blank" class="btn btn-ghost btn-sm">Preview →</a>
-      <button class="btn btn-primary btn-sm" onclick="saveLandingPage()">💾 Save</button>
+    <div style="display:flex;gap:.5rem;align-items:center">
+      <a href="landing-page.html" target="_blank" class="btn btn-ghost btn-sm">👁 Preview</a>
+      <button class="btn btn-primary btn-sm" onclick="saveLandingPage()">💾 Save all</button>
     </div>
   </div>
   <div class="content">
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem">
-      <!-- Hero section -->
-      <div class="table-wrap" style="padding:1.2rem">
-        <div style="font-weight:600;margin-bottom:1rem">🦸 Hero Section</div>
-        <div class="form-row" style="display:grid;gap:.75rem">
-          <div class="field"><label>Title line 1</label><input id="lp-title1" placeholder="Myanmar AI"></div>
-          <div class="field"><label>Title line 2</label><input id="lp-title2" placeholder="Products Platform"></div>
-          <div class="field"><label>Subtitle</label><input id="lp-subtitle" placeholder="AI-powered apps for Myanmar businesses"></div>
-          <div class="field"><label>Hero emoji</label><input id="lp-emoji" placeholder="🤖" style="width:80px"></div>
-          <div class="field"><label>BG color</label><input id="lp-bg-color" type="color" value="#fdf6ec"></div>
-        </div>
-      </div>
-      <!-- Products section -->
-      <div class="table-wrap" style="padding:1.2rem">
-        <div style="font-weight:600;margin-bottom:1rem">📦 Products showcase</div>
-        <div id="lp-products-list" style="display:flex;flex-direction:column;gap:.5rem">
-          <div style="color:var(--muted);font-size:.82rem">Products loading...</div>
-        </div>
-        <button class="btn btn-ghost btn-sm" style="margin-top:.75rem" onclick="addLandingProduct()">+ Add product</button>
-      </div>
-      <!-- Announcement -->
-      <div class="table-wrap" style="padding:1.2rem">
-        <div style="font-weight:600;margin-bottom:1rem">📣 Announcement banner</div>
-        <div class="form-row" style="display:grid;gap:.75rem">
-          <div class="field"><label>Text</label><input id="lp-ann-text" placeholder="New feature launched..."></div>
-          <div class="field"><label>Color</label><input id="lp-ann-color" type="color" value="#e84c2b"></div>
-          <div class="field" style="display:flex;align-items:center;gap:.5rem">
-            <input type="checkbox" id="lp-ann-on">
-            <label for="lp-ann-on" style="cursor:pointer">Show banner</label>
+
+    <!-- Tab nav -->
+    <div style="display:flex;gap:0;border-bottom:0.5px solid var(--border);margin-bottom:1.2rem;overflow-x:auto">
+      <button onclick="lpTab('hero')"    id="lp-tab-hero"    class="lp-tab active">🦸 Hero</button>
+      <button onclick="lpTab('brand')"   id="lp-tab-brand"   class="lp-tab">🎨 Brand</button>
+      <button onclick="lpTab('cta')"     id="lp-tab-cta"     class="lp-tab">🔗 Buttons</button>
+      <button onclick="lpTab('announce')" id="lp-tab-announce" class="lp-tab">📣 Banner</button>
+      <button onclick="lpTab('contact')" id="lp-tab-contact" class="lp-tab">📞 Contact</button>
+      <button onclick="lpTab('demo')"    id="lp-tab-demo"    class="lp-tab">🎭 Demo</button>
+      <button onclick="lpTab('footer')"  id="lp-tab-footer"  class="lp-tab">🔻 Footer</button>
+    </div>
+
+    <!-- HERO tab -->
+    <div id="lp-panel-hero">
+      <div class="table-wrap" style="padding:1.3rem;max-width:700px">
+        <div style="font-weight:600;font-size:.9rem;margin-bottom:1rem;color:var(--muted)">Hero section — main headline</div>
+        <div style="display:grid;gap:.9rem">
+          <div class="field">
+            <label>Title line 1 (ပထမကြောင်း)</label>
+            <input id="lp-title1" placeholder="Myanmar businesses" style="font-size:.95rem">
+          </div>
+          <div class="field">
+            <label>Title line 2 — highlight ဖြစ်မည် (ဒုတိယကြောင်း)</label>
+            <input id="lp-title2" placeholder="AI နဲ့ ထွန်းလင်းပါ" style="font-size:.95rem">
+          </div>
+          <div class="field">
+            <label>Sub-headline (subtitle)</label>
+            <input id="lp-subtitle" placeholder="MyanAi — မြန်မာ business တွေအတွက် AI-powered software platform">
+          </div>
+          <div class="field">
+            <label>Description text (2-3 sentences)</label>
+            <textarea id="lp-desc" rows="3" style="width:100%;padding:.5rem .7rem;border:0.5px solid var(--border);border-radius:8px;background:var(--warm);color:var(--ink);font-family:inherit;font-size:.85rem" placeholder="POS, HR, Analytics နဲ့ AI tools တွေကို တစ်ခုတည်းသော platform မှ ရယူပါ..."></textarea>
+          </div>
+          <div class="field">
+            <label>Label badge text (hero ထဲ pill)</label>
+            <input id="lp-label" placeholder="🇲🇲 Myanmar-built · AI-powered">
           </div>
         </div>
       </div>
-      <!-- CTA -->
-      <div class="table-wrap" style="padding:1.2rem">
-        <div style="font-weight:600;margin-bottom:1rem">🔗 CTA buttons</div>
-        <div class="form-row" style="display:grid;gap:.75rem">
-          <div class="field"><label>Primary CTA text</label><input id="lp-cta1" placeholder="Start free trial"></div>
-          <div class="field"><label>Secondary CTA text</label><input id="lp-cta2" placeholder="View demo"></div>
-          <div class="field"><label>Demo URL</label><input id="lp-demo-url" placeholder="/tenant.php?demo=1"></div>
+    </div>
+
+    <!-- BRAND tab -->
+    <div id="lp-panel-brand" style="display:none">
+      <div class="table-wrap" style="padding:1.3rem;max-width:700px">
+        <div style="font-weight:600;font-size:.9rem;margin-bottom:1rem;color:var(--muted)">Brand name &amp; identity</div>
+        <div style="display:grid;gap:.9rem">
+          <div class="field">
+            <label>Brand / App name (nav logo)</label>
+            <input id="lp-store-name" placeholder="MyanAi">
+          </div>
+          <div class="field">
+            <label>Brand emoji / icon</label>
+            <input id="lp-emoji" placeholder="🤖" style="width:100px;font-size:1.5rem;text-align:center">
+          </div>
+          <div class="field">
+            <label>Page title (browser tab)</label>
+            <input id="lp-page-title" placeholder="MyanAi — Myanmar AI Products Platform">
+          </div>
+          <div class="field">
+            <label>Tagline (short, under brand name)</label>
+            <input id="lp-tagline" placeholder="Myanmar AI Products Platform">
+          </div>
         </div>
       </div>
     </div>
+
+    <!-- CTA tab -->
+    <div id="lp-panel-cta" style="display:none">
+      <div class="table-wrap" style="padding:1.3rem;max-width:700px">
+        <div style="font-weight:600;font-size:.9rem;margin-bottom:1rem;color:var(--muted)">Call-to-action buttons</div>
+        <div style="display:grid;gap:.9rem">
+          <div class="field">
+            <label>Primary button text</label>
+            <input id="lp-cta1" placeholder="Free Trial စမ်း →">
+          </div>
+          <div class="field">
+            <label>Primary button URL</label>
+            <input id="lp-cta1-url" placeholder="/signup.html">
+          </div>
+          <div class="field">
+            <label>Secondary button text (demo)</label>
+            <input id="lp-cta2" placeholder="🎭 Live Demo ကြည့်">
+          </div>
+          <div class="field">
+            <label>Secondary button URL</label>
+            <input id="lp-demo-url" placeholder="/tenant.php">
+          </div>
+          <div class="field">
+            <label>Nav bar CTA text</label>
+            <input id="lp-nav-cta" placeholder="Free Trial စမ်း →">
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ANNOUNCE tab -->
+    <div id="lp-panel-announce" style="display:none">
+      <div class="table-wrap" style="padding:1.3rem;max-width:700px">
+        <div style="font-weight:600;font-size:.9rem;margin-bottom:1rem;color:var(--muted)">Top announcement banner</div>
+        <div style="display:grid;gap:.9rem">
+          <div class="field" style="display:flex;align-items:center;gap:.75rem">
+            <input type="checkbox" id="lp-ann-on" style="width:18px;height:18px">
+            <label for="lp-ann-on" style="cursor:pointer;font-weight:500">Show announcement banner</label>
+          </div>
+          <div class="field">
+            <label>Banner text</label>
+            <input id="lp-ann-text" placeholder="🎉 New: MyanAi HR launched! ">
+          </div>
+          <div class="field">
+            <label>Banner background color</label>
+            <div style="display:flex;gap:.75rem;align-items:center">
+              <input type="color" id="lp-ann-color" value="#6366f1" style="width:48px;height:36px;border-radius:8px;border:0.5px solid var(--border)">
+              <input id="lp-ann-color-hex" placeholder="#6366f1" style="width:100px" oninput="document.getElementById('lp-ann-color').value=this.value">
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- CONTACT tab -->
+    <div id="lp-panel-contact" style="display:none">
+      <div class="table-wrap" style="padding:1.3rem;max-width:700px">
+        <div style="font-weight:600;font-size:.9rem;margin-bottom:1rem;color:var(--muted)">Contact information</div>
+        <div style="display:grid;gap:.9rem">
+          <div class="field"><label>📞 Phone / Viber</label><input id="lp-phone" placeholder="09xxxxxxxxx"></div>
+          <div class="field"><label>📧 Email</label><input id="lp-email" placeholder="hello@myanai.net"></div>
+          <div class="field"><label>📍 Address</label><input id="lp-address" placeholder="Yangon, Myanmar"></div>
+          <div class="field"><label>📘 Facebook page URL</label><input id="lp-facebook" placeholder="https://fb.com/myanai"></div>
+          <div class="field"><label>💬 Messenger URL</label><input id="lp-messenger" placeholder="https://m.me/myanai"></div>
+          <div class="field"><label>📱 Viber URL</label><input id="lp-viber" placeholder="viber://chat?number=09xxxxxxxxx"></div>
+          <div class="field"><label>📸 Instagram</label><input id="lp-instagram" placeholder="https://instagram.com/myanai"></div>
+          <div class="field"><label>🎵 TikTok</label><input id="lp-tiktok" placeholder="https://tiktok.com/@myanai"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- DEMO tab -->
+    <div id="lp-panel-demo" style="display:none">
+      <div class="table-wrap" style="padding:1.3rem;max-width:700px">
+        <div style="font-weight:600;font-size:.9rem;margin-bottom:1rem;color:var(--muted)">Demo section text</div>
+        <div style="display:grid;gap:.9rem">
+          <div class="field"><label>Demo section heading</label><input id="lp-demo-heading" placeholder="Live Demo ကြည့်ပါ"></div>
+          <div class="field"><label>Demo section subtitle</label><input id="lp-demo-sub" placeholder="Sign up မလုပ်ဘဲ features အကုန် စမ်းနိုင်သည်"></div>
+          <div class="field"><label>Demo email (show to visitors)</label><input id="lp-demo-email" placeholder="demo@myanai.net"></div>
+          <div class="field"><label>Demo password (show to visitors)</label><input id="lp-demo-pass" placeholder="demo1234"></div>
+          <div class="field"><label>Demo button text</label><input id="lp-demo-btn" placeholder="🎭 Demo Admin ဝင်ကြည့် →"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- FOOTER tab -->
+    <div id="lp-panel-footer" style="display:none">
+      <div class="table-wrap" style="padding:1.3rem;max-width:700px">
+        <div style="font-weight:600;font-size:.9rem;margin-bottom:1rem;color:var(--muted)">Footer text</div>
+        <div style="display:grid;gap:.9rem">
+          <div class="field"><label>Copyright text</label><input id="lp-copyright" placeholder="© 2026 MyanAi · Made in Myanmar 🇲🇲"></div>
+          <div class="field"><label>Footer tagline</label><input id="lp-foot-tagline" placeholder="AI-powered software for Myanmar businesses"></div>
+        </div>
+      </div>
+    </div>
+
   </div>
 </div>
 
