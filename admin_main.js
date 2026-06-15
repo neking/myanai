@@ -2414,6 +2414,7 @@ function renderTenants(list) {
       <td style="font-size:.78rem;color:${expColor}">${expires}</td>
       <td><span style="font-size:.72rem;color:${t.is_active?'#059669':'#dc2626'}">${t.is_active?'✓ Active':'✗ Off'}</span></td>
       <td>
+        <button class="btn btn-ghost btn-sm" onclick="impersonateAsTenant(${t.id},'${t.name}')">👤 View</button>
         <button class="btn btn-ghost btn-sm" onclick="toggleTenant(${t.id},${t.is_active})">${t.is_active?'Disable':'Enable'}</button>
         <button class="btn btn-ghost btn-sm" onclick="setTenantExpiry(${t.id},'${t.name}')">📅</button>
       </td>
@@ -2432,6 +2433,18 @@ function filterTenants() {
     return matchQ && matchP;
   });
   renderTenants(filtered);
+}
+
+async function impersonateAsTenant(tid, name){
+  if(!confirm(`"${name}" tenant အဖြစ် ဝင်မလား?\n\nAudit log မှာ မှတ်တမ်းတင်မည်။`)) return;
+  const d = await fetch('admin.php?api=impersonate',{
+    method:'POST', headers:{'Content-Type':'application/json'}, credentials:'include',
+    body: JSON.stringify({tenant_id:tid})
+  }).then(r=>r.json());
+  if(d.ok){
+    toast(`✅ ${name} အဖြစ် ဝင်နေပြီ — tenant.php သို့ redirect မည်...`,'ok');
+    setTimeout(()=>window.open('tenant.php','_blank'),800);
+  } else toast(d.msg||'Error','err');
 }
 
 async function setTenantExpiry(tid, name) {
