@@ -46,6 +46,114 @@ if (!empty($_GET['slug'])) {
     if ($slugTenant) $_GET['tenant_id'] = $slugTenant;
 }
 $tid = tenantId();
+
+/* ═══════════════════════════════════════════
+   WRITE ACTIONS (POST) — add/edit/toggle/delete menu items
+   Requires valid tenant session or tenant_id param
+═══════════════════════════════════════════ */
+session_start();
+$action = $_GET['action'] ?? $_POST['action'] ?? '';
+
+if ($action && $_SERVER['REQUEST_METHOD'] === 'POST') {
+    header('Content-Type: application/json; charset=utf-8');
+
+    // Auth: must have tenant session OR valid tenant_id
+    $authTid = 0;
+    if (!empty($_SESSION['tenant_admin'])) {
+        $authTid = (int)($_SESSION['tenant_id'] ?? 0);
+    } elseif (!empty($_SESSION['admin'])) {
+        $authTid = $tid; // super-admin acting on behalf
+    }
+    if (!$authTid) {
+        echo json_encode(['ok'=>false,'msg'=>'Unauthorized']); exit;
+    }
+
+    $b = json_decode(file_get_contents('php://input'), true) ?? [];
+
+    /* ── ADD ITEM ── */
+    if ($action === 'add_item') {
+        $name     = trim($b['name'] ?? '');
+        $price    = (int)($b['price'] ?? 0);
+        $category = trim($b['category'] ?? 'Main');
+        $emoji    = trim($b['emoji'] ?? '🍽');
+        $desc     = trim($b['description'] ?? '');
+        $stock    = (int)($b['stock_qty'] ?? 100);
+        $active   = isset($b['is_active']) ? (int)$b['is_active'] : 1;
+        $bid      = (int)($b['branch_id'] ?? 0);
+
+        if (!$name || !$price) {
+            echo json_encode(['ok'=>false,'msg'=>'Name and price required']); exit;
+        }
+
+        // Check plan limit
+        $countStmt = $pdo->prepare("SELECT COUNT(*) FROM menu_items WHERE tenant_id=?");
+        $countStmt->execute([$authTid]);
+        $current = (int)$countStmt->fetchColumn();
+
+        $planStmt = $pdo->prepare("SELECT plan FROM tenants WHERE id=?");
+        $planStmt->execute([$authTid]);
+        $plan = $planStmt->fetchColumn() ?: 'free';
+        $limits = ['free'=>20,'basic'=>50,'pro'=>200,'enterprise'=>500];
+        $limit = $limits[$plan] ?? 20;
+        if ($current >= $limit) {
+            echo json_encode(['ok'=>false,'msg'=>"Plan limit reached ($current/$limit). Upgrade to add more items."]); exit;
+        }
+
+        $stmt = $pdo->prepare("INSERT INTO menu_items
+            (tenant_id,branch_id,name,description,price,category,emoji,is_active,stock_qty,sort_order)
+            VALUES (?,?,?,?,?,?,?,?,?,?)");
+        $stmt->execute([$authTid,$bid,$name,$desc,$price,$category,$emoji,$active,$stock,$current+1]);
+        echo json_encode(['ok'=>true,'id'=>$pdo->lastInsertId(),'msg'=>'Item added']);
+        exit;
+    }
+
+    /* ── EDIT ITEM ── */
+    if ($action === 'edit_item') {
+        $id       = (int)($b['id'] ?? 0);
+        $name     = trim($b['name'] ?? '');
+        $price    = (int)($b['price'] ?? 0);
+        $category = trim($b['category'] ?? 'Main');
+        $emoji    = trim($b['emoji'] ?? '🍽');
+        $desc     = trim($b['description'] ?? '');
+        $stock    = (int)($b['stock_qty'] ?? 0);
+        $active   = isset($b['is_active']) ? (int)$b['is_active'] : 1;
+
+        if (!$id || !$name || !$price) {
+            echo json_encode(['ok'=>false,'msg'=>'ID, name, price required']); exit;
+        }
+
+        $stmt = $pdo->prepare("UPDATE menu_items
+            SET name=?,description=?,price=?,category=?,emoji=?,is_active=?,stock_qty=?,updated_at=NOW()
+            WHERE id=? AND tenant_id=?");
+        $stmt->execute([$name,$desc,$price,$category,$emoji,$active,$stock,$id,$authTid]);
+        echo json_encode(['ok'=>true,'msg'=>'Item updated']);
+        exit;
+    }
+
+    /* ── TOGGLE ITEM STATUS ── */
+    if ($action === 'toggle_item') {
+        $id     = (int)($b['id'] ?? 0);
+        $active = (int)($b['is_active'] ?? 0);
+        if (!$id) { echo json_encode(['ok'=>false,'msg'=>'ID required']); exit; }
+        $pdo->prepare("UPDATE menu_items SET is_active=?,updated_at=NOW() WHERE id=? AND tenant_id=?")
+            ->execute([$active,$id,$authTid]);
+        echo json_encode(['ok'=>true]);
+        exit;
+    }
+
+    /* ── DELETE ITEM ── */
+    if ($action === 'delete_item') {
+        $id = (int)($b['id'] ?? 0);
+        if (!$id) { echo json_encode(['ok'=>false,'msg'=>'ID required']); exit; }
+        $pdo->prepare("DELETE FROM menu_items WHERE id=? AND tenant_id=?")->execute([$id,$authTid]);
+        echo json_encode(['ok'=>true,'msg'=>'Item deleted']);
+        exit;
+    }
+
+    echo json_encode(['ok'=>false,'msg'=>'Unknown action']); exit;
+}
+
+
     $stmt = $pdo->prepare("
         SELECT id, name, category, description, price, stock_qty, emoji, image_path
         FROM menu_items
