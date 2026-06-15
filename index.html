@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<title>NoodleHaus — Online Order</title>
+<title>MyanAi POS — Order Online</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,700;1,700&family=Fredoka+One&family=Cormorant+Garamond:ital,wght@0,600;1,600&family=Pacifico&family=DM+Mono&family=Noto+Sans+Myanmar&family=Noto+Sans+SC&display=swap" rel="stylesheet">
 <style>
@@ -723,11 +723,11 @@ header{
 
 <!-- FOOTER -->
 <footer id="site-footer">
-  <div id="footer-store-name" style="font-family:'Playfair Display',serif;font-size:1.1rem;color:#fff;margin-bottom:.4rem">NoodleHaus</div>
+  <div id="footer-store-name" style="font-family:'Playfair Display',serif;font-size:1.1rem;color:#fff;margin-bottom:.4rem">MyanAi POS</div>
   <div id="footer-phone" style="font-size:.82rem;margin-bottom:.2rem"></div>
   <div id="footer-address" style="font-size:.82rem;margin-bottom:.6rem"></div>
   <div id="footer-social" style="display:flex;gap:.5rem;flex-wrap:wrap;margin-bottom:.8rem"></div>
-  <div id="footer-copyright" style="font-size:.75rem;opacity:.6">© 2026 NoodleHaus</div>
+  <div id="footer-copyright" style="font-size:.75rem;opacity:.6">© 2026 MyanAi</div>
   <div style="text-align:center;padding:.75rem;border-top:0.5px solid var(--border,#eee)">
     <a href="#" onclick="showTrackModal();return false;" style="font-size:.8rem;color:var(--muted,#888);text-decoration:none">
       📋 Track your order
@@ -1056,7 +1056,7 @@ window.applyTheme = function(bizType) {
   const logoEl = document.querySelector('.logo');
   if (logoEl && t.hero.emoji) {
     const spans = logoEl.querySelectorAll('span');
-    if (spans.length === 0) logoEl.textContent = t.hero.emoji + ' ' + (window._TENANT_NAME || 'NoodleHaus');
+    if (spans.length === 0) logoEl.textContent = t.hero.emoji + ' ' + (window._TENANT_NAME || 'MyanAi POS');
   }
   window._BIZ_THEME = t;
   // Inject theme CSS
