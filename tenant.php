@@ -686,7 +686,19 @@ td{padding:.65rem .9rem;color:var(--ink)}
   </div>
 </div>
 <div id="page-stocklog" class="page" style="display:none"><div class="content"><div id="stocklog-content"><div style="color:var(--muted)">Loading...</div></div></div></div>
-<div id="page-shift" class="page" style="display:none"><div class="content"><div id="shift-content"><div style="color:var(--muted)">Loading...</div></div></div></div>
+<div id="page-shift" class="page" style="display:none">
+  <div class="content">
+    <div class="table-wrap">
+      <div class="table-toolbar" style="padding:.6rem 1rem;border-bottom:0.5px solid var(--border);display:flex;gap:.5rem;align-items:center">
+        <input id="shift-date-filter" type="date" style="padding:.4rem .6rem;border:0.5px solid var(--border);border-radius:8px;background:var(--warm);color:var(--ink);font-size:.82rem" onchange="loadShifts()">
+        <span style="font-size:.82rem;color:var(--muted)">Filter by date</span>
+        <button class="btn btn-primary btn-sm" style="margin-left:auto" onclick="openAddShift()">+ Add shift</button>
+      </div>
+      <table><thead><tr><th>Staff</th><th>Date</th><th>Shift</th><th>Time</th><th>Notes</th><th>Action</th></tr></thead>
+      <tbody id="shifts-tbody"><tr><td colspan="6" style="text-align:center;padding:2rem;color:var(--muted)">Loading...</td></tr></tbody></table>
+    </div>
+  </div>
+</div>
 <div id="page-delivery" class="page" style="display:none">
   <div class="page-head">
     <div style="display:flex;align-items:center;gap:.75rem"><button class="hamburger" onclick="openSidebar()">☰</button><span style="font-size:.95rem;font-weight:600">Delivery</span></div>
@@ -753,10 +765,62 @@ td{padding:.65rem .9rem;color:var(--ink)}
   </div>
 </div>
 <div id="page-schedule" class="page" style="display:none">
-  <div class="page-head">
-    <div style="display:flex;align-items:center;gap:.75rem"><button class="hamburger" onclick="openSidebar()">☰</button><span style="font-size:.95rem;font-weight:600">Scheduling</span></div>
+  <div class="content">
+    <div style="max-width:800px">
+      <!-- Week selector -->
+      <div class="table-wrap" style="padding:1rem;margin-bottom:1rem;display:flex;align-items:center;gap:1rem;flex-wrap:wrap">
+        <button class="btn btn-ghost btn-sm" onclick="schedWeek(-1)">← Prev</button>
+        <span id="sched-week-label" style="font-weight:600;font-size:.9rem"></span>
+        <button class="btn btn-ghost btn-sm" onclick="schedWeek(1)">Next →</button>
+        <button class="btn btn-ghost btn-sm" onclick="schedWeek(0)">Today</button>
+        <button class="btn btn-primary btn-sm" style="margin-left:auto" onclick="openAddShift()">+ Add shift</button>
+      </div>
+      <!-- Schedule grid -->
+      <div class="table-wrap" style="padding:0;overflow-x:auto">
+        <table id="sched-table" style="min-width:600px">
+          <thead><tr id="sched-head">
+            <th style="width:100px">Staff</th>
+          </tr></thead>
+          <tbody id="sched-body"></tbody>
+        </table>
+      </div>
+      <!-- Shift legend -->
+      <div style="display:flex;gap:.75rem;flex-wrap:wrap;margin-top:.75rem;font-size:.78rem;color:var(--muted)">
+        <span>🟢 Morning</span><span>🔵 Afternoon</span><span>🟣 Evening</span><span>⚫ Day off</span>
+      </div>
+    </div>
   </div>
-  <div class="content"><div style="color:var(--muted);padding:2rem;text-align:center">Scheduling feature coming soon.</div></div>
+  <!-- Add Shift Modal -->
+  <div class="modal-overlay" id="modal-add-shift">
+    <div class="modal">
+      <div class="modal-head"><span class="modal-title">Add Shift</span><button class="modal-close" onclick="closeModal('modal-add-shift')">✕</button></div>
+      <div style="display:grid;gap:.75rem">
+        <div class="field"><label>Staff member</label>
+          <select id="shift-staff" style="width:100%;padding:.5rem .7rem;border:0.5px solid var(--border);border-radius:8px;background:var(--warm);color:var(--ink)">
+            <option value="">Select staff...</option>
+          </select>
+        </div>
+        <div class="field"><label>Date</label><input id="shift-date" type="date"></div>
+        <div class="field"><label>Shift type</label>
+          <select id="shift-type" style="width:100%;padding:.5rem .7rem;border:0.5px solid var(--border);border-radius:8px;background:var(--warm);color:var(--ink)">
+            <option value="morning">🟢 Morning (6am–2pm)</option>
+            <option value="afternoon">🔵 Afternoon (2pm–10pm)</option>
+            <option value="evening">🟣 Evening (6pm–2am)</option>
+            <option value="off">⚫ Day off</option>
+          </select>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:.75rem">
+          <div class="field"><label>Start time</label><input id="shift-start" type="time" value="09:00"></div>
+          <div class="field"><label>End time</label><input id="shift-end" type="time" value="17:00"></div>
+        </div>
+        <div class="field"><label>Notes</label><input id="shift-notes" placeholder="Optional notes"></div>
+      </div>
+      <div style="margin-top:1rem;display:flex;gap:.5rem;justify-content:flex-end">
+        <button class="btn btn-ghost" onclick="closeModal('modal-add-shift')">Cancel</button>
+        <button class="btn btn-primary" onclick="saveShift()">Save shift</button>
+      </div>
+    </div>
+  </div>
 </div>
 <div id="page-backup" class="page" style="display:none">
   <div class="content">
@@ -985,6 +1049,8 @@ function showPage(page){
     promos:   `<button class="btn btn-primary btn-sm" onclick="openAddPromo()">+ Add promo</button>`,
     reserve:  `<button class="btn btn-primary btn-sm" onclick="openAddReserve()">+ New reservation</button>`,
     delivery: `<a href="driver.html" target="_blank" class="btn btn-ghost btn-sm">🛵 Driver app</a>`,
+    shift:    `<button class="btn btn-primary btn-sm" onclick="openAddShift()">+ Add shift</button>`,
+    schedule: `<button class="btn btn-primary btn-sm" onclick="openAddShift()">+ Add shift</button>`,
   };
   const tbAction = document.getElementById('topbar-action');
   if(tbAction) tbAction.innerHTML = actions[page] || '';
@@ -1009,6 +1075,8 @@ function showPage(page){
   if(page==='schedule')   if(typeof schedLoad==='function') schedLoad();
   if(page==='backup')     loadBackupPage();
   if(page==='storefront') loadStorefront();
+  if(page==='shift')      loadShifts();
+  if(page==='schedule')   loadSchedule();
 
   closeSidebar();
 }
@@ -1324,6 +1392,30 @@ function branchLoad(){const el=document.getElementById('branches-content');if(el
 function schedLoad(){const el=document.getElementById('schedule-content');if(el)el.innerHTML='<div style="color:var(--muted);padding:1rem">Schedule loading...</div>';}
 function loadTables(){const el=document.getElementById('tables-content');if(el)el.innerHTML='<div style="color:var(--muted);padding:1rem">Tables loading...</div>';}
 function openEditItem(id){toast('Edit item #'+id);}
+
+/* ── QR Code generator (api.qrserver.com) ── */
+function generateQR(url){
+  const canvas = document.getElementById('qr-canvas');
+  if(!canvas||!url||url==='Loading...') return;
+  const img = new Image(); img.crossOrigin='anonymous';
+  img.onload = ()=>{
+    const ctx=canvas.getContext('2d');
+    ctx.clearRect(0,0,160,160);
+    ctx.drawImage(img,0,0,160,160);
+  };
+  img.onerror = ()=>{ /* silently fail - external image */ };
+  img.src = `https://api.qrserver.com/v1/create-qr-code/?size=160x160&data=${encodeURIComponent(url)}`;
+}
+
+function downloadQR(){
+  const url = document.getElementById('sf-order-url')?.textContent;
+  if(!url||url==='Loading...'){ toast('QR not ready yet','err'); return; }
+  const a = document.createElement('a');
+  a.href = `https://api.qrserver.com/v1/create-qr-code/?size=400x400&data=${encodeURIComponent(url)}`;
+  a.download = 'myanai-order-qr.png'; a.target='_blank';
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  toast('✅ QR download started','ok');
+}
 </script>
 
 
@@ -1821,3 +1913,151 @@ async function saveStorefront(){
 </script>
 </body>
 </html>
+<script>
+/* ═══ SHIFT & SCHEDULE JS ═══ */
+
+var _schedWeekOffset = 0;
+var _schedStaff = [];
+var _schedShifts = [];
+
+/* ── Week navigation ── */
+function getWeekDates(offset=0){
+  const now = new Date();
+  const day = now.getDay() || 7; // Mon=1
+  const mon = new Date(now); mon.setDate(now.getDate()-day+1+offset*7);
+  const days = [];
+  for(let i=0;i<7;i++){
+    const d = new Date(mon); d.setDate(mon.getDate()+i);
+    days.push(d);
+  }
+  return days;
+}
+
+function schedWeek(dir){
+  if(dir===0) _schedWeekOffset=0;
+  else _schedWeekOffset+=dir;
+  loadSchedule();
+}
+
+function fmtDate(d){ return d.toISOString().slice(0,10); }
+function fmtDay(d){ return d.toLocaleDateString('en',{weekday:'short',day:'numeric',month:'short'}); }
+
+/* ── Load Schedule (weekly grid) ── */
+async function loadSchedule(){
+  const days = getWeekDates(_schedWeekOffset);
+  const lbl = document.getElementById('sched-week-label');
+  if(lbl) lbl.textContent = `${fmtDay(days[0])} — ${fmtDay(days[6])}`;
+
+  // Build header
+  const head = document.getElementById('sched-head');
+  if(head) head.innerHTML = '<th style="min-width:100px;font-size:.78rem">Staff</th>' +
+    days.map(d=>`<th style="font-size:.75rem;text-align:center;padding:.4rem .3rem">${fmtDay(d)}</th>`).join('');
+
+  // Load staff + shifts in parallel
+  const [staffRes, shiftsRes] = await Promise.all([
+    api('staff'),
+    fetch(`shift_api.php?action=list&week=${fmtDate(days[0]).slice(0,7)}-W${getISOWeek(days[0])}`,{credentials:'include'}).then(r=>r.json()).catch(()=>({ok:false,shifts:[]}))
+  ]);
+
+  _schedStaff  = staffRes.staff  || [];
+  _schedShifts = shiftsRes.shifts || [];
+
+  // Populate shift staff selector
+  const sel = document.getElementById('shift-staff');
+  if(sel) sel.innerHTML = '<option value="">Select staff...</option>' +
+    _schedStaff.map(s=>`<option value="${s.id}">${s.name} (${s.role})</option>`).join('');
+
+  // Build body
+  const tbody = document.getElementById('sched-body');
+  if(!tbody) return;
+  if(!_schedStaff.length){ tbody.innerHTML='<tr><td colspan="8" style="text-align:center;padding:2rem;color:var(--muted)">No staff found</td></tr>'; return; }
+
+  const shiftColors={morning:'#10b981',afternoon:'#3b82f6',evening:'#8b5cf6',off:'#6b7280',custom:'#f59e0b'};
+  const shiftEmoji ={morning:'🟢',afternoon:'🔵',evening:'🟣',off:'⚫',custom:'🟡'};
+
+  tbody.innerHTML = _schedStaff.map(st=>`<tr>
+    <td style="font-weight:500;font-size:.82rem;white-space:nowrap">${escH(st.name)}<div style="font-size:.7rem;color:var(--muted)">${st.role}</div></td>
+    ${days.map(d=>{
+      const dateStr = fmtDate(d);
+      const shift   = _schedShifts.find(s=>s.staff_id==st.id && s.shift_date===dateStr);
+      return `<td style="text-align:center;padding:.3rem">
+        ${shift ? `<div style="font-size:.75rem;background:${shiftColors[shift.shift_type]||'#888'}22;color:${shiftColors[shift.shift_type]||'#888'};border-radius:6px;padding:3px 6px;cursor:pointer" onclick="deleteShift(${shift.id})" title="${shift.start_time||''}-${shift.end_time||''}">${shiftEmoji[shift.shift_type]||''}<br>${shift.shift_type}</div>`
+        : `<button style="font-size:.75rem;background:none;border:0.5px dashed var(--border);border-radius:6px;padding:3px 8px;color:var(--muted);cursor:pointer" onclick="quickAddShift(${st.id},'${dateStr}')">+</button>`}
+      </td>`;
+    }).join('')}
+  </tr>`).join('');
+}
+
+function getISOWeek(d){
+  const dt=new Date(d); dt.setHours(0,0,0,0); dt.setDate(dt.getDate()+4-(dt.getDay()||7));
+  const y=new Date(dt.getFullYear(),0,1);
+  return Math.ceil((((dt-y)/86400000)+1)/7);
+}
+
+/* ── Load Shifts (daily list) ── */
+async function loadShifts(){
+  const dateFilter = document.getElementById('shift-date-filter')?.value || fmtDate(new Date());
+  if(!document.getElementById('shift-date-filter')?.value){
+    const el = document.getElementById('shift-date-filter');
+    if(el) el.value = dateFilter;
+  }
+  const d = await fetch(`shift_api.php?action=list&date=${dateFilter}`,{credentials:'include'}).then(r=>r.json()).catch(()=>({ok:false}));
+  const tbody = document.getElementById('shifts-tbody');
+  if(!tbody) return;
+  const list = d.shifts||[];
+  if(!list.length){ tbody.innerHTML='<tr><td colspan="6" style="text-align:center;padding:2rem;color:var(--muted)">No shifts for this date</td></tr>'; return; }
+  const shiftEmoji={morning:'🟢',afternoon:'🔵',evening:'🟣',off:'⚫',custom:'🟡'};
+  tbody.innerHTML = list.map(s=>`<tr>
+    <td style="font-weight:500">${escH(s.staff_name||'—')}</td>
+    <td style="font-size:.8rem;color:var(--muted)">${s.shift_date}</td>
+    <td>${shiftEmoji[s.shift_type]||''} ${s.shift_type}</td>
+    <td style="font-size:.8rem">${s.start_time?.slice(0,5)||''} – ${s.end_time?.slice(0,5)||''}</td>
+    <td style="font-size:.78rem;color:var(--muted)">${s.notes||'—'}</td>
+    <td><button class="btn btn-ghost btn-sm" onclick="deleteShift(${s.id})" style="color:#dc2626">✗</button></td>
+  </tr>`).join('');
+}
+
+/* ── Add Shift Modal ── */
+function openAddShift(){
+  document.getElementById('shift-date').value = fmtDate(new Date());
+  if(!_schedStaff.length){
+    api('staff').then(d=>{ _schedStaff=d.staff||[];
+      const sel=document.getElementById('shift-staff');
+      if(sel) sel.innerHTML='<option value="">Select staff...</option>'+_schedStaff.map(s=>`<option value="${s.id}">${s.name}</option>`).join('');
+    });
+  }
+  openModal('modal-add-shift');
+}
+
+function quickAddShift(staffId, date){
+  document.getElementById('shift-staff').value = staffId;
+  document.getElementById('shift-date').value  = date;
+  openModal('modal-add-shift');
+}
+
+async function saveShift(){
+  const staffId = document.getElementById('shift-staff').value;
+  const date    = document.getElementById('shift-date').value;
+  const type    = document.getElementById('shift-type').value;
+  const start   = document.getElementById('shift-start').value;
+  const end     = document.getElementById('shift-end').value;
+  const notes   = document.getElementById('shift-notes').value.trim();
+  if(!staffId||!date){ toast('Staff and date required','err'); return; }
+  const d = await fetch('shift_api.php?action=add',{
+    method:'POST', headers:{'Content-Type':'application/json'}, credentials:'include',
+    body: JSON.stringify({staff_id:staffId,shift_date:date,shift_type:type,start_time:start,end_time:end,notes})
+  }).then(r=>r.json()).catch(()=>({ok:false}));
+  if(d.ok){ toast('✅ Shift saved','ok'); closeModal('modal-add-shift'); loadSchedule(); loadShifts(); }
+  else toast(d.msg||'Error','err');
+}
+
+async function deleteShift(id){
+  if(!confirm('Delete this shift?')) return;
+  const d = await fetch('shift_api.php?action=delete',{
+    method:'POST', headers:{'Content-Type':'application/json'}, credentials:'include',
+    body: JSON.stringify({id})
+  }).then(r=>r.json()).catch(()=>({ok:false}));
+  if(d.ok){ toast('Shift deleted','ok'); loadSchedule(); loadShifts(); }
+  else toast('Error','err');
+}
+</script>
