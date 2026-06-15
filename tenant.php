@@ -751,14 +751,7 @@ td{padding:.65rem .9rem;color:var(--ink)}
 </div>
 
 <script>
-/* ── Auto-init if already logged in ── */
-if(window.__IS_TENANT && window.__TENANT_ID > 0){
-  initShell();
-  showPage('dashboard');
-}
 </script>
-</body>
-</html>
     </div>
   </div>
 </div>
@@ -1549,3 +1542,12 @@ function openAddPromo(){ toast('Promo form — coming soon'); }
 /* ── Tenant slug for index.html links ── */
 window.__TENANT_SLUG = '<?= $_SESSION["tenant_slug"] ?? "demo" ?>';
 </script>
+<script>
+/* ── Auto-init if already logged in ── */
+if(window.__IS_TENANT && window.__TENANT_ID > 0){
+  initShell();
+  showPage('dashboard');
+}
+</script>
+</body>
+</html>
