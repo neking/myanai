@@ -3,618 +3,386 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>NoodleHaus POS — မြန်မာ F&B Operating System</title>
+<title id="page-title">MyanAi — Myanmar AI Products Platform</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,700;1,700&display=swap" rel="stylesheet">
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{
-  --bg:       #0C0908;
-  --bg2:      #141009;
-  --bg3:      #1C1610;
-  --card:     #1E1812;
-  --border:   #2E2418;
-  --border2:  #3A2E20;
-  --gold:     #E8A030;
-  --gold-dim: #7A5218;
-  --gold-glow:#FFC55A;
-  --chili:    #D44040;
-  --chili-dim:#6A1A1A;
-  --text:     #F0E8DC;
-  --text-mid: #B09880;
-  --text-dim: #6A5848;
-  --green:    #3DB87A;
-  --green-dim:#1A5034;
+  --bg:#09090b;--bg2:#111116;--bg3:#18181f;
+  --card:#1c1c24;--border:#2a2a38;--border2:#363648;
+  --gold:#a78bfa;--gold-dim:#4c1d95;--gold-glow:#c4b5fd;
+  --accent:#6366f1;--accent2:#818cf8;
+  --text:#f8fafc;--text-mid:#94a3b8;--text-dim:#475569;
+  --radius:14px;--radius-sm:8px;
+  --glow:0 0 40px rgba(99,102,241,.15);
 }
 html{scroll-behavior:smooth}
-body{background:var(--bg);color:var(--text);font-family:'Inter',system-ui,sans-serif;font-size:16px;line-height:1.6;overflow-x:hidden}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);line-height:1.6;overflow-x:hidden}
 
-/* ── NAV ─────────────────────────────────────────────────────────── */
-nav{position:fixed;top:0;left:0;right:0;z-index:100;padding:0 5vw;height:60px;display:flex;align-items:center;justify-content:space-between;background:rgba(12,9,8,.88);backdrop-filter:blur(14px);border-bottom:1px solid var(--border)}
-.nav-logo{display:flex;align-items:center;gap:10px;text-decoration:none}
-.nav-logo-icon{width:32px;height:32px;background:var(--gold);border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0}
-.nav-logo-text{font-family:'Playfair Display',Georgia,serif;font-size:18px;font-weight:700;color:var(--text);letter-spacing:.01em}
+/* ── ANNOUNCEMENT ── */
+#ann-banner{display:none;padding:.6rem 1rem;text-align:center;font-size:.85rem;font-weight:500}
+
+/* ── NAV ── */
+nav{position:fixed;top:0;left:0;right:0;z-index:100;padding:1rem 5vw;display:flex;align-items:center;gap:2rem;background:rgba(9,9,11,.85);backdrop-filter:blur(20px);border-bottom:0.5px solid var(--border);transition:background .3s}
+.nav-logo{display:flex;align-items:center;gap:.6rem;text-decoration:none}
+.nav-logo-mark{width:32px;height:32px;border-radius:10px;background:var(--accent);display:flex;align-items:center;justify-content:center;font-size:.85rem;font-weight:700;color:#fff}
+.nav-logo-text{font-size:1rem;font-weight:700;letter-spacing:-.4px;color:var(--text)}
 .nav-logo-text span{color:var(--gold)}
-.nav-links{display:flex;align-items:center;gap:28px}
-.nav-links a{color:var(--text-mid);text-decoration:none;font-size:14px;font-weight:400;transition:color .2s}
+.nav-links{display:flex;gap:1.5rem;margin-left:auto}
+.nav-links a{color:var(--text-mid);text-decoration:none;font-size:.88rem;transition:color .15s}
 .nav-links a:hover{color:var(--text)}
-.nav-cta{background:var(--gold);color:#0C0908;border:none;padding:8px 20px;border-radius:6px;font-size:14px;font-weight:600;cursor:pointer;transition:background .2s;font-family:'Inter',sans-serif;text-decoration:none}
-.nav-cta:hover{background:var(--gold-glow)}
-@media(max-width:640px){.nav-links{display:none}}
+.nav-cta{background:var(--accent);color:#fff;padding:.45rem 1.1rem;border-radius:8px;text-decoration:none;font-size:.85rem;font-weight:600;transition:opacity .15s}
+.nav-cta:hover{opacity:.85}
 
-/* ── HERO ─────────────────────────────────────────────────────────── */
-.hero{min-height:100vh;padding:100px 5vw 60px;display:grid;grid-template-columns:1fr 1fr;gap:60px;align-items:center;position:relative;overflow:hidden}
-.hero::before{content:'';position:absolute;top:-20%;left:-10%;width:60%;height:80%;background:radial-gradient(ellipse,rgba(232,160,48,.07) 0%,transparent 70%);pointer-events:none}
-@media(max-width:900px){.hero{grid-template-columns:1fr;padding:100px 6vw 60px;gap:40px}}
+/* ── HERO ── */
+.hero{min-height:100vh;padding:120px 5vw 80px;display:grid;grid-template-columns:1fr 1fr;gap:60px;align-items:center;position:relative;overflow:hidden;max-width:1200px;margin:0 auto}
+.hero::before{content:'';position:absolute;top:20%;left:30%;width:600px;height:600px;background:radial-gradient(circle,rgba(99,102,241,.12) 0%,transparent 70%);pointer-events:none}
+.hero-label{display:inline-flex;align-items:center;gap:.5rem;font-size:.78rem;font-weight:600;color:var(--accent2);background:rgba(99,102,241,.1);border:0.5px solid rgba(99,102,241,.2);padding:.3rem .75rem;border-radius:99px;margin-bottom:1.5rem;text-transform:uppercase;letter-spacing:.06em}
+.hero-h1{font-size:clamp(2.2rem,5vw,3.8rem);font-weight:700;letter-spacing:-.03em;line-height:1.1;margin-bottom:1.2rem}
+.hero-h1 em{font-style:normal;color:var(--gold)}
+.hero-sub{font-size:1rem;color:var(--text-mid);line-height:1.7;margin-bottom:.75rem;max-width:480px}
+.hero-desc{font-size:.88rem;color:var(--text-dim);line-height:1.7;margin-bottom:2rem;max-width:480px}
+.hero-btns{display:flex;gap:.75rem;flex-wrap:wrap}
+.btn-primary{background:var(--accent);color:#fff;padding:.7rem 1.5rem;border-radius:10px;text-decoration:none;font-weight:600;font-size:.9rem;transition:all .15s;display:inline-flex;align-items:center;gap:.4rem}
+.btn-primary:hover{background:var(--accent2);transform:translateY(-1px)}
+.btn-secondary{background:rgba(255,255,255,.06);color:var(--text);padding:.7rem 1.5rem;border-radius:10px;text-decoration:none;font-weight:500;font-size:.9rem;border:0.5px solid var(--border2);transition:all .15s}
+.btn-secondary:hover{background:rgba(255,255,255,.1)}
+.hero-right{position:relative}
 
-.hero-label{display:inline-flex;align-items:center;gap:8px;font-size:12px;font-weight:500;color:var(--gold);letter-spacing:.12em;text-transform:uppercase;border:1px solid var(--gold-dim);padding:5px 12px;border-radius:20px;margin-bottom:20px}
-.hero-label::before{content:'';width:6px;height:6px;background:var(--gold);border-radius:50%;animation:pulse 2s infinite}
-@keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.5;transform:scale(1.4)}}
+/* ── MOCK DASHBOARD ── */
+.mock-shell{background:var(--bg3);border:0.5px solid var(--border);border-radius:16px;overflow:hidden;box-shadow:var(--glow),0 40px 80px rgba(0,0,0,.5)}
+.mock-topbar{background:var(--bg2);padding:.6rem 1rem;display:flex;align-items:center;gap:.5rem;border-bottom:0.5px solid var(--border)}
+.mock-dot{width:10px;height:10px;border-radius:50%}
+.mock-title{font-size:.72rem;color:var(--text-mid);margin-left:.5rem}
+.mock-body{padding:1rem;display:flex;flex-direction:column;gap:.75rem}
+.mock-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:.5rem}
+.mock-stat{background:var(--bg2);border-radius:8px;padding:.6rem .75rem;border:0.5px solid var(--border)}
+.mock-stat-val{font-size:1.1rem;font-weight:600}
+.mock-stat-lbl{font-size:.68rem;color:var(--text-mid);margin-top:2px}
+.mock-orders{background:var(--bg2);border-radius:8px;border:0.5px solid var(--border);overflow:hidden}
+.mock-order-head{padding:.5rem .75rem;font-size:.7rem;color:var(--text-mid);border-bottom:0.5px solid var(--border);font-weight:600;text-transform:uppercase;letter-spacing:.06em}
+.mock-order-row{display:flex;align-items:center;gap:.5rem;padding:.45rem .75rem;border-bottom:0.5px solid var(--border);font-size:.72rem}
+.mock-order-row:last-child{border-bottom:none}
+.mock-badge{font-size:.6rem;padding:1px 6px;border-radius:99px;font-weight:600}
+.badge-new{background:rgba(99,102,241,.2);color:#818cf8}
+.badge-cook{background:rgba(245,158,11,.2);color:#fbbf24}
+.badge-done{background:rgba(5,150,105,.2);color:#34d399}
 
-.hero-h1{font-family:'Playfair Display',Georgia,serif;font-size:clamp(38px,5vw,62px);font-weight:900;line-height:1.1;letter-spacing:-.02em;color:var(--text);margin-bottom:10px}
-.hero-h1 em{font-style:italic;color:var(--gold)}
-.hero-my{font-size:clamp(20px,3vw,28px);color:var(--text-mid);font-weight:300;margin-bottom:22px;line-height:1.5}
-.hero-desc{font-size:15px;color:var(--text-mid);line-height:1.7;margin-bottom:36px;max-width:440px}
+/* ── PRODUCTS ── */
+.products-section{padding:80px 5vw;max-width:1200px;margin:0 auto}
+.section-eye{font-size:.75rem;font-weight:600;color:var(--accent2);text-transform:uppercase;letter-spacing:.1em;margin-bottom:.75rem}
+.section-h2{font-size:clamp(1.6rem,3.5vw,2.4rem);font-weight:700;letter-spacing:-.03em;margin-bottom:.75rem}
+.section-sub{font-size:.95rem;color:var(--text-mid);margin-bottom:3rem;max-width:500px}
+#products-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:1.5rem}
+.product-card{background:var(--card);border:0.5px solid var(--border);border-radius:var(--radius);padding:1.5rem;transition:all .2s;cursor:pointer;text-decoration:none;display:block}
+.product-card:hover{border-color:var(--accent);transform:translateY(-2px);box-shadow:var(--glow)}
+.product-icon{font-size:2rem;margin-bottom:1rem}
+.product-name{font-size:1rem;font-weight:600;margin-bottom:.4rem}
+.product-desc{font-size:.83rem;color:var(--text-mid);line-height:1.6}
+.product-tag{display:inline-block;font-size:.68rem;padding:2px 8px;border-radius:99px;margin-top:.75rem;font-weight:600}
+.tag-live{background:rgba(5,150,105,.15);color:#34d399}
+.tag-soon{background:rgba(100,116,139,.15);color:#94a3b8}
 
-.hero-btns{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:44px}
-.btn-primary{background:var(--gold);color:#0C0908;padding:13px 28px;border-radius:8px;font-size:15px;font-weight:600;text-decoration:none;transition:all .2s;display:inline-flex;align-items:center;gap:8px;border:none;cursor:pointer;font-family:'Inter',sans-serif}
-.btn-primary:hover{background:var(--gold-glow);transform:translateY(-1px);box-shadow:0 8px 24px rgba(232,160,48,.3)}
-.btn-secondary{background:transparent;color:var(--text);padding:13px 28px;border-radius:8px;font-size:15px;font-weight:500;text-decoration:none;transition:all .2s;display:inline-flex;align-items:center;gap:8px;border:1px solid var(--border2)}
-.btn-secondary:hover{border-color:var(--gold);color:var(--gold)}
-
-.hero-social-proof{display:flex;align-items:center;gap:16px}
-.avatars{display:flex}
-.avatar{width:32px;height:32px;border-radius:50%;border:2px solid var(--bg);background:var(--bg3);display:flex;align-items:center;justify-content:center;font-size:12px;margin-left:-8px;overflow:hidden}
-.avatar:first-child{margin-left:0}
-.avatar-img{width:100%;height:100%;object-fit:cover}
-.sp-text{font-size:13px;color:var(--text-mid)}
-.sp-text strong{color:var(--text)}
-
-/* ── ORDER TICKER (hero right) ──────────────────────────────────── */
-.hero-visual{position:relative;height:520px}
-@media(max-width:900px){.hero-visual{height:360px}}
-
-.kds-screen{background:var(--card);border:1px solid var(--border2);border-radius:16px;overflow:hidden;height:100%;display:flex;flex-direction:column;position:relative}
-.kds-screen::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(232,160,48,.04) 0%,transparent 60%);pointer-events:none}
-.kds-bar{background:var(--bg3);padding:12px 16px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border)}
-.kds-title{font-size:12px;font-weight:600;letter-spacing:.08em;color:var(--gold);text-transform:uppercase}
-.kds-dot{display:flex;gap:6px}
-.kds-dot span{width:8px;height:8px;border-radius:50%}
-.kds-feed{flex:1;padding:12px;overflow:hidden;position:relative}
-.order-card{background:var(--bg2);border:1px solid var(--border2);border-radius:10px;padding:12px 14px;margin-bottom:8px;transition:all .4s;animation:slideIn .4s ease forwards}
-.order-card.new{border-color:var(--gold);box-shadow:0 0 12px rgba(232,160,48,.15)}
-.order-card.done{opacity:.45;border-color:var(--border)}
-@keyframes slideIn{from{opacity:0;transform:translateY(-12px)}to{opacity:1;transform:translateY(0)}}
-.oc-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
-.oc-table{font-size:12px;font-weight:600;color:var(--text);display:flex;align-items:center;gap:6px}
-.oc-badge{font-size:10px;padding:2px 7px;border-radius:10px;font-weight:600}
-.badge-new{background:rgba(232,160,48,.15);color:var(--gold)}
-.badge-cooking{background:rgba(212,64,64,.15);color:var(--chili)}
-.badge-done{background:rgba(61,184,122,.15);color:var(--green)}
-.oc-items{font-size:12px;color:var(--text-mid);line-height:1.6}
-.oc-items strong{color:var(--text)}
-.oc-time{font-size:11px;color:var(--text-dim);margin-top:6px}
-.kds-stats{border-top:1px solid var(--border);padding:12px 16px;display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
-.kds-stat{text-align:center}
-.kds-stat .val{font-size:18px;font-weight:700;color:var(--gold);font-family:'Playfair Display',serif}
-.kds-stat .lbl{font-size:10px;color:var(--text-dim);text-transform:uppercase;letter-spacing:.06em}
-
-/* ── TRUST BAR ──────────────────────────────────────────────────── */
-.trust-bar{padding:20px 5vw;border-top:1px solid var(--border);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:center;gap:clamp(20px,4vw,60px);flex-wrap:wrap;background:var(--bg2)}
-.trust-item{display:flex;align-items:center;gap:10px;color:var(--text-dim);font-size:13px;font-weight:500;white-space:nowrap}
-.trust-item span:first-child{font-size:18px}
-
-/* ── FEATURES ──────────────────────────────────────────────────── */
-section{padding:80px 5vw}
-.section-eye{font-size:11px;font-weight:600;letter-spacing:.14em;color:var(--gold);text-transform:uppercase;margin-bottom:14px}
-.section-h2{font-family:'Playfair Display',Georgia,serif;font-size:clamp(28px,4vw,42px);font-weight:700;line-height:1.2;letter-spacing:-.01em;margin-bottom:14px}
-.section-h2 em{font-style:italic;color:var(--gold)}
-.section-sub{font-size:16px;color:var(--text-mid);max-width:520px;line-height:1.7}
-
-.features-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;margin-top:48px}
-@media(max-width:900px){.features-grid{grid-template-columns:1fr}}
-@media(min-width:600px) and (max-width:900px){.features-grid{grid-template-columns:1fr 1fr}}
-
-.feat-card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:28px;transition:border-color .25s,transform .25s}
-.feat-card:hover{border-color:var(--border2);transform:translateY(-3px)}
-.feat-icon{width:44px;height:44px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:22px;margin-bottom:18px}
-.icon-gold{background:rgba(232,160,48,.12)}
-.icon-chili{background:rgba(212,64,64,.12)}
-.icon-green{background:rgba(61,184,122,.12)}
-.icon-blue{background:rgba(78,130,210,.12)}
-.icon-purple{background:rgba(150,100,220,.12)}
-.icon-teal{background:rgba(60,185,190,.12)}
-.feat-title{font-size:15px;font-weight:600;margin-bottom:8px;color:var(--text)}
-.feat-my{font-size:13px;color:var(--text-mid);margin-bottom:10px;line-height:1.6}
-.feat-tags{display:flex;flex-wrap:wrap;gap:5px;margin-top:10px}
-.feat-tag{font-size:11px;padding:2px 8px;border-radius:10px;background:var(--bg3);border:1px solid var(--border);color:var(--text-dim)}
-
-/* ── HOW IT WORKS ────────────────────────────────────────────────── */
-.how-section{background:var(--bg2);border-top:1px solid var(--border);border-bottom:1px solid var(--border)}
-.steps{display:grid;grid-template-columns:repeat(4,1fr);gap:0;margin-top:48px;position:relative}
-@media(max-width:700px){.steps{grid-template-columns:1fr 1fr;gap:20px}}
-@media(max-width:420px){.steps{grid-template-columns:1fr}}
-.steps::before{content:'';position:absolute;top:22px;left:12%;right:12%;height:1px;background:linear-gradient(90deg,transparent,var(--border2) 20%,var(--border2) 80%,transparent);z-index:0}
-@media(max-width:700px){.steps::before{display:none}}
-.step{text-align:center;padding:0 16px;position:relative;z-index:1}
-.step-num{width:44px;height:44px;border-radius:50%;background:var(--gold);color:#0C0908;font-size:16px;font-weight:700;display:flex;align-items:center;justify-content:center;margin:0 auto 16px;font-family:'Playfair Display',serif}
-.step-title{font-size:14px;font-weight:600;margin-bottom:8px;color:var(--text)}
-.step-desc{font-size:13px;color:var(--text-mid);line-height:1.6}
-.step-my{font-size:13px;color:var(--text-mid)}
-
-/* ── PRICING ──────────────────────────────────────────────────────── */
-.pricing-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;margin-top:48px;align-items:start}
-@media(max-width:800px){.pricing-grid{grid-template-columns:1fr}}
-
-.price-card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:28px;position:relative}
-.price-card.featured{border-color:var(--gold);background:linear-gradient(135deg,var(--card),rgba(232,160,48,.05))}
-.price-popular{position:absolute;top:-12px;left:50%;transform:translateX(-50%);background:var(--gold);color:#0C0908;font-size:11px;font-weight:700;padding:4px 14px;border-radius:20px;white-space:nowrap;letter-spacing:.06em}
-.price-plan{font-size:12px;font-weight:600;color:var(--text-dim);letter-spacing:.1em;text-transform:uppercase;margin-bottom:10px}
-.price-amount{font-family:'Playfair Display',Georgia,serif;font-size:36px;font-weight:700;color:var(--text);margin-bottom:4px;line-height:1}
-.price-amount span{font-size:16px;font-weight:400;color:var(--text-mid);font-family:'Inter',sans-serif}
-.price-my{font-size:13px;color:var(--text-mid);margin-bottom:20px;line-height:1.5}
-.price-feats{list-style:none;margin-bottom:24px}
-.price-feats li{font-size:13px;color:var(--text-mid);padding:6px 0;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:9px;line-height:1.5}
-.price-feats li:last-child{border-bottom:none}
-.price-feats li::before{content:'✓';color:var(--green);font-size:12px;font-weight:700;flex-shrink:0}
-.price-feats li.no::before{content:'–';color:var(--text-dim)}
+/* ── PRICING ── */
+.pricing-section{padding:80px 5vw;max-width:1200px;margin:0 auto}
+#pricing-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:1.25rem;margin-top:2.5rem}
+.price-card{background:var(--card);border:0.5px solid var(--border);border-radius:var(--radius);padding:1.5rem;display:flex;flex-direction:column;gap:.5rem}
+.price-card.featured{border-color:var(--accent);box-shadow:var(--glow)}
+.price-plan{font-weight:700;font-size:1rem}
+.price-amount{font-size:1.6rem;font-weight:700;letter-spacing:-.03em;color:var(--gold)}
+.price-amount span{font-size:.85rem;color:var(--text-mid);font-weight:400}
+.price-feats{list-style:none;font-size:.82rem;color:var(--text-mid);display:flex;flex-direction:column;gap:.4rem;margin-top:.5rem;flex:1}
+.price-feats li::before{content:'✓ ';color:var(--accent2)}
 .price-feats li.no{color:var(--text-dim)}
-.btn-plan-primary{display:block;width:100%;padding:12px;border-radius:8px;font-size:14px;font-weight:600;text-align:center;background:var(--gold);color:#0C0908;border:none;cursor:pointer;transition:all .2s;text-decoration:none;font-family:'Inter',sans-serif}
-.btn-plan-primary:hover{background:var(--gold-glow)}
-.btn-plan-secondary{display:block;width:100%;padding:12px;border-radius:8px;font-size:14px;font-weight:600;text-align:center;background:transparent;color:var(--text);border:1px solid var(--border2);cursor:pointer;transition:all .2s;text-decoration:none;font-family:'Inter',sans-serif}
-.btn-plan-secondary:hover{border-color:var(--gold);color:var(--gold)}
+.price-feats li.no::before{content:'— ';color:var(--text-dim)}
+.btn-plan{display:block;text-align:center;padding:.6rem;border-radius:8px;font-weight:600;font-size:.85rem;text-decoration:none;margin-top:auto}
+.btn-plan-primary{background:var(--accent);color:#fff}
+.btn-plan-secondary{background:rgba(255,255,255,.06);color:var(--text);border:0.5px solid var(--border2)}
 
-/* ── TESTIMONY ───────────────────────────────────────────────────── */
-.testim-section{background:var(--bg2);border-top:1px solid var(--border);border-bottom:1px solid var(--border)}
-.testim-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;margin-top:48px}
-@media(max-width:800px){.testim-grid{grid-template-columns:1fr}}
-.testim-card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:24px}
-.testim-quote{font-size:14px;color:var(--text-mid);line-height:1.8;margin-bottom:18px;font-style:italic}
-.testim-author{display:flex;align-items:center;gap:12px}
-.testim-av{width:40px;height:40px;border-radius:50%;background:var(--bg3);display:flex;align-items:center;justify-content:center;font-size:18px;border:1px solid var(--border2);flex-shrink:0}
-.testim-name{font-size:14px;font-weight:600;color:var(--text);margin-bottom:2px}
-.testim-role{font-size:12px;color:var(--text-dim)}
-.stars{color:var(--gold);font-size:12px;margin-bottom:14px;letter-spacing:2px}
+/* ── STATS ── */
+.stats-section{padding:60px 5vw;border-top:0.5px solid var(--border);border-bottom:0.5px solid var(--border);max-width:1200px;margin:0 auto}
+.stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:2rem;text-align:center}
+.stat-num{font-size:2.2rem;font-weight:700;letter-spacing:-.03em;color:var(--gold)}
+.stat-lbl{font-size:.83rem;color:var(--text-mid);margin-top:.25rem}
 
-/* ── KPAY SECTION ────────────────────────────────────────────────── */
-.kpay-section{text-align:center;padding:64px 5vw}
-.kpay-logos{display:flex;align-items:center;justify-content:center;gap:20px;flex-wrap:wrap;margin:32px 0}
-.kpay-logo{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:10px 18px;font-size:13px;font-weight:600;color:var(--text-mid);display:flex;align-items:center;gap:7px}
-.kpay-logo span{font-size:18px}
+/* ── DEMO BANNER ── */
+.demo-section{padding:80px 5vw;max-width:1200px;margin:0 auto;text-align:center}
+.demo-box{background:var(--bg3);border:0.5px solid var(--border);border-radius:20px;padding:3rem 2rem;position:relative;overflow:hidden}
+.demo-box::before{content:'';position:absolute;inset:0;background:radial-gradient(circle at 50% 0%,rgba(99,102,241,.08) 0%,transparent 60%);pointer-events:none}
+.demo-h2{font-size:clamp(1.4rem,3vw,2rem);font-weight:700;letter-spacing:-.03em;margin-bottom:.75rem}
+.demo-sub{font-size:.92rem;color:var(--text-mid);margin-bottom:1.5rem}
+.demo-creds{display:inline-flex;gap:1.5rem;background:rgba(255,255,255,.04);border:0.5px solid var(--border);border-radius:10px;padding:.6rem 1.2rem;margin-bottom:1.5rem;font-size:.83rem;color:var(--text-mid)}
+.demo-creds code{color:var(--accent2);font-family:monospace}
 
-/* ── FINAL CTA ───────────────────────────────────────────────────── */
-.final-cta{text-align:center;padding:80px 5vw;background:radial-gradient(ellipse at center,rgba(232,160,48,.08) 0%,transparent 65%)}
-.cta-h2{font-family:'Playfair Display',Georgia,serif;font-size:clamp(28px,5vw,50px);font-weight:700;line-height:1.2;margin-bottom:12px}
-.cta-sub{font-size:16px;color:var(--text-mid);margin-bottom:36px}
-.cta-note{font-size:13px;color:var(--text-dim);margin-top:16px}
+/* ── FOOTER ── */
+footer{padding:3rem 5vw;border-top:0.5px solid var(--border);max-width:1200px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:1rem}
+.foot-copy{font-size:.82rem;color:var(--text-dim)}
+.foot-links{display:flex;gap:1.5rem}
+.foot-links a{font-size:.82rem;color:var(--text-dim);text-decoration:none;transition:color .15s}
+.foot-links a:hover{color:var(--text)}
 
-/* ── FOOTER ──────────────────────────────────────────────────────── */
-footer{background:var(--bg2);border-top:1px solid var(--border);padding:40px 5vw 32px}
-.footer-inner{display:grid;grid-template-columns:1.5fr 1fr 1fr 1fr;gap:40px;margin-bottom:32px}
-@media(max-width:700px){.footer-inner{grid-template-columns:1fr 1fr}}
-@media(max-width:400px){.footer-inner{grid-template-columns:1fr}}
-.footer-brand .nav-logo-text{font-size:20px;margin-bottom:10px;display:block}
-.footer-desc{font-size:13px;color:var(--text-dim);line-height:1.7;margin-bottom:16px}
-.footer-col-title{font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--text-dim);margin-bottom:14px}
-.footer-links{list-style:none}
-.footer-links li{margin-bottom:8px}
-.footer-links a{font-size:13px;color:var(--text-dim);text-decoration:none;transition:color .2s}
-.footer-links a:hover{color:var(--gold)}
-.footer-bottom{border-top:1px solid var(--border);padding-top:20px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px}
-.footer-bottom p{font-size:12px;color:var(--text-dim)}
-
-/* ── SCROLL ANIM ─────────────────────────────────────────────────── */
+/* ── REVEAL ANIMATION ── */
 .reveal{opacity:0;transform:translateY(24px);transition:opacity .6s ease,transform .6s ease}
 .reveal.visible{opacity:1;transform:none}
 
-/* ── MOBILE NAV ──────────────────────────────────────────────────── */
-.mobile-cta{display:none}
-@media(max-width:640px){.mobile-cta{display:flex}}
+/* ── RESPONSIVE ── */
+@media(max-width:768px){
+  .hero{grid-template-columns:1fr;gap:2rem;padding-top:100px}
+  .hero-right{display:none}
+  .stats-row{grid-template-columns:1fr 1fr}
+  .nav-links{display:none}
+  #products-grid{grid-template-columns:1fr}
+  #pricing-grid{grid-template-columns:1fr}
+}
 </style>
 </head>
 <body>
 
+<!-- ANNOUNCEMENT BANNER -->
+<div id="ann-banner"></div>
+
 <!-- NAV -->
-<nav>
+<nav id="main-nav">
   <a class="nav-logo" href="#">
-    <div class="nav-logo-icon">🍜</div>
-    <span class="nav-logo-text">Noodle<span>Haus</span></span>
+    <div class="nav-logo-mark" id="nav-logo-mark">M</div>
+    <span class="nav-logo-text" id="nav-logo-text">Myan<span>Ai</span></span>
   </a>
   <div class="nav-links">
-    <a href="#features">Features</a>
+    <a href="#products">Products</a>
     <a href="#pricing">Pricing</a>
-    <a href="#how">Setup</a>
+    <a href="#demo">Demo</a>
     <a href="#contact">Contact</a>
   </div>
-  <a class="nav-cta" href="#pricing">Free Trial စမ်း</a>
+  <a class="nav-cta" id="nav-cta" href="signup.html">Free Trial စမ်း →</a>
 </nav>
 
 <!-- HERO -->
-<section class="hero">
-  <div class="hero-left">
-    <div class="hero-label">🇲🇲 Myanmar-built · F&amp;B Special</div>
-    <h1 class="hero-h1">
-      ဆိုင်ကို<br>
-      <em>ပိုထိရောက်</em><br>
-      စီမံပါ
+<section class="hero" style="margin-top:0;padding-top:120px">
+  <div class="hero-left reveal">
+    <div class="hero-label" id="hero-label">🇲🇲 Myanmar-built · AI-powered</div>
+    <h1 class="hero-h1" id="hero-h1">
+      Myanmar businesses<br>
+      <em>AI နဲ့</em><br>
+      ထွန်းလင်းပါ
     </h1>
-    <p class="hero-my">NoodleHaus POS — မြန်မာဆိုင်တွေအတွက် ရည်ရွယ်ဖန်တီးထားတဲ့ OS</p>
-    <p class="hero-desc">Cash register သာမဟုတ်ဘဲ — မီးဖိုချောင်၊ ဝန်ထမ်း၊ ကုန်ပစ္စည်း၊ ဖောက်သည်၊ report အားလုံးကို တနေရာထဲ ထိန်းချုပ်ပါ။ KBZPay, Wave Money, offline mode ပါ။</p>
+    <p class="hero-sub" id="hero-sub">MyanAi — မြန်မာ business တွေအတွက် AI-powered software platform</p>
+    <p class="hero-desc" id="hero-desc">POS, HR, Analytics နဲ့ AI tools တွေကို တစ်ခုတည်းသော platform မှ ရယူပါ။ KBZPay, Wave Money, offline mode ပါ။</p>
     <div class="hero-btns">
-      <a class="btn-primary" href="#pricing">
-        <span>60 seconds နဲ့ စမ်းကြည့်</span>
-        <span>→</span>
-      </a>
-      <a class="btn-secondary" href="#features">Features ကြည့်</a>
-    </div>
-    <div class="hero-social-proof">
-      <div class="avatars">
-        <div class="avatar">🏪</div>
-        <div class="avatar">☕</div>
-        <div class="avatar">🍜</div>
-        <div class="avatar">🍱</div>
-      </div>
-      <p class="sp-text"><strong>Yangon ၊ Mandalay</strong> ဆိုင်ပိုင်ရှင်တွေ အသုံးပြုနေပြီ</p>
+      <a class="btn-primary" id="hero-cta1" href="signup.html">Free Trial စမ်း →</a>
+      <a class="btn-secondary" id="hero-cta2" href="tenant.php">🎭 Live Demo ကြည့်</a>
     </div>
   </div>
-
-  <!-- KDS TICKER -->
-  <div class="hero-visual">
-    <div class="kds-screen">
-      <div class="kds-bar">
-        <span class="kds-title">🍳 Kitchen Display — Live Orders</span>
-        <div class="kds-dot">
-          <span style="background:#3DB87A"></span>
-          <span style="background:#E8A030"></span>
-          <span style="background:#D44040"></span>
+  <div class="hero-right reveal" style="transition-delay:.15s">
+    <!-- Mock Dashboard -->
+    <div class="mock-shell">
+      <div class="mock-topbar">
+        <div class="mock-dot" style="background:#ff5f57"></div>
+        <div class="mock-dot" style="background:#febc2e"></div>
+        <div class="mock-dot" style="background:#28c840"></div>
+        <span class="mock-title">MyanAi POS — Business Admin</span>
+      </div>
+      <div class="mock-body">
+        <div class="mock-stats">
+          <div class="mock-stat"><div class="mock-stat-val">248</div><div class="mock-stat-lbl">Orders today</div></div>
+          <div class="mock-stat"><div class="mock-stat-val">1.2M</div><div class="mock-stat-lbl">Revenue MMK</div></div>
+          <div class="mock-stat"><div class="mock-stat-val">14</div><div class="mock-stat-lbl">Pending</div></div>
+        </div>
+        <div class="mock-orders">
+          <div class="mock-order-head">Live orders</div>
+          <div class="mock-order-row"><span class="mock-badge badge-new">New</span><span>Table 3</span><span style="margin-left:auto;color:#94a3b8">Mohinga ×2</span></div>
+          <div class="mock-order-row"><span class="mock-badge badge-cook">Cooking</span><span>Table 7</span><span style="margin-left:auto;color:#94a3b8">Shan noodle ×1</span></div>
+          <div class="mock-order-row"><span class="mock-badge badge-done">Done</span><span>Table 1</span><span style="margin-left:auto;color:#94a3b8">Tea ×3</span></div>
         </div>
       </div>
-      <div class="kds-feed" id="kds-feed"></div>
-      <div class="kds-stats">
-        <div class="kds-stat"><div class="val" id="s-orders">0</div><div class="lbl">Orders</div></div>
-        <div class="kds-stat"><div class="val" id="s-revenue">0</div><div class="lbl">Revenue (K)</div></div>
-        <div class="kds-stat"><div class="val" id="s-time">0m</div><div class="lbl">Avg Wait</div></div>
-      </div>
     </div>
   </div>
 </section>
 
-<!-- TRUST BAR -->
-<div class="trust-bar">
-  <div class="trust-item"><span>⚡</span><span>Offline ဆင်းတယ်</span></div>
-  <div class="trust-item"><span>📱</span><span>Mobile PWA</span></div>
-  <div class="trust-item"><span>🏪</span><span>Multi-branch</span></div>
-  <div class="trust-item"><span>💳</span><span>KBZPay / Wave</span></div>
-  <div class="trust-item"><span>🌐</span><span>မြန်မာ Unicode</span></div>
-  <div class="trust-item"><span>🔒</span><span>Data Backup Daily</span></div>
+<!-- STATS -->
+<div class="stats-section reveal">
+  <div class="stats-row">
+    <div><div class="stat-num" id="stat-tenants">14+</div><div class="stat-lbl">Active businesses</div></div>
+    <div><div class="stat-num">99.9%</div><div class="stat-lbl">Uptime</div></div>
+    <div><div class="stat-num">KBZPay</div><div class="stat-lbl">+ Wave Money</div></div>
+    <div><div class="stat-num">Offline</div><div class="stat-lbl">PWA ready</div></div>
+  </div>
 </div>
 
-<!-- FEATURES -->
-<section id="features">
+<!-- PRODUCTS -->
+<section class="products-section" id="products">
   <div class="reveal">
-    <p class="section-eye">ပါဝင်သောအရာများ</p>
-    <h2 class="section-h2">ဆိုင်တစ်ဆိုင်<em> လည်ပတ်ဖို့</em><br>လိုအပ်တာ အားလုံး</h2>
-    <p class="section-sub">F&amp;B ဆိုင်ပိုင်ရှင်တွေ တောင်းဆိုချက်တွေကို အခြေခံပြီး Phase 8 ထိ build လုပ်ထားပါတယ်</p>
+    <p class="section-eye">Our products</p>
+    <h2 class="section-h2" id="products-heading">AI-powered apps for<br><em style="font-style:normal;color:var(--gold)">Myanmar businesses</em></h2>
+    <p class="section-sub" id="products-sub">Restaurant ဖြစ်ဖြစ်၊ retail ဖြစ်ဖြစ် — သင့် business type အတွက် tool ရှိတယ်</p>
   </div>
-  <div class="features-grid reveal">
-
-    <div class="feat-card">
-      <div class="feat-icon icon-gold">🖥️</div>
-      <div class="feat-title">POS Terminal</div>
-      <div class="feat-my">မှာယူမှတ်တမ်း၊ ဘေလ်ကောက်၊ ဆိုင်ခွဲ multiple cashier — မိုဘိုင်းနဲ့ ဘာ device နဲ့မဆို သုံးနိုင်</div>
-      <div class="feat-tags"><span class="feat-tag">Split bill</span><span class="feat-tag">Table mgmt</span><span class="feat-tag">Void / Refund</span></div>
-    </div>
-
-    <div class="feat-card">
-      <div class="feat-icon icon-chili">👨‍🍳</div>
-      <div class="feat-title">KDS — Kitchen Display</div>
-      <div class="feat-my">မီးဖိုချောင် screen မှာ order တန်းစီ၊ cooking time track၊ chef ကို ဘာ အရင်လုပ်ရမလဲ ပြ</div>
-      <div class="feat-tags"><span class="feat-tag">Real-time</span><span class="feat-tag">Priority queue</span><span class="feat-tag">Sound alert</span></div>
-    </div>
-
-    <div class="feat-card">
-      <div class="feat-icon icon-green">📊</div>
-      <div class="feat-title">Analytics & Reports</div>
-      <div class="feat-my">ဘယ် menu က ရောင်းကောင်းလဲ၊ peak hours ဘယ်အချိန်လဲ၊ daily revenue — chart နဲ့ ချက်ချင်းမြင်</div>
-      <div class="feat-tags"><span class="feat-tag">Daily/Weekly</span><span class="feat-tag">Top items</span><span class="feat-tag">Export PDF</span></div>
-    </div>
-
-    <div class="feat-card">
-      <div class="feat-icon icon-blue">⭐</div>
-      <div class="feat-title">Loyalty Program</div>
-      <div class="feat-my">ဖောက်သည်တွေ အမှတ်စု၊ reward ရ၊ CRM — ဘယ်ဖောက်သည်က VIP ဆိုတာ သိမြင်</div>
-      <div class="feat-tags"><span class="feat-tag">Points</span><span class="feat-tag">CRM</span><span class="feat-tag">SMS alert</span></div>
-    </div>
-
-    <div class="feat-card">
-      <div class="feat-icon icon-purple">📦</div>
-      <div class="feat-title">Stock Management</div>
-      <div class="feat-my">ကုန်ကြမ်း inventory track၊ low stock alert၊ waste မှတ်တမ်း — ကုန်ကျစရိတ် ထိန်းချုပ်</div>
-      <div class="feat-tags"><span class="feat-tag">Auto deduct</span><span class="feat-tag">Low alert</span><span class="feat-tag">Waste log</span></div>
-    </div>
-
-    <div class="feat-card">
-      <div class="feat-icon icon-teal">🏪</div>
-      <div class="feat-title">Multi-Branch</div>
-      <div class="feat-my">ဆိုင်ခွဲများ၊ waiter app၊ self-order kiosk၊ delivery — ဆိုင်တစ်ဆိုင်ကနေ chain ထိ တနေရာ ထိန်းချုပ်</div>
-      <div class="feat-tags"><span class="feat-tag">Waiter app</span><span class="feat-tag">Kiosk</span><span class="feat-tag">Delivery</span></div>
-    </div>
-
-  </div>
-</section>
-
-<!-- HOW IT WORKS -->
-<section class="how-section" id="how">
-  <div class="reveal" style="text-align:center">
-    <p class="section-eye">Setup လုပ်နည်း</p>
-    <h2 class="section-h2">60 Seconds နဲ့ <em>Ready</em></h2>
-    <p class="section-sub" style="margin:0 auto">Yangon မှာ ချက်ချင်းသုံးနိုင်အောင် ဒီ 4 step တည်း</p>
-  </div>
-  <div class="steps reveal" style="margin-top:48px">
-    <div class="step">
-      <div class="step-num">1</div>
-      <div class="step-title">Sign Up</div>
-      <div class="step-desc">Email နဲ့ ဆိုင်အမည် ထည့်ပြီး account ဖန်တီး</div>
-      <div class="step-my">အကောင့်ဖွင့်ရင် ဆိုင် demo data အလိုအလျောက် ပါလာတယ်</div>
-    </div>
-    <div class="step">
-      <div class="step-num">2</div>
-      <div class="step-title">Setup Wizard</div>
-      <div class="step-desc">Menu ထည့်၊ table layout ဆွဲ၊ staff PIN set</div>
-      <div class="step-my">Myanmar ဘာသာနဲ့ guide ပြနေတယ်</div>
-    </div>
-    <div class="step">
-      <div class="step-num">3</div>
-      <div class="step-title">မည်သည့် Device</div>
-      <div class="step-desc">Phone, tablet, PC — browser ဖွင့်ရင် ဆင်းပြီ</div>
-      <div class="step-my">App install မလိုဘဲ PWA ဖြင့် offline ပါ</div>
-    </div>
-    <div class="step">
-      <div class="step-num">4</div>
-      <div class="step-title">KBZPay Subscribe</div>
-      <div class="step-desc">Free trial ပြီးရင် plan ရွေး KBZPay နဲ့ ချိတ်</div>
-      <div class="step-my">Billing automatic — manual pay မလိုဘဲ</div>
-    </div>
+  <div id="products-grid" class="reveal" style="transition-delay:.1s">
+    <!-- Loaded dynamically -->
+    <a class="product-card" href="tenant.php">
+      <div class="product-icon">🍜</div>
+      <div class="product-name">MyanAi POS</div>
+      <div class="product-desc">Restaurant & F&B အတွက် complete POS system — orders, KDS, tables, staff, stock, delivery, CRM</div>
+      <span class="product-tag tag-live">✓ Live now</span>
+    </a>
+    <a class="product-card" href="#">
+      <div class="product-icon">👥</div>
+      <div class="product-name">MyanAi HR</div>
+      <div class="product-desc">HR & payroll management — employee records, attendance, salary calculation, leave management</div>
+      <span class="product-tag tag-soon">Coming soon</span>
+    </a>
+    <a class="product-card" href="#">
+      <div class="product-icon">🤖</div>
+      <div class="product-name">MyanAi Bot</div>
+      <div class="product-desc">AI customer service bot — Myanmar language, auto-reply, order taking, FAQ handling</div>
+      <span class="product-tag tag-soon">Coming soon</span>
+    </a>
   </div>
 </section>
 
 <!-- PRICING -->
-<section id="pricing">
-  <div class="reveal" style="text-align:center">
+<section class="pricing-section" id="pricing">
+  <div class="reveal" style="text-align:center;margin-bottom:1rem">
     <p class="section-eye">Pricing</p>
-    <h2 class="section-h2">မြန်မာဆိုင်တွေ <em>နိုင်နိုင်နင်းနင်း</em> ဝင်ရောက်နိုင်တဲ့ plan</h2>
-    <p class="section-sub" style="margin:0 auto">Trial 14 days — credit card မလိုဘဲ စမ်းနိုင်</p>
+    <h2 class="section-h2">မြန်မာဆိုင်တွေ <em style="font-style:normal;color:var(--gold)">နိုင်နိုင်နင်းနင်း</em> ဝင်နိုင်တဲ့ plan</h2>
+    <p class="section-sub" style="margin:0 auto;text-align:center">Trial 14 days — credit card မလိုဘဲ စမ်းနိုင်</p>
   </div>
-  <div class="pricing-grid reveal">
-
-    <div class="price-card">
-      <div class="price-plan">Starter</div>
-      <div class="price-amount">29,900 <span>MMK/လ</span></div>
-      <div class="price-my">ဆိုင်တစ်ဆိုင် · Small café / Noodle shop</div>
-      <ul class="price-feats">
-        <li>POS Terminal (unlimited orders)</li>
-        <li>KDS Kitchen Display</li>
-        <li>Basic Analytics</li>
-        <li>3 Staff accounts</li>
-        <li>Loyalty points</li>
-        <li>Offline mode</li>
-        <li class="no">Multi-branch</li>
-        <li class="no">CRM / Delivery</li>
-      </ul>
-      <a class="btn-plan-secondary" href="#">14 days Free စမ်း</a>
-    </div>
-
-    <div class="price-card featured">
-      <div class="price-popular">✦ အကြည့်ဆုံး</div>
-      <div class="price-plan">Professional</div>
-      <div class="price-amount">79,900 <span>MMK/လ</span></div>
-      <div class="price-my">ဆိုင်ခွဲ 3 ထိ · Busy restaurant / Café chain</div>
-      <ul class="price-feats">
-        <li>Starter features အားလုံး</li>
-        <li>Multi-branch (3 ထိ)</li>
-        <li>Full CRM</li>
-        <li>Stock management</li>
-        <li>Waiter app</li>
-        <li>Self-order Kiosk</li>
-        <li>Shift management</li>
-        <li>Advanced Analytics + Export</li>
-      </ul>
-      <a class="btn-plan-primary" href="#">ဒီ Plan နဲ့ စမ်း →</a>
-    </div>
-
-    <div class="price-card">
-      <div class="price-plan">Enterprise</div>
-      <div class="price-amount">Custom</div>
-      <div class="price-my">ဆိုင်ခွဲ 5+ · Restaurant group / Franchise</div>
-      <ul class="price-feats">
-        <li>Pro features အားလုံး</li>
-        <li>Unlimited branches</li>
-        <li>Delivery integration</li>
-        <li>Promotion engine</li>
-        <li>Staff scheduling</li>
-        <li>Custom reports</li>
-        <li>Priority support</li>
-        <li>Onsite training</li>
-      </ul>
-      <a class="btn-plan-secondary" href="#contact">ဆက်သွယ်ပြောဆိုပါ</a>
-    </div>
-
+  <div id="pricing-grid" class="reveal" style="transition-delay:.1s">
+    <!-- Loaded from tenant_api.php?action=plans -->
   </div>
 </section>
 
-<!-- PAYMENT METHODS -->
-<div class="kpay-section reveal">
-  <p class="section-eye">Payment Methods</p>
-  <p style="font-size:15px;color:var(--text-mid)">မြန်မာ payment methods အားလုံးနဲ့ ချိတ်ဆက်ထားတယ်</p>
-  <div class="kpay-logos">
-    <div class="kpay-logo"><span>💙</span>KBZPay</div>
-    <div class="kpay-logo"><span>🟣</span>Wave Money</div>
-    <div class="kpay-logo"><span>🏦</span>CB Pay</div>
-    <div class="kpay-logo"><span>🟢</span>AYA Pay</div>
-    <div class="kpay-logo"><span>💵</span>Cash</div>
-  </div>
-</div>
-
-<!-- TESTIMONIALS -->
-<section class="testim-section">
-  <div class="reveal" style="text-align:center">
-    <p class="section-eye">ဆိုင်ပိုင်ရှင်တွေ ပြောတာ</p>
-    <h2 class="section-h2"><em>Real</em> feedback</h2>
-  </div>
-  <div class="testim-grid reveal">
-    <div class="testim-card">
-      <div class="stars">★★★★★</div>
-      <p class="testim-quote">"Setup ကို 30 minutes နဲ့ ပြီးသွားတယ်။ KDS ပါလာတာကြောင့် မီးဖိုချောင်က order မပျောက်တော့ဘူး — အရင်တုန်းက ticket တွေ ပျောက်တတ်တာ ဒုက္ခဆုံးတာ ဆောင်ပြောဆိုပြီ ဖြေပေးသွားတယ်"</p>
-      <div class="testim-author">
-        <div class="testim-av">🍜</div>
-        <div>
-          <div class="testim-name">မောင်မောင် (Pilot customer)</div>
-          <div class="testim-role">ရန်ကုန် Noodle Shop ပိုင်ရှင်</div>
-        </div>
-      </div>
+<!-- DEMO SECTION -->
+<section class="demo-section" id="demo">
+  <div class="demo-box reveal">
+    <h2 class="demo-h2" id="demo-heading">Live Demo ကြည့်ပါ</h2>
+    <p class="demo-sub" id="demo-sub">Sign up မလုပ်ဘဲ features အကုန် စမ်းနိုင်သည်</p>
+    <div class="demo-creds">
+      Email: <code>demo@myanai.net</code>
+      &nbsp;·&nbsp;
+      Password: <code>demo1234</code>
     </div>
-    <div class="testim-card">
-      <div class="stars">★★★★★</div>
-      <p class="testim-quote">"Loyalty points system ကြောင့် ဖောက်သည်တွေ ပြန်လာတဲ့ rate တက်သွားတယ်။ Analytics chart တွေက ဘာ menu အသစ်ထည့်ရမလဲ ဆုံးဖြတ်ရ တော်တော်လွယ်သွားတယ်"</p>
-      <div class="testim-author">
-        <div class="testim-av">☕</div>
-        <div>
-          <div class="testim-name">သူဇာ (Pilot customer)</div>
-          <div class="testim-role">မန္တလေး Café ပိုင်ရှင်</div>
-        </div>
-      </div>
-    </div>
-    <div class="testim-card">
-      <div class="stars">★★★★★</div>
-      <p class="testim-quote">"Internet မကောင်းတဲ့ အချိန်တွေမှာ offline mode က ကယ်တင်တယ်။ Waiter app ကြောင့် order ယူဖို့ POS ဆီ ပြန်မပြေးရတော့ ဘူး — ဝန်ထမ်းတွေ ရောပျော်ကုန်တယ်"</p>
-      <div class="testim-author">
-        <div class="testim-av">🍱</div>
-        <div>
-          <div class="testim-name">ကျော်မင်းထွေး (Pilot customer)</div>
-          <div class="testim-role">ရန်ကုန် Restaurant ပိုင်ရှင်</div>
-        </div>
-      </div>
+    <br>
+    <div style="display:flex;gap:.75rem;justify-content:center;flex-wrap:wrap">
+      <a class="btn-primary" id="demo-cta" href="tenant.php">🎭 Demo Admin ဝင်ကြည့် →</a>
+      <a class="btn-secondary" href="index.html?t=demo">🛒 Customer ordering page</a>
     </div>
   </div>
-</section>
-
-<!-- FINAL CTA -->
-<section class="final-cta reveal">
-  <h2 class="cta-h2">ဆိုင်ကို ဒီကနေ <em>ပြောင်းလဲ</em>ပါ</h2>
-  <p class="cta-sub">14 days free trial · Credit card မလို · Setup 60 seconds</p>
-  <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap">
-    <a class="btn-primary" href="#pricing" style="font-size:16px;padding:15px 36px">
-      <span>Free Trial စတင်</span>
-      <span>→</span>
-    </a>
-    <a class="btn-secondary" href="#contact" style="font-size:16px;padding:15px 36px">Demo တောင်းပါ</a>
-  </div>
-  <p class="cta-note" id="contact">မေးမြန်းဖို့ — Viber: <strong style="color:var(--gold)">09-XXXXXXXXX</strong> · Email: hello@noodlehaus.com</p>
 </section>
 
 <!-- FOOTER -->
-<footer>
-  <div class="footer-inner">
-    <div class="footer-brand">
-      <a class="nav-logo" href="#" style="margin-bottom:10px;display:inline-flex">
-        <div class="nav-logo-icon" style="width:28px;height:28px;font-size:14px">🍜</div>
-        <span class="nav-logo-text" style="margin-left:8px">Noodle<span>Haus</span></span>
-      </a>
-      <p class="footer-desc">Myanmar F&amp;B Operating System — ဆိုင်ပိုင်ရှင်တွေ ကိုယ်တိုင်ဖြစ်ဖြစ်ကြောင် build လုပ်ထားတဲ့ POS platform</p>
-    </div>
-    <div>
-      <div class="footer-col-title">Product</div>
-      <ul class="footer-links">
-        <li><a href="#features">Features</a></li>
-        <li><a href="#pricing">Pricing</a></li>
-        <li><a href="#how">How it works</a></li>
-        <li><a href="#">Changelog</a></li>
-      </ul>
-    </div>
-    <div>
-      <div class="footer-col-title">Support</div>
-      <ul class="footer-links">
-        <li><a href="#">Documentation</a></li>
-        <li><a href="#">Viber Support</a></li>
-        <li><a href="#">Video Guides</a></li>
-        <li><a href="#">FAQ</a></li>
-      </ul>
-    </div>
-    <div>
-      <div class="footer-col-title">Company</div>
-      <ul class="footer-links">
-        <li><a href="#">About</a></li>
-        <li><a href="#">Privacy Policy</a></li>
-        <li><a href="#">Terms of Service</a></li>
-        <li><a href="#contact">Contact</a></li>
-      </ul>
-    </div>
-  </div>
-  <div class="footer-bottom">
-    <p>© 2025–2026 NoodleHaus. Built in Myanmar 🇲🇲</p>
-    <p>PHP 8.5 · MySQL · PWA</p>
+<footer id="contact">
+  <div class="foot-copy" id="foot-copy">© 2026 MyanAi · Made in Myanmar 🇲🇲</div>
+  <div class="foot-links">
+    <a href="signup.html">Sign up</a>
+    <a href="tenant.php">Login</a>
+    <a href="admin.php">Admin</a>
   </div>
 </footer>
 
 <script>
-/* ── KDS TICKER ANIMATION ─────────────────────────────────── */
-const orders = [
-  {table:'Table 5',badge:'new',badgeClass:'badge-new',items:'<strong>Mohinga ×2</strong><br>Shan Noodle ×1 · Tea ×3',time:'0:42 ago'},
-  {table:'Table 2',badge:'cooking',badgeClass:'badge-cooking',items:'<strong>Kyay Oh ×1</strong><br>Fried Rice ×2 · Water ×2',time:'2:15 ago'},
-  {table:'Table 8',badge:'done ✓',badgeClass:'badge-done',items:'<strong>Mont Hin Gar ×3</strong><br>Laphet Yay ×3',time:'4:30 ago'},
-  {table:'Table 3',badge:'new',badgeClass:'badge-new',items:'<strong>Noodle Soup ×2</strong><br>Spring Roll ×4',time:'0:10 ago'},
-  {table:'Table 6',badge:'cooking',badgeClass:'badge-cooking',items:'<strong>Biryani ×2</strong><br>Mango Juice ×2',time:'1:50 ago'},
-  {table:'Table 1',badge:'done ✓',badgeClass:'badge-done',items:'<strong>Ohno Kaukswe ×4</strong><br>Tea ×4',time:'6:00 ago'},
-  {table:'Takeaway',badge:'new',badgeClass:'badge-new',items:'<strong>Shan Noodle ×3</strong><br>Fried Tofu ×2',time:'0:05 ago'},
-  {table:'Table 9',badge:'cooking',badgeClass:'badge-cooking',items:'<strong>Mohinga ×5</strong><br>Laphet ×5 · Tea ×5',time:'1:05 ago'},
-];
+/* ── Load dynamic content from site_settings + plans ── */
+(async function init(){
+  try {
+    // Load site settings
+    const [settingsRes, plansRes, tenantsRes] = await Promise.all([
+      fetch('site_settings.php?action=get').then(r=>r.json()).catch(()=>({ok:false})),
+      fetch('tenant_api.php?action=plans').then(r=>r.json()).catch(()=>({ok:false})),
+      fetch('tenant_api.php?action=list').then(r=>r.json()).catch(()=>({ok:false})),
+    ]);
 
-const feed = document.getElementById('kds-feed');
-let shown = [];
-let orderCount = 0, revenue = 0;
+    const s = settingsRes.settings || {};
 
-function addOrder(){
-  const o = orders[Math.floor(Math.random()*orders.length)];
-  const card = document.createElement('div');
-  card.className = 'order-card' + (o.badgeClass==='badge-new'?' new':'');
-  card.innerHTML = `
-    <div class="oc-head">
-      <span class="oc-table">🪑 ${o.table}</span>
-      <span class="oc-badge ${o.badgeClass}">${o.badge}</span>
-    </div>
-    <div class="oc-items">${o.items}</div>
-    <div class="oc-time">${o.time}</div>`;
-  feed.insertBefore(card,feed.firstChild);
-  shown.push(card);
-  if(shown.length>5){
-    const old = shown.shift();
-    old.classList.add('done');
-  }
-  // keep max 4
-  const kids = feed.children;
-  while(kids.length>4) feed.removeChild(feed.lastChild);
-  orderCount++;
-  revenue += Math.floor(Math.random()*8+3)*1000;
-  document.getElementById('s-orders').textContent = orderCount;
-  document.getElementById('s-revenue').textContent = Math.round(revenue/1000)+'K';
-  const wait = (Math.floor(Math.random()*6+3));
-  document.getElementById('s-time').textContent = wait+'m';
-}
+    // Apply site settings to DOM
+    const set = (id, val, prop='textContent') => {
+      const el = document.getElementById(id);
+      if(el && val) el[prop] = val;
+    };
 
-// seed
-for(let i=0;i<3;i++) addOrder();
-setInterval(addOrder, 2800);
+    // Hero
+    if(s.hero_title_line1 || s.hero_title_line2) {
+      const h1 = document.getElementById('hero-h1');
+      if(h1 && (s.hero_title_line1||s.hero_title_line2)) {
+        h1.innerHTML = `${s.hero_title_line1||''}<br><em>${s.hero_title_line2||''}</em>`;
+      }
+    }
+    set('hero-sub',  s.hero_subtitle);
+    set('hero-desc', s.hero_desc);
+    set('hero-cta1', s.cta_primary_text);
+    set('hero-cta2', s.cta_demo_text);
+    if(s.cta_demo_url) document.getElementById('hero-cta2')?.setAttribute('href', s.cta_demo_url);
 
-/* ── SCROLL REVEAL ─────────────────────────────────────── */
+    // Brand
+    if(s.store_name) {
+      document.getElementById('nav-logo-text').innerHTML = s.store_name;
+      document.title = s.store_name + ' — Myanmar AI Platform';
+    }
+
+    // Announcement banner
+    if(s.announcement_on === '1' && s.announcement_text) {
+      const ban = document.getElementById('ann-banner');
+      ban.textContent = s.announcement_text;
+      ban.style.display = 'block';
+      ban.style.background = s.announcement_color || '#6366f1';
+      ban.style.color = '#fff';
+    }
+
+    // Footer
+    if(s.footer_copyright) set('foot-copy', s.footer_copyright);
+
+    // Demo section
+    if(s.demo_heading) set('demo-heading', s.demo_heading);
+    if(s.demo_sub) set('demo-sub', s.demo_sub);
+    if(s.cta_demo_url) document.getElementById('demo-cta')?.setAttribute('href', s.cta_demo_url);
+
+    // Tenant count stat
+    if(tenantsRes.ok && tenantsRes.tenants) {
+      const active = tenantsRes.tenants.filter(t=>t.is_active).length;
+      set('stat-tenants', active + '+');
+    }
+
+    // Plans / Pricing
+    if(plansRes.ok && plansRes.plans) {
+      const planColors = {free:'#6b7280',basic:'#3b82f6',pro:'#a78bfa',enterprise:'#f59e0b'};
+      const planEmoji  = {free:'🆓',basic:'⭐',pro:'🚀',enterprise:'🏢'};
+      const grid = document.getElementById('pricing-grid');
+      if(grid) {
+        grid.innerHTML = plansRes.plans.map((p,i)=>{
+          const isFeatured = p.code==='pro';
+          const mmk = parseInt(p.price_mmk||0).toLocaleString();
+          return `<div class="price-card ${isFeatured?'featured':''}">
+            ${isFeatured?'<div style="font-size:.72rem;color:var(--accent2);font-weight:700;margin-bottom:.25rem">✦ Popular</div>':''}
+            <div class="price-plan">${planEmoji[p.code]||'📦'} ${p.name}</div>
+            <div class="price-amount">${mmk==='0'?'Free':mmk} <span>${mmk==='0'?'forever':'MMK/month'}</span></div>
+            <ul class="price-feats">
+              <li>${p.max_branches} branch${p.max_branches>1?'es':''}</li>
+              <li>${p.max_staff} staff accounts</li>
+              <li>${p.max_menu_items} menu items</li>
+              <li>KDS · Tables · Stock</li>
+              <li>KBZPay · Wave Money</li>
+              ${p.code!=='free'?'<li>Priority support</li>':''}
+            </ul>
+            <a class="${isFeatured?'btn-plan btn-plan-primary':'btn-plan btn-plan-secondary'}"
+               href="signup.html?plan=${p.code}">
+              ${mmk==='0'?'Start free':'Try 14 days free'}
+            </a>
+          </div>`;
+        }).join('');
+      }
+    }
+
+  } catch(e) { console.error('Init error:', e); }
+})();
+
+/* ── Reveal on scroll ── */
 const obs = new IntersectionObserver(entries=>{
   entries.forEach(e=>{ if(e.isIntersecting) e.target.classList.add('visible'); });
-},{threshold:.12});
+},{threshold:.08});
 document.querySelectorAll('.reveal').forEach(el=>obs.observe(el));
 
-/* ── NAV ACTIVE ─────────────────────────────────────────── */
+/* ── Nav scroll style ── */
 window.addEventListener('scroll',()=>{
-  document.querySelector('nav').style.background =
-    scrollY>10?'rgba(12,9,8,.95)':'rgba(12,9,8,.88)';
+  document.getElementById('main-nav').style.background =
+    scrollY>10?'rgba(9,9,11,.95)':'rgba(9,9,11,.85)';
 });
 </script>
 </body>
