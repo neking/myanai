@@ -51,7 +51,7 @@ $tid = tenantId();
    WRITE ACTIONS (POST) — add/edit/toggle/delete menu items
    Requires valid tenant session or tenant_id param
 ═══════════════════════════════════════════ */
-session_start();
+if(session_status()===PHP_SESSION_NONE) session_start();
 $action = $_GET['action'] ?? $_POST['action'] ?? '';
 
 if ($action && $_SERVER['REQUEST_METHOD'] === 'POST') {
