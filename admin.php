@@ -1398,94 +1398,45 @@ async function doLogin() {
     </div>
     <?php endif; ?>
     <nav>
-      <!-- ── BUSINESS ── -->
-      <div class="nav-section-header" onclick="toggleNavSection('business')">
-        Business <span class="nav-chev" id="chev-business">▾</span>
+      <!-- PLATFORM -->
+      <div class="nav-sect">Platform</div>
+      <div class="nav-item active" id="nav-dashboard" onclick="showPage('dashboard')">
+        <span class="nav-icon">📊</span> Dashboard
       </div>
-      <div class="nav-section-body" id="section-business">
-        <div class="nav-item" onclick="showPage('dashboard')" id="nav-dashboard">
-          <span class="nav-icon">📊</span> Dashboard
-        </div>
-        <div class="nav-item" onclick="showPage('menu')" id="nav-menu">
-          <span class="nav-icon">🍜</span> Menu Items
-        </div>
-        <div class="nav-item" onclick="showPage('staff')" id="nav-staff">
-          <span class="nav-icon">👥</span> Staff
-        </div>
-        <div class="nav-item" onclick="showPage('crm')" id="nav-crm">
-          <span class="nav-icon">🤝</span> CRM
-        </div>
-        <div class="nav-item" onclick="showPage('stocklog')" id="nav-stocklog">
-          <span class="nav-icon">📋</span> Stock Log
-        </div>
-        <div class="nav-item" onclick="showPage('promos')" id="nav-promos">
-          <span class="nav-icon">🏷️</span> Promotions
-        </div>
-        <div class="nav-item" onclick="showPage('branches')" id="nav-branches">
-          <span class="nav-icon">🏢</span> Branches
-        </div>
+      <div class="nav-item" id="nav-tenants" onclick="showPage('tenants')">
+        <span class="nav-icon">🏢</span> Tenants
+        <span class="nav-badge" id="tenant-count-badge"></span>
       </div>
-      <!-- ── BRANCH OPS ── -->
-      <div class="nav-section-divider"></div>
-      <div class="nav-section-header" onclick="toggleNavSection('branch-ops')">
-        Branch Ops <span class="nav-chev" id="chev-branch-ops">▾</span>
+      <div class="nav-item" id="nav-revenue" onclick="showPage('revenue')">
+        <span class="nav-icon">💰</span> Revenue
       </div>
-      <div class="nav-section-body" id="section-branch-ops">
-        <div id="branch-ops-selector">
-          <select id="branch-select-ops" onchange="switchBranch(this.value)">
-            <option value="0">🏢 All Branches</option>
-          </select>
-        </div>
-        <div class="nav-item" onclick="showPage('orders')" id="nav-orders">
-          <span class="nav-icon">📋</span> Orders
-        </div>
-        <div class="nav-item" onclick="window.open('kds.html','_blank')" id="nav-kds">
-          <span class="nav-icon">🍳</span> KDS
-        </div>
-        <div class="nav-item" onclick="showPage('tables')" id="nav-tables">
-          <span class="nav-icon">🍽️</span> Tables
-        </div>
-        <div class="nav-item" onclick="showPage('reserve')" id="nav-reserve">
-          <span class="nav-icon">📅</span> Reservations
-        </div>
-        <div class="nav-item" onclick="showPage('stock')" id="nav-stock">
-          <span class="nav-icon">📦</span> Stock
-        </div>
-        <div class="nav-item" onclick="showPage('shift')" id="nav-shift">
-          <span class="nav-icon">🕐</span> Shifts
-        </div>
-        <div class="nav-item" onclick="showPage('delivery')" id="nav-delivery">
-          <span class="nav-icon">🛵</span> Delivery
-        </div>
-        <div class="nav-item" onclick="showPage('expenses')" id="nav-expenses">
-          <span class="nav-icon">💰</span> Expenses
-        </div>
+      <div class="nav-item" id="nav-upgrades" onclick="showPage('upgrades')">
+        <span class="nav-icon">⬆️</span> Upgrade requests
+        <span class="nav-badge" id="upgrade-req-badge" style="background:rgba(220,38,38,.15);color:#dc2626"></span>
       </div>
-      <!-- ── ADMIN ── -->
-      <div class="nav-section-divider"></div>
-      <div class="nav-section-header" onclick="toggleNavSection('admin')">
-        Admin <span class="nav-chev" id="chev-admin">›</span>
+      <div class="nav-item" id="nav-plans" onclick="showPage('plans')">
+        <span class="nav-icon">📦</span> Plans &amp; pricing
       </div>
-      <div class="nav-section-body" id="section-admin" style="display:none">
-        <?php if(!$_IS_TENANT): ?>
-        <div class="nav-item" onclick="showPage('saas')" id="nav-saas">
-          <span class="nav-icon">🌐</span> SaaS
-        </div>
-        <?php endif; ?>
-        <?php if($_IS_TENANT): ?>
-        <div class="nav-item" onclick="showPage('upgrade')" id="nav-upgrade">
-          <span class="nav-icon">⬆</span> Plan Upgrade
-        </div>
-        <?php endif; ?>
-        <div class="nav-item" onclick="showPage('schedule')" id="nav-schedule">
-          <span class="nav-icon">📅</span> Scheduling
-        </div>
-        <div class="nav-item" onclick="showPage('storefront')" id="nav-storefront">
-          <span class="nav-icon">🎨</span> Storefront
-        </div>
-        <div class="nav-item" onclick="showPage('settings')" id="nav-settings">
-          <span class="nav-icon">⚙️</span> Settings
-        </div>
+
+      <!-- MARKETING -->
+      <div class="nav-sect">Marketing</div>
+      <div class="nav-item" id="nav-landing" onclick="showPage('landing')">
+        <span class="nav-icon">🌐</span> Landing page
+      </div>
+      <div class="nav-item" id="nav-demo" onclick="showPage('demo')">
+        <span class="nav-icon">🎭</span> Demo control
+      </div>
+      <div class="nav-item" id="nav-announce" onclick="showPage('announce')">
+        <span class="nav-icon">📣</span> Announcements
+      </div>
+
+      <!-- SYSTEM -->
+      <div class="nav-sect">System</div>
+      <div class="nav-item" id="nav-saas" onclick="showPage('saas')">
+        <span class="nav-icon">🌐</span> SaaS dashboard
+      </div>
+      <div class="nav-item" id="nav-settings" onclick="showPage('settings')">
+        <span class="nav-icon">⚙️</span> Settings
       </div>
     </nav>
     <div class="sidebar-foot" style="padding:.75rem .9rem;border-top:0.5px solid var(--sidebar-border)">
@@ -1508,255 +1459,66 @@ async function doLogin() {
     <div id="page-dashboard">
       <div class="page-head">
         <div style="display:flex;align-items:center;gap:.5rem">
-          <button class="hamburger" onclick="openSidebar()" title="Menu">☰</button>
-          <div class="page-title">Dashboard</div>
+          <button class="hamburger" onclick="openSidebar()">☰</button>
+          <div class="page-title">📊 Platform Dashboard</div>
         </div>
-        <span style="font-size:.82rem;color:var(--muted)" id="dash-date"></span>
+        <span style="font-size:.78rem;color:var(--muted)" id="dash-date"></span>
       </div>
       <div class="content">
-        <div class="stats-grid" id="stats-grid">
-          <div class="stat-card" onclick="showPage('orders')" style="cursor:pointer">
-            <div class="stat-label">📋 Today's Orders</div>
-            <div class="stat-val" id="s-orders">—</div>
+        <!-- SaaS Metrics -->
+        <div class="stats-grid" style="margin-bottom:1.2rem">
+          <div class="stat-card">
+            <div class="stat-val" id="p-total-tenants">—</div>
+            <div class="stat-lbl">Total tenants</div>
           </div>
-          <div class="stat-card" onclick="showPage('orders')" style="cursor:pointer">
-            <div class="stat-label">💰 Today's Revenue</div>
-            <div class="stat-val green" id="s-revenue">—</div>
+          <div class="stat-card">
+            <div class="stat-val" id="p-active-tenants">—</div>
+            <div class="stat-lbl">Active tenants</div>
           </div>
-          <div class="stat-card" onclick="showPage('menu')" style="cursor:pointer">
-            <div class="stat-label">⚠️ Low Stock Items</div>
-            <div class="stat-val" id="s-low">—</div>
+          <div class="stat-card">
+            <div class="stat-val" id="p-mrr">—</div>
+            <div class="stat-lbl">MRR (MMK)</div>
           </div>
-          <div class="stat-card" onclick="filterPending()" style="cursor:pointer">
-            <div class="stat-label">⏳ Pending Orders</div>
-            <div class="stat-val" id="s-pending">—</div>
+          <div class="stat-card">
+            <div class="stat-val" id="p-upgrade-reqs">—</div>
+            <div class="stat-lbl">Upgrade requests</div>
           </div>
-        </div>
-
-        
-        
-        
-        <!-- Bulk Delete Modal -->
-        <div id="bulk-delete-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:9999;align-items:center;justify-content:center">
-          <div style="background:var(--bg);border-radius:14px;padding:1.5rem;max-width:380px;width:92%;position:relative">
-            <button onclick="document.getElementById('bulk-delete-modal').style.display='none'" style="position:absolute;top:1rem;right:1rem;background:none;border:none;font-size:1.2rem;cursor:pointer">✕</button>
-            <div style="font-weight:600;margin-bottom:1rem">🗑 Bulk Delete Orders</div>
-            <div style="margin-bottom:.75rem">
-              <label style="font-size:.8rem;color:var(--muted);display:block;margin-bottom:3px">Phone number (ဒီ phone ရဲ့ orders အကုန်ဖျက်)</label>
-              <input type="text" id="bulk-phone" placeholder="09xxxxxxxxx" style="width:100%;padding:.4rem .6rem;border:1px solid #ddd;border-radius:6px;font-size:.88rem">
-            </div>
-            <div style="margin-bottom:.75rem">
-              <label style="font-size:.8rem;color:var(--muted);display:block;margin-bottom:3px">Date range ဖျက် (ဗလာ = အကုန်)</label>
-              <div style="display:flex;gap:.5rem">
-                <input type="date" id="bulk-date-from" style="flex:1;padding:.4rem .5rem;border:1px solid #ddd;border-radius:6px;font-size:.82rem">
-                <input type="date" id="bulk-date-to" style="flex:1;padding:.4rem .5rem;border:1px solid #ddd;border-radius:6px;font-size:.82rem">
-              </div>
-            </div>
-            <div style="margin-bottom:1rem">
-              <label style="font-size:.8rem;color:var(--muted);display:block;margin-bottom:3px">Delete reason</label>
-              <input type="text" id="bulk-reason" value="Bulk delete by admin" style="width:100%;padding:.4rem .6rem;border:1px solid #ddd;border-radius:6px;font-size:.88rem">
-            </div>
-            <div id="bulk-preview" style="font-size:.82rem;color:var(--muted);margin-bottom:.75rem"></div>
-            <div style="display:flex;gap:.5rem">
-              <button onclick="previewBulkDelete()" style="flex:1;padding:.6rem;background:#6c757d;color:#fff;border:none;border-radius:8px;cursor:pointer;font-size:.88rem">🔍 Preview</button>
-              <button onclick="confirmBulkDelete()" style="flex:1;padding:.6rem;background:#dc3545;color:#fff;border:none;border-radius:8px;cursor:pointer;font-size:.88rem">🗑 Delete All</button>
-            </div>
+          <div class="stat-card">
+            <div class="stat-val" id="p-expiring">—</div>
+            <div class="stat-lbl">Expiring soon (7d)</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-val" id="p-total-orders">—</div>
+            <div class="stat-lbl">Total orders today</div>
           </div>
         </div>
 
-        <!-- KDS Clear Modal -->
-        <div id="kds-clear-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:9999;align-items:center;justify-content:center">
-          <div style="background:var(--bg);border-radius:14px;padding:1.5rem;max-width:340px;width:92%;position:relative">
-            <button onclick="document.getElementById('kds-clear-modal').style.display='none'" style="position:absolute;top:1rem;right:1rem;background:none;border:none;font-size:1.2rem;cursor:pointer">✕</button>
-            <div style="font-weight:600;margin-bottom:1rem">🧹 KDS Queue Clear</div>
-            <div style="margin-bottom:1rem;font-size:.88rem;color:var(--muted)">KDS queue ထဲမှာ pending/preparing/ready tickets တွေကို served အဖြစ် mark လုပ်မည်</div>
-            <div id="kds-pending-count" style="font-size:1.1rem;font-weight:600;margin-bottom:1rem;text-align:center"></div>
-            <div style="display:flex;gap:.5rem">
-              <button onclick="document.getElementById('kds-clear-modal').style.display='none'" style="flex:1;padding:.6rem;background:#6c757d;color:#fff;border:none;border-radius:8px;cursor:pointer">Cancel</button>
-              <button onclick="clearKDSQueue()" style="flex:1;padding:.6rem;background:#e84c2b;color:#fff;border:none;border-radius:8px;cursor:pointer">🧹 Clear Now</button>
+        <!-- Plan distribution + Recent tenants -->
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1rem">
+          <div class="table-wrap" style="padding:1rem">
+            <div style="font-size:.82rem;font-weight:600;color:var(--muted);margin-bottom:.75rem">📊 Plan distribution</div>
+            <div id="plan-dist-chart"></div>
+          </div>
+          <div class="table-wrap" style="padding:0">
+            <div style="padding:.75rem 1rem;font-size:.82rem;font-weight:600;border-bottom:0.5px solid var(--border);display:flex;justify-content:space-between;align-items:center">
+              Recent tenants
+              <button class="btn btn-ghost btn-sm" onclick="showPage('tenants')">View all →</button>
             </div>
+            <table><thead><tr><th>Name</th><th>Plan</th><th>Status</th></tr></thead>
+            <tbody id="recent-tenants-body"></tbody></table>
           </div>
         </div>
 
-<!-- Split Bill Modal -->
-<div id="split-bill-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:9999;align-items:center;justify-content:center">
-  <div style="background:var(--bg);border-radius:14px;padding:1.5rem;max-width:360px;width:92%;position:relative">
-    <button onclick="document.getElementById('split-bill-modal').style.display='none'" style="position:absolute;top:1rem;right:1rem;background:none;border:none;font-size:1.2rem;cursor:pointer">✕</button>
-    <div style="font-weight:600;font-size:1rem;margin-bottom:1rem">💳 Split Bill</div>
-    <div id="split-order-info" style="font-size:.85rem;color:var(--muted);margin-bottom:1rem"></div>
-    <div style="margin-bottom:.75rem">
-      <label style="font-size:.8rem;font-weight:600;display:block;margin-bottom:.4rem">Primary payment</label>
-      <select id="split-primary" style="width:100%;padding:.5rem;border:1px solid #ddd;border-radius:8px;font-size:.88rem">
-        <option value="cash">💵 Cash</option>
-        <option value="kpay">💜 KPay</option>
-        <option value="wave">🌊 Wave Pay</option>
-        <option value="cb">🏦 CB Pay</option>
-        <option value="aya">🟢 AYA Pay</option>
-        <option value="card">💳 Card</option>
-      </select>
-    </div>
-    <div style="margin-bottom:.75rem">
-      <label style="font-size:.8rem;font-weight:600;display:block;margin-bottom:.4rem">Split with (optional)</label>
-      <select id="split-secondary" style="width:100%;padding:.5rem;border:1px solid #ddd;border-radius:8px;font-size:.88rem">
-        <option value="">— None (single payment) —</option>
-        <option value="cash">💵 Cash</option>
-        <option value="kpay">💜 KPay</option>
-        <option value="wave">🌊 Wave Pay</option>
-        <option value="cb">🏦 CB Pay</option>
-        <option value="aya">🟢 AYA Pay</option>
-        <option value="card">💳 Card</option>
-      </select>
-    </div>
-    <div id="split-amount-row" style="display:none;margin-bottom:1rem">
-      <label style="font-size:.8rem;font-weight:600;display:block;margin-bottom:.4rem">Amount paid by secondary (Ks)</label>
-      <input type="number" id="split-amount" min="0" placeholder="0" style="width:100%;padding:.5rem;border:1px solid #ddd;border-radius:8px;font-size:.88rem">
-    </div>
-    <div style="display:flex;gap:.5rem">
-      <button onclick="document.getElementById('split-bill-modal').style.display='none'" style="flex:1;padding:.65rem;background:#6c757d;color:#fff;border:none;border-radius:8px;cursor:pointer">Cancel</button>
-      <button onclick="openSplitBill(${o.id},${o.total_amount})" style="flex:1;padding:.65rem;background:#e84c2b;color:#fff;border:none;border-radius:8px;cursor:pointer;font-weight:600">💳 Split & Close</button>
-    </div>
-  </div>
-</div>
-<!-- Customer History Modal -->
-        <div id="cust-history-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:9000;align-items:center;justify-content:center">
-          <div style="background:var(--bg);border-radius:16px;padding:1.5rem;max-width:500px;width:95%;max-height:85vh;overflow-y:auto;position:relative">
-            <button onclick="document.getElementById('cust-history-modal').style.display='none'" style="position:absolute;top:1rem;right:1rem;background:none;border:none;font-size:1.3rem;cursor:pointer">✕</button>
-            <div style="font-weight:600;font-size:1rem;margin-bottom:1rem">👤 Customer Order History</div>
-            <div style="display:flex;gap:.5rem;margin-bottom:1rem">
-              <input type="text" id="cust-phone-input" placeholder="09xxxxxxxxx" style="flex:1;padding:.5rem .75rem;border:1px solid #ddd;border-radius:8px;font-size:.9rem">
-              <button onclick="loadCustHistory()" style="padding:.5rem 1rem;background:#e84c2b;color:#fff;border:none;border-radius:8px;cursor:pointer;font-size:.88rem">Search</button>
-            </div>
-            <div id="cust-history-result"></div>
-          </div>
-        </div>
-<!-- ═══ ANALYTICS SECTION ═══ -->
-        <div id="analytics-section" style="margin-top:1.2rem">
-
-          <!-- Date range selector -->
-          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.8rem;flex-wrap:wrap;gap:.5rem">
-            <div style="font-weight:600;font-size:.95rem">📈 Analytics</div>
-            <div style="display:flex;gap:.4rem">
-              <button onclick="loadAnalytics(7)"  id="abtn-7"  class="btn btn-sm btn-ghost" style="font-size:.78rem">7D</button>
-              <button onclick="loadAnalytics(14)" id="abtn-14" class="btn btn-sm btn-ghost" style="font-size:.78rem">14D</button>
-              <button onclick="loadAnalytics(30)" id="abtn-30" class="btn btn-sm btn-ghost" style="font-size:.78rem">30D</button>
-            </div>
-          </div>
-
-          <!-- Summary mini cards -->
-          <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:.6rem;margin-bottom:1rem">
-            <div class="stat-card" style="padding:.7rem;text-align:center">
-              <div style="font-size:.72rem;color:var(--muted)">Total Orders</div>
-              <div style="font-size:1.3rem;font-weight:700;color:var(--accent)" id="an-total-orders">—</div>
-            </div>
-            <div class="stat-card" style="padding:.7rem;text-align:center">
-              <div style="font-size:.72rem;color:var(--muted)">Total Revenue</div>
-              <div style="font-size:1.1rem;font-weight:700;color:#28a745" id="an-total-rev">—</div>
-            </div>
-            <div class="stat-card" style="padding:.7rem;text-align:center">
-              <div style="font-size:.72rem;color:var(--muted)">Avg Order</div>
-              <div style="font-size:1.1rem;font-weight:700;color:var(--accent2)" id="an-avg-order">—</div>
-            </div>
-          </div>
-
-          <!-- Revenue chart -->
-          <div class="stat-card" style="padding:1rem;margin-bottom:.8rem">
-            <div style="font-size:.82rem;font-weight:600;margin-bottom:.6rem">💰 Daily Revenue</div>
-            <div style="position:relative;height:180px">
-              <canvas id="chart-revenue"></canvas>
-            </div>
-          </div>
-
-          <!-- Top items + Payment breakdown -->
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:.8rem;margin-bottom:.8rem">
-            <div class="stat-card" style="padding:1rem">
-              <div style="font-size:.82rem;font-weight:600;margin-bottom:.6rem">🍜 Top Items</div>
-              <div style="position:relative;height:200px">
-                <canvas id="chart-items"></canvas>
-              </div>
-            </div>
-            <div class="stat-card" style="padding:1rem">
-              <div style="font-size:.82rem;font-weight:600;margin-bottom:.6rem">💳 Payment Split</div>
-              <div style="position:relative;height:200px">
-                <canvas id="chart-payments"></canvas>
-              </div>
-            </div>
-          </div>
-
-          <!-- Hourly heatmap -->
-          <div class="stat-card" style="padding:1rem;margin-bottom:1rem">
-            <div style="font-size:.82rem;font-weight:600;margin-bottom:.6rem">🕐 Peak Hours</div>
-            <div style="position:relative;height:120px">
-              <canvas id="chart-hourly"></canvas>
-            </div>
-          </div>
-
-        </div>
-        <!-- ═══ END ANALYTICS ═══ -->
-
-<!-- Cross-Branch Analytics -->
-        <div id="cross-branch-analytics" style="<?= $_IS_TENANT ? '' : '' ?>margin-top:1rem;display:none">
-          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.75rem;flex-wrap:wrap;gap:.5rem">
-            <div style="font-weight:600;font-size:.95rem">📊 Branch Revenue Comparison</div>
-            <div style="display:flex;gap:.5rem;align-items:center;flex-wrap:wrap">
-              <select id="cba-range" onchange="loadCrossBranchAnalytics()" style="font-size:.8rem;padding:4px 8px;border:1px solid var(--border);border-radius:6px;background:var(--card);color:var(--text)">
-                <option value="7">Last 7 days</option>
-                <option value="30" selected>Last 30 days</option>
-                <option value="90">Last 90 days</option>
-              </select>
-            </div>
-          </div>
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem" class="cba-grid">
-            <!-- Revenue by Branch Bar Chart -->
-            <div style="background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:1rem">
-              <div style="font-size:.82rem;color:var(--muted);margin-bottom:.75rem;font-weight:600">💰 Revenue by Branch (MMK)</div>
-              <div style="position:relative;height:180px"><canvas id="chart-branch-revenue"></canvas></div>
-            </div>
-            <!-- Orders by Branch -->
-            <div style="background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:1rem">
-              <div style="font-size:.82rem;color:var(--muted);margin-bottom:.75rem;font-weight:600">🧾 Orders by Branch</div>
-              <div style="position:relative;height:180px"><canvas id="chart-branch-orders"></canvas></div>
-            </div>
-          </div>
-          <!-- Branch table -->
-          <div style="background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:1rem;margin-top:1rem;overflow-x:auto">
-            <table style="width:100%;border-collapse:collapse;font-size:.83rem" id="cba-table">
-              <thead><tr style="color:var(--muted);text-align:left;border-bottom:1px solid var(--border)">
-                <th style="padding:.4rem .6rem">Branch</th>
-                <th style="padding:.4rem .6rem;text-align:right">Orders</th>
-                <th style="padding:.4rem .6rem;text-align:right">Revenue</th>
-                <th style="padding:.4rem .6rem;text-align:right">Avg Order</th>
-                <th style="padding:.4rem .6rem;text-align:right">Cancelled</th>
-              </tr></thead>
-              <tbody id="cba-tbody"><tr><td colspan="5" style="text-align:center;padding:1rem;color:var(--muted)">Loading…</td></tr></tbody>
-            </table>
-          </div>
-        </div>
-
-<!-- Recent Orders (Dashboard) -->
-        <div class="table-wrap" style="margin-top:1rem">
-          <div class="table-toolbar">
-            <span style="font-weight:600;font-size:.9rem">📋 Recent Orders</span>
-            <button class="btn btn-ghost btn-sm" onclick="showPage('orders')">View All →</button>
-            <button class="btn btn-ghost btn-sm" onclick="openDailyReport()">📊 Daily Report</button>
-            <button class="btn btn-ghost btn-sm" onclick="openKDSClear()" style="color:#e84c2b">🧹 KDS</button>
-          </div>
-          <div style="overflow-x:auto">
-            <table>
-              <thead><tr>
-                <th>Ref</th><th>Customer</th><th>Items</th>
-                <th>Amount</th><th>Payment</th><th>Status</th><th>Time</th><th></th>
-              </tr></thead>
-              <tbody id="dash-orders-body">
-                <tr><td colspan="8" style="text-align:center;color:var(--muted);padding:2rem">Loading…</td></tr>
-              </tbody>
-            </table>
-          </div>
+        <!-- Upgrade requests alert -->
+        <div id="upgrade-reqs-alert" style="display:none;background:rgba(220,38,38,.06);border:0.5px solid rgba(220,38,38,.2);border-radius:var(--radius);padding:1rem;margin-bottom:1rem">
+          <div style="font-weight:600;color:#dc2626;margin-bottom:.5rem">⬆️ Pending upgrade requests</div>
+          <div id="upgrade-reqs-list"></div>
+          <button class="btn btn-ghost btn-sm" style="margin-top:.5rem" onclick="showPage('upgrades')">View all →</button>
         </div>
       </div>
     </div>
 
-    <!-- ── MENU ITEMS ── -->
-    <div id="page-menu" style="display:none">
+<div id="page-menu" style="display:none">
       <div class="page-head">
         <div style="display:flex;align-items:center;gap:.5rem">
           <button class="hamburger" onclick="openSidebar()" title="Menu">☰</button>
@@ -3264,5 +3026,208 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 </script>
 <?php endif; ?>
+
+<!-- ═══ TENANTS PAGE ═══ -->
+<div id="page-tenants" style="display:none">
+  <div class="page-head">
+    <div style="display:flex;align-items:center;gap:.5rem">
+      <button class="hamburger" onclick="openSidebar()">☰</button>
+      <div class="page-title">🏢 Tenants</div>
+    </div>
+    <a href="signup.html" target="_blank" class="btn btn-primary btn-sm">+ New tenant</a>
+  </div>
+  <div class="content">
+    <div class="table-wrap">
+      <div class="table-toolbar">
+        <input type="text" id="tenant-search" placeholder="Search tenants..." oninput="filterTenants()" style="padding:.4rem .7rem;border:0.5px solid var(--border);border-radius:8px;background:var(--warm);color:var(--ink);font-size:.82rem;width:220px">
+        <select id="tenant-plan-filter" onchange="filterTenants()" style="padding:.4rem .7rem;border:0.5px solid var(--border);border-radius:8px;background:var(--warm);color:var(--ink);font-size:.82rem">
+          <option value="">All plans</option>
+          <option value="free">Free</option>
+          <option value="basic">Basic</option>
+          <option value="pro">Pro</option>
+          <option value="enterprise">Enterprise</option>
+        </select>
+      </div>
+      <table>
+        <thead><tr><th>#</th><th>Business</th><th>Email</th><th>Plan</th><th>Expires</th><th>Status</th><th>Actions</th></tr></thead>
+        <tbody id="tenants-tbody"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ REVENUE PAGE ═══ -->
+<div id="page-revenue" style="display:none">
+  <div class="page-head">
+    <div style="display:flex;align-items:center;gap:.5rem">
+      <button class="hamburger" onclick="openSidebar()">☰</button>
+      <div class="page-title">💰 Revenue</div>
+    </div>
+  </div>
+  <div class="content">
+    <div class="stats-grid" style="margin-bottom:1rem">
+      <div class="stat-card"><div class="stat-val" id="rev-mrr">—</div><div class="stat-lbl">Monthly MRR</div></div>
+      <div class="stat-card"><div class="stat-val" id="rev-free">—</div><div class="stat-lbl">Free tenants</div></div>
+      <div class="stat-card"><div class="stat-val" id="rev-basic">—</div><div class="stat-lbl">Basic tenants</div></div>
+      <div class="stat-card"><div class="stat-val" id="rev-pro">—</div><div class="stat-lbl">Pro tenants</div></div>
+      <div class="stat-card"><div class="stat-val" id="rev-enterprise">—</div><div class="stat-lbl">Enterprise tenants</div></div>
+    </div>
+    <div class="table-wrap" style="padding:1rem">
+      <div style="font-size:.82rem;font-weight:600;color:var(--muted);margin-bottom:.75rem">Revenue by plan</div>
+      <div id="revenue-chart" style="height:200px"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ UPGRADE REQUESTS PAGE ═══ -->
+<div id="page-upgrades" style="display:none">
+  <div class="page-head">
+    <div style="display:flex;align-items:center;gap:.5rem">
+      <button class="hamburger" onclick="openSidebar()">☰</button>
+      <div class="page-title">⬆️ Upgrade Requests</div>
+    </div>
+  </div>
+  <div class="content">
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Tenant</th><th>Current</th><th>Requested</th><th>Note</th><th>Date</th><th>Actions</th></tr></thead>
+        <tbody id="upgrades-tbody"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ PLANS PAGE ═══ -->
+<div id="page-plans" style="display:none">
+  <div class="page-head">
+    <div style="display:flex;align-items:center;gap:.5rem">
+      <button class="hamburger" onclick="openSidebar()">☰</button>
+      <div class="page-title">📦 Plans &amp; Pricing</div>
+    </div>
+  </div>
+  <div class="content">
+    <div id="plans-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:1rem"></div>
+  </div>
+</div>
+
+<!-- ═══ LANDING PAGE CMS ═══ -->
+<div id="page-landing" style="display:none">
+  <div class="page-head">
+    <div style="display:flex;align-items:center;gap:.5rem">
+      <button class="hamburger" onclick="openSidebar()">☰</button>
+      <div class="page-title">🌐 Landing Page</div>
+    </div>
+    <div style="display:flex;gap:.5rem">
+      <a href="/" target="_blank" class="btn btn-ghost btn-sm">Preview →</a>
+      <button class="btn btn-primary btn-sm" onclick="saveLandingPage()">💾 Save</button>
+    </div>
+  </div>
+  <div class="content">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem">
+      <!-- Hero section -->
+      <div class="table-wrap" style="padding:1.2rem">
+        <div style="font-weight:600;margin-bottom:1rem">🦸 Hero Section</div>
+        <div class="form-row" style="display:grid;gap:.75rem">
+          <div class="field"><label>Title line 1</label><input id="lp-title1" placeholder="Myanmar AI"></div>
+          <div class="field"><label>Title line 2</label><input id="lp-title2" placeholder="Products Platform"></div>
+          <div class="field"><label>Subtitle</label><input id="lp-subtitle" placeholder="AI-powered apps for Myanmar businesses"></div>
+          <div class="field"><label>Hero emoji</label><input id="lp-emoji" placeholder="🤖" style="width:80px"></div>
+          <div class="field"><label>BG color</label><input id="lp-bg-color" type="color" value="#fdf6ec"></div>
+        </div>
+      </div>
+      <!-- Products section -->
+      <div class="table-wrap" style="padding:1.2rem">
+        <div style="font-weight:600;margin-bottom:1rem">📦 Products showcase</div>
+        <div id="lp-products-list" style="display:flex;flex-direction:column;gap:.5rem">
+          <div style="color:var(--muted);font-size:.82rem">Products loading...</div>
+        </div>
+        <button class="btn btn-ghost btn-sm" style="margin-top:.75rem" onclick="addLandingProduct()">+ Add product</button>
+      </div>
+      <!-- Announcement -->
+      <div class="table-wrap" style="padding:1.2rem">
+        <div style="font-weight:600;margin-bottom:1rem">📣 Announcement banner</div>
+        <div class="form-row" style="display:grid;gap:.75rem">
+          <div class="field"><label>Text</label><input id="lp-ann-text" placeholder="New feature launched..."></div>
+          <div class="field"><label>Color</label><input id="lp-ann-color" type="color" value="#e84c2b"></div>
+          <div class="field" style="display:flex;align-items:center;gap:.5rem">
+            <input type="checkbox" id="lp-ann-on">
+            <label for="lp-ann-on" style="cursor:pointer">Show banner</label>
+          </div>
+        </div>
+      </div>
+      <!-- CTA -->
+      <div class="table-wrap" style="padding:1.2rem">
+        <div style="font-weight:600;margin-bottom:1rem">🔗 CTA buttons</div>
+        <div class="form-row" style="display:grid;gap:.75rem">
+          <div class="field"><label>Primary CTA text</label><input id="lp-cta1" placeholder="Start free trial"></div>
+          <div class="field"><label>Secondary CTA text</label><input id="lp-cta2" placeholder="View demo"></div>
+          <div class="field"><label>Demo URL</label><input id="lp-demo-url" placeholder="/tenant.php?demo=1"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ DEMO CONTROL ═══ -->
+<div id="page-demo" style="display:none">
+  <div class="page-head">
+    <div style="display:flex;align-items:center;gap:.5rem">
+      <button class="hamburger" onclick="openSidebar()">☰</button>
+      <div class="page-title">🎭 Demo Control</div>
+    </div>
+  </div>
+  <div class="content">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem">
+      <div class="table-wrap" style="padding:1.2rem">
+        <div style="font-weight:600;margin-bottom:.75rem">Demo tenant info</div>
+        <div id="demo-tenant-info" style="color:var(--muted);font-size:.85rem">Loading...</div>
+        <div style="margin-top:1rem;display:flex;gap:.5rem;flex-wrap:wrap">
+          <a href="/tenant.php" target="_blank" class="btn btn-ghost btn-sm">🔗 Open demo</a>
+          <button class="btn btn-danger btn-sm" onclick="resetDemoData()">🔄 Reset demo data</button>
+        </div>
+      </div>
+      <div class="table-wrap" style="padding:1.2rem">
+        <div style="font-weight:600;margin-bottom:.75rem">Demo credentials</div>
+        <div style="font-size:.85rem;color:var(--muted);line-height:2">
+          Email: <code style="background:var(--warm);padding:1px 6px;border-radius:4px">demo@myanai.net</code><br>
+          Pass: <code style="background:var(--warm);padding:1px 6px;border-radius:4px">demo1234</code>
+        </div>
+        <div style="margin-top:.75rem;font-size:.78rem;color:var(--muted)">Landing page မှ "Try Demo" button နှိပ်ရင် auto-login ဖြစ်မည်</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ ANNOUNCEMENTS ═══ -->
+<div id="page-announce" style="display:none">
+  <div class="page-head">
+    <div style="display:flex;align-items:center;gap:.5rem">
+      <button class="hamburger" onclick="openSidebar()">☰</button>
+      <div class="page-title">📣 Announcements</div>
+    </div>
+    <button class="btn btn-primary btn-sm" onclick="saveAnnouncement()">💾 Save</button>
+  </div>
+  <div class="content">
+    <div class="table-wrap" style="padding:1.2rem;max-width:600px">
+      <div class="form-row" style="display:grid;gap:.75rem">
+        <div class="field"><label>Message (shown to all tenants)</label>
+          <textarea id="ann-message" rows="3" style="width:100%;padding:.5rem;border:0.5px solid var(--border);border-radius:8px;background:var(--warm);color:var(--ink);font-family:inherit;font-size:.85rem" placeholder="System maintenance on June 20..."></textarea>
+        </div>
+        <div class="field"><label>Type</label>
+          <select id="ann-type" style="padding:.4rem .7rem;border:0.5px solid var(--border);border-radius:8px;background:var(--warm);color:var(--ink)">
+            <option value="info">ℹ️ Info</option>
+            <option value="warning">⚠️ Warning</option>
+            <option value="success">✅ Success</option>
+          </select>
+        </div>
+        <div class="field" style="display:flex;gap:.5rem;align-items:center">
+          <input type="checkbox" id="ann-active">
+          <label for="ann-active" style="cursor:pointer">Show to all tenants</label>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
 </body>
 </html>
