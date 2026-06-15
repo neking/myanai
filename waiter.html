@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html lang="mm">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
+<title>NoodleHaus — Waiter</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+:root{
+  --bg:#f8f4f0;--surface:#fff;--border:#e8e0d8;
+  --ink:#1a0f05;--muted:#888;--accent:#e84c2b;--accent2:#f0a500;
+  --green:#28a745;--radius:12px;
+}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg);color:var(--ink);min-height:100vh;user-select:none}
+
+/* ── PIN SCREEN ── */
+#pin-screen{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;padding:2rem}
+.pin-logo{font-size:3rem;margin-bottom:.5rem}
+.pin-title{font-size:1.3rem;font-weight:700;color:var(--ink);margin-bottom:.25rem}
+.pin-sub{font-size:.85rem;color:var(--muted);margin-bottom:2rem}
+.pin-display{background:var(--surface);border:2px solid var(--border);border-radius:var(--radius);width:200px;height:56px;display:flex;align-items:center;justify-content:center;font-size:1.8rem;letter-spacing:8px;margin-bottom:1rem;color:var(--ink)}
+.pin-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;width:240px}
+.pin-btn{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);height:64px;font-size:1.4rem;font-weight:600;color:var(--ink);cursor:pointer;transition:background .1s}
+.pin-btn:active{background:#f0e8e0}
+.pin-btn.del{background:#fdf0ee;color:var(--accent)}
+.pin-btn.ok{background:var(--accent);color:#fff;border-color:var(--accent)}
+.pin-btn.ok:active{background:#c73d22}
+.pin-error{color:var(--accent);font-size:.85rem;margin-top:.5rem;min-height:1.2rem}
+
+/* ── MAIN APP ── */
+#app{display:none;height:100vh;display:none;flex-direction:column}
+.app-header{background:var(--ink);color:#fff;padding:.75rem 1rem;display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+.app-header .store{font-size:1rem;font-weight:700;color:var(--accent2)}
+.app-header .staff-name{font-size:.8rem;color:#b8a48a}
+.btn-logout{background:none;border:1px solid rgba(255,255,255,.3);color:#fff;padding:.3rem .7rem;border-radius:20px;font-size:.75rem;cursor:pointer}
+
+/* ── TABS ── */
+.tabs{display:flex;background:var(--surface);border-bottom:1px solid var(--border);flex-shrink:0}
+.tab{flex:1;padding:.7rem;font-size:.85rem;font-weight:600;text-align:center;cursor:pointer;color:var(--muted);border-bottom:2px solid transparent;transition:all .2s}
+.tab.active{color:var(--accent);border-bottom-color:var(--accent)}
+
+/* ── TABLES VIEW ── */
+#view-tables{padding:1rem;overflow-y:auto;flex:1}
+.tables-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:.75rem}
+.table-card{background:var(--surface);border-radius:var(--radius);padding:1rem;border:2px solid var(--border);cursor:pointer;transition:all .15s;text-align:center}
+.table-card:active{transform:scale(.97)}
+.table-card.occupied{border-color:var(--accent2);background:#fffbf0}
+.table-card.busy{border-color:var(--accent);background:#fff8f8}
+.table-code{font-size:1.4rem;font-weight:700;color:var(--ink);margin-bottom:.2rem}
+.table-label{font-size:.75rem;color:var(--muted)}
+.table-status{font-size:.75rem;margin-top:.4rem;padding:.2rem .6rem;border-radius:20px;display:inline-block}
+.status-empty{background:#f0f0f0;color:#888}
+.status-open{background:#fff3cd;color:#856404}
+.status-preparing{background:#cfe2ff;color:#084298}
+.status-ready{background:#d1fae5;color:#065f46}
+
+/* ── ORDER VIEW ── */
+#view-order{display:none;flex:1;flex-direction:column;overflow:hidden}
+.order-header{background:var(--surface);padding:.75rem 1rem;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:.75rem;flex-shrink:0}
+.btn-back{background:none;border:none;font-size:1.3rem;cursor:pointer;color:var(--ink)}
+.order-table-info{flex:1}
+.order-table-code{font-size:1rem;font-weight:700}
+.order-table-sub{font-size:.78rem;color:var(--muted)}
+
+/* ── MENU ── */
+.menu-cats{display:flex;gap:.5rem;padding:.75rem 1rem;overflow-x:auto;background:var(--surface);border-bottom:1px solid var(--border);flex-shrink:0}
+.menu-cats::-webkit-scrollbar{display:none}
+.cat-btn{background:#f0f0f0;border:none;border-radius:20px;padding:.35rem .9rem;font-size:.82rem;cursor:pointer;white-space:nowrap;color:var(--ink)}
+.cat-btn.active{background:var(--accent);color:#fff}
+
+.menu-area{flex:1;overflow-y:auto;padding:.75rem}
+.menu-item{background:var(--surface);border-radius:10px;padding:.75rem;margin-bottom:.5rem;display:flex;align-items:center;gap:.75rem;border:1px solid var(--border)}
+.mi-emoji{font-size:1.5rem;width:40px;text-align:center;flex-shrink:0}
+.mi-img{width:40px;height:40px;border-radius:8px;object-fit:cover;flex-shrink:0}
+.mi-info{flex:1;min-width:0}
+.mi-name{font-size:.9rem;font-weight:600;color:var(--ink)}
+.mi-price{font-size:.8rem;color:var(--accent);margin-top:1px}
+.mi-stock{font-size:.72rem;color:var(--muted)}
+.mi-add{width:36px;height:36px;border-radius:50%;background:var(--accent);color:#fff;border:none;font-size:1.3rem;cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center}
+.mi-add:active{background:#c73d22}
+.mi-add.in-cart{background:var(--green)}
+
+/* ── CART ── */
+.cart-bar{background:var(--surface);border-top:1px solid var(--border);padding:.75rem 1rem;flex-shrink:0}
+.cart-summary{display:flex;align-items:center;justify-content:space-between;margin-bottom:.5rem}
+.cart-count{font-size:.85rem;color:var(--muted)}
+.cart-total{font-size:1rem;font-weight:700;color:var(--accent)}
+.cart-items{max-height:160px;overflow-y:auto;margin-bottom:.5rem}
+.cart-row{display:flex;align-items:center;gap:.5rem;padding:.3rem 0;border-bottom:.5px solid var(--border);font-size:.85rem}
+.cart-row:last-child{border-bottom:none}
+.cart-name{flex:1;font-size:.85rem}
+.qty-btn{width:28px;height:28px;border-radius:50%;border:1px solid var(--border);background:var(--bg);font-size:1rem;cursor:pointer;display:flex;align-items:center;justify-content:center}
+.cart-qty{min-width:24px;text-align:center;font-weight:600}
+.note-input{width:100%;padding:.5rem .75rem;border:1px solid var(--border);border-radius:8px;font-size:.85rem;margin-bottom:.5rem;background:var(--bg);color:var(--ink)}
+.btn-submit{width:100%;padding:.8rem;background:var(--accent);color:#fff;border:none;border-radius:10px;font-size:1rem;font-weight:700;cursor:pointer}
+.btn-submit:disabled{background:#ccc;cursor:not-allowed}
+.btn-submit:active:not(:disabled){background:#c73d22}
+
+/* ── SUCCESS ── */
+.success-msg{text-align:center;padding:1.5rem;background:#d1fae5;border-radius:var(--radius);margin:.75rem}
+.success-msg .icon{font-size:2.5rem;margin-bottom:.5rem}
+.success-msg h3{color:#065f46;font-size:1.1rem;margin-bottom:.25rem}
+.success-msg p{font-size:.85rem;color:#065f46}
+
+/* ── CURRENT ORDER ── */
+#view-current{display:none;flex:1;overflow-y:auto;padding:1rem}
+.current-order-card{background:var(--surface);border-radius:var(--radius);padding:1rem;border:1px solid var(--border);margin-bottom:.75rem}
+.co-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:.5rem}
+.co-ref{font-weight:700;font-size:.95rem}
+.co-status{font-size:.75rem;padding:.2rem .6rem;border-radius:20px}
+.co-items{font-size:.85rem;color:var(--muted);line-height:1.6}
+.co-total{font-weight:700;color:var(--accent);margin-top:.5rem;font-size:.95rem}
+.empty-state{text-align:center;padding:3rem 1rem;color:var(--muted)}
+.empty-state .icon{font-size:3rem;margin-bottom:.75rem}
+</style>
+</head>
+<body>
+
+<!-- PIN Screen -->
+<div id="pin-screen">
+  <div class="pin-logo">🍜</div>
+  <div class="pin-title">NoodleHaus</div>
+  <div class="pin-sub">Waiter App — PIN ထည့်ပါ</div>
+  <div class="pin-display" id="pin-display">----</div>
+  <div class="pin-grid">
+    <button class="pin-btn" onclick="pinKey('1')">1</button>
+    <button class="pin-btn" onclick="pinKey('2')">2</button>
+    <button class="pin-btn" onclick="pinKey('3')">3</button>
+    <button class="pin-btn" onclick="pinKey('4')">4</button>
+    <button class="pin-btn" onclick="pinKey('5')">5</button>
+    <button class="pin-btn" onclick="pinKey('6')">6</button>
+    <button class="pin-btn" onclick="pinKey('7')">7</button>
+    <button class="pin-btn" onclick="pinKey('8')">8</button>
+    <button class="pin-btn" onclick="pinKey('9')">9</button>
+    <button class="pin-btn del" onclick="pinDel()">⌫</button>
+    <button class="pin-btn" onclick="pinKey('0')">0</button>
+    <button class="pin-btn ok" onclick="pinSubmit()">✓</button>
+  </div>
+  <div class="pin-error" id="pin-error"></div>
+</div>
+
+<!-- Main App -->
+<div id="app">
+  <div class="app-header">
+    <div>
+      <div class="store">🍜 NoodleHaus</div>
+      <div class="staff-name" id="staff-name-display"></div>
+    </div>
+    <button class="btn-logout" onclick="logout()">Logout</button>
+  </div>
+
+  <div class="tabs">
+    <div class="tab active" id="tab-tables" onclick="showTab('tables')">🍽 Tables</div>
+    <div class="tab" id="tab-current" onclick="showTab('current')">📋 Current</div>
+  </div>
+
+  <!-- Tables view -->
+  <div id="view-tables">
+    <div class="tables-grid" id="tables-grid"></div>
+  </div>
+
+  <!-- Order view (table selected) -->
+  <div id="view-order" style="display:none;flex-direction:column">
+    <div class="order-header">
+      <button class="btn-back" onclick="backToTables()">←</button>
+      <div class="order-table-info">
+        <div class="order-table-code" id="order-table-code"></div>
+        <div class="order-table-sub" id="order-table-sub"></div>
+      </div>
+    </div>
+    <div class="menu-cats" id="menu-cats"></div>
+    <div class="menu-area" id="menu-area"></div>
+    <div class="cart-bar" id="cart-bar" style="display:none">
+      <div class="cart-summary">
+        <span class="cart-count" id="cart-count"></span>
+        <span class="cart-total" id="cart-total"></span>
+      </div>
+      <div class="cart-items" id="cart-items"></div>
+      <input class="note-input" id="order-note" placeholder="Special instructions (optional)">
+      <button class="btn-submit" id="btn-submit" onclick="submitWaiterOrder()">📤 Send to Kitchen</button>
+    </div>
+  </div>
+
+  <!-- Current orders view -->
+  <div id="view-current" style="overflow-y:auto;padding:1rem">
+    <div id="current-orders-list"></div>
+  </div>
+</div>
+
+<script>
+const API = '/waiter_api.php';
+let staff = null;
+let pin = '';
+let allMenuItems = [];
+let cart = {};
+let selectedTable = null;
+let currentCat = 'All';
+
+// ══ PIN ══
+function pinKey(k) {
+  if (pin.length >= 6) return;
+  pin += k;
+  updatePinDisplay();
+}
+function pinDel() {
+  pin = pin.slice(0,-1);
+  updatePinDisplay();
+}
+function updatePinDisplay() {
+  const d = document.getElementById('pin-display');
+  d.textContent = pin ? '●'.repeat(pin.length) + '─'.repeat(4-Math.min(pin.length,4)) : '────';
+}
+async function pinSubmit() {
+  if (!pin) return;
+  document.getElementById('pin-error').textContent = '';
+  const r = await fetch(API+'?action=login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({pin})});
+  const d = await r.json();
+  if (!d.ok) {
+    document.getElementById('pin-error').textContent = d.msg;
+    pin = ''; updatePinDisplay(); return;
+  }
+  staff = d.staff;
+  pin = '';
+  updatePinDisplay();
+  document.getElementById('pin-screen').style.display = 'none';
+  document.getElementById('app').style.display = 'flex';
+  document.getElementById('staff-name-display').textContent = staff.name;
+  loadTables();
+  loadMenu();
+}
+function logout() {
+  staff = null; cart = {}; selectedTable = null;
+  document.getElementById('app').style.display = 'none';
+  document.getElementById('pin-screen').style.display = 'flex';
+}
+
+// ══ TABS ══
+function showTab(tab) {
+  ['tables','current'].forEach(t => {
+    document.getElementById('tab-'+t).classList.toggle('active', t===tab);
+  });
+  document.getElementById('view-tables').style.display = tab==='tables' ? 'block' : 'none';
+  document.getElementById('view-order').style.display = 'none';
+  document.getElementById('view-current').style.display = tab==='current' ? 'block' : 'none';
+  if (tab==='current') loadCurrentOrders();
+}
+
+// ══ TABLES ══
+async function loadTables() {
+  const d = await fetch(API+'?action=tables').then(r=>r.json());
+  if (!d.ok) return;
+  const grid = document.getElementById('tables-grid');
+  grid.innerHTML = d.tables.map(t => {
+    const hasOrder = !!t.order_id;
+    const status = t.order_status || 'empty';
+    const cls = status==='empty'?'':status==='preparing'?'busy':'occupied';
+    const statusLabel = {empty:'Empty',pending:'⏳ Ordered',preparing:'👨‍🍳 Preparing',ready:'✅ Ready'}[status]||status;
+    const statusCls = {empty:'status-empty',pending:'status-open',preparing:'status-preparing',ready:'status-ready'}[status]||'status-empty';
+    return `<div class="table-card ${cls}" onclick="selectTable('${t.table_code}','${t.label}','${status}',${t.item_count||0},${t.subtotal||0})">
+      <div class="table-code">${t.table_code}</div>
+      <div class="table-label">${t.label}</div>
+      <div class="table-status ${statusCls}">${statusLabel}</div>
+      ${hasOrder?`<div style="font-size:.72rem;color:var(--muted);margin-top:.3rem">${t.item_count} items · ${parseInt(t.subtotal).toLocaleString()} Ks</div>`:''}
+    </div>`;
+  }).join('');
+}
+
+function selectTable(code, label, status, itemCount, subtotal) {
+  selectedTable = {code, label, status, itemCount, subtotal};
+  cart = {};
+  document.getElementById('view-tables').style.display = 'none';
+  document.getElementById('view-order').style.display = 'flex';
+  document.getElementById('order-table-code').textContent = code + ' — ' + label;
+  document.getElementById('order-table-sub').textContent = 
+    itemCount>0 ? `Current: ${itemCount} items · ${parseInt(subtotal).toLocaleString()} Ks` : 'No active order';
+  renderMenu('All');
+  updateCartBar();
+}
+
+function backToTables() {
+  document.getElementById('view-order').style.display = 'none';
+  document.getElementById('view-tables').style.display = 'block';
+  loadTables();
+}
+
+// ══ MENU ══
+async function loadMenu() {
+  const d = await fetch(API+'?action=menu').then(r=>r.json());
+  if (!d.ok) return;
+  allMenuItems = d.items;
+}
+
+function renderMenu(cat) {
+  currentCat = cat;
+  const cats = ['All',...new Set(allMenuItems.map(i=>i.category))];
+  document.getElementById('menu-cats').innerHTML = cats.map(c=>
+    `<button class="cat-btn ${c===cat?'active':''}" onclick="renderMenu('${c}')">${c}</button>`
+  ).join('');
+  const items = cat==='All' ? allMenuItems : allMenuItems.filter(i=>i.category===cat);
+  document.getElementById('menu-area').innerHTML = items.map(item => {
+    const inCart = !!cart[item.id];
+    const imgEl = item.image_path
+      ? `<img class="mi-img" src="/${item.image_path}" alt="${item.name}">`
+      : `<div class="mi-emoji">${item.emoji||'🍽️'}</div>`;
+    return `<div class="menu-item">
+      ${imgEl}
+      <div class="mi-info">
+        <div class="mi-name">${item.name}</div>
+        <div class="mi-price">${parseInt(item.price).toLocaleString()} Ks</div>
+        <div class="mi-stock">Stock: ${item.stock_qty}</div>
+      </div>
+      <button class="mi-add ${inCart?'in-cart':''}" onclick="addToCart(${item.id},'${item.name.replace(/'/g,"\\'")}',${item.price},${item.stock_qty})">
+        ${inCart?'✓':'+'}
+      </button>
+    </div>`;
+  }).join('');
+}
+
+// ══ CART ══
+function addToCart(id, name, price, stock) {
+  if (!cart[id]) cart[id] = {id,name,price,qty:0,stock};
+  if (cart[id].qty >= stock) { alert('Stock မလုံ့ပါ'); return; }
+  cart[id].qty++;
+  renderMenu(currentCat);
+  updateCartBar();
+}
+
+function updateCartBar() {
+  const items = Object.values(cart).filter(i=>i.qty>0);
+  const bar = document.getElementById('cart-bar');
+  if (items.length===0) { bar.style.display='none'; return; }
+  bar.style.display='block';
+  const total = items.reduce((s,i)=>s+i.price*i.qty,0);
+  document.getElementById('cart-count').textContent = items.reduce((s,i)=>s+i.qty,0)+' items';
+  document.getElementById('cart-total').textContent = total.toLocaleString()+' Ks';
+  document.getElementById('cart-items').innerHTML = items.map(i=>`
+    <div class="cart-row">
+      <span class="cart-name">${i.name}</span>
+      <button class="qty-btn" onclick="changeQty(${i.id},-1)">−</button>
+      <span class="cart-qty">${i.qty}</span>
+      <button class="qty-btn" onclick="changeQty(${i.id},1)">+</button>
+      <span style="min-width:70px;text-align:right;font-size:.82rem;color:var(--accent)">${(i.price*i.qty).toLocaleString()}</span>
+    </div>`).join('');
+}
+
+function changeQty(id, delta) {
+  if (!cart[id]) return;
+  cart[id].qty += delta;
+  if (cart[id].qty <= 0) delete cart[id];
+  renderMenu(currentCat);
+  updateCartBar();
+}
+
+// ══ SUBMIT ORDER ══
+async function submitWaiterOrder() {
+  const items = Object.values(cart).filter(i=>i.qty>0);
+  if (!items.length) return;
+  const btn = document.getElementById('btn-submit');
+  btn.disabled = true; btn.textContent = '⏳ Sending...';
+  const note = document.getElementById('order-note').value.trim();
+  const r = await fetch(API+'?action=order',{
+    method:'POST',headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({table_code:selectedTable.code,staff_id:staff.id,items:items.map(i=>({id:i.id,qty:i.qty})),note})
+  });
+  const d = await r.json();
+  btn.disabled = false; btn.textContent = '📤 Send to Kitchen';
+  if (!d.ok) { alert('Error: '+d.msg); return; }
+  
+  cart = {};
+  document.getElementById('order-note').value = '';
+  updateCartBar();
+  renderMenu(currentCat);
+  
+  // Success flash
+  const area = document.getElementById('menu-area');
+  area.innerHTML = `<div class="success-msg">
+    <div class="icon">✅</div>
+    <h3>${d.is_append?'Items added!':'Order sent!'}</h3>
+    <p>${d.order_id} · ${selectedTable.code}<br>Kitchen မှာ ရောက်ပြီ</p>
+  </div>`;
+  setTimeout(()=>{ renderMenu('All'); loadTables(); backToTables(); }, 2000);
+}
+
+// ══ CURRENT ORDERS ══
+async function loadCurrentOrders() {
+  const el = document.getElementById('current-orders-list');
+  el.innerHTML = '<div class="empty-state"><div class="icon">⏳</div><p>Loading...</p></div>';
+  const tables = await fetch(API+'?action=tables').then(r=>r.json());
+  if (!tables.ok) return;
+  const active = tables.tables.filter(t=>t.order_id);
+  if (!active.length) {
+    el.innerHTML = '<div class="empty-state"><div class="icon">🍽️</div><p>Active orders မရှိသေး</p></div>';
+    return;
+  }
+  const STATUS = {pending:'⏳ Pending',preparing:'👨‍🍳 Preparing',ready:'✅ Ready!',delivered:'📦 Done'};
+  const SCLS = {pending:'status-open',preparing:'status-preparing',ready:'status-ready',delivered:'status-empty'};
+  el.innerHTML = active.map(t=>`
+    <div class="current-order-card">
+      <div class="co-header">
+        <span class="co-ref">${t.table_code} — ${t.label}</span>
+        <span class="co-status ${SCLS[t.order_status]||'status-empty'}">${STATUS[t.order_status]||t.order_status}</span>
+      </div>
+      <div class="co-items">${t.item_count} items</div>
+      <div class="co-total">K ${parseInt(t.subtotal).toLocaleString()}</div>
+      <button onclick="selectTable('${t.table_code}','${t.label}','${t.order_status}',${t.item_count},${t.subtotal})" 
+        style="margin-top:.5rem;width:100%;padding:.5rem;background:var(--accent);color:#fff;border:none;border-radius:8px;cursor:pointer;font-size:.85rem">
+        + Add more items
+      </button>
+    </div>`).join('');
+}
+
+// Init
+document.addEventListener('keydown', e => {
+  if (document.getElementById('pin-screen').style.display==='none') return;
+  if (e.key>='0'&&e.key<='9') pinKey(e.key);
+  if (e.key==='Backspace') pinDel();
+  if (e.key==='Enter') pinSubmit();
+});
+</script>
+</body>
+</html>
