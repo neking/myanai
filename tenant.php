@@ -325,8 +325,8 @@ td{padding:.65rem .9rem;color:var(--ink)}
   .content{padding:1rem}
 }
 
-/* HIDDEN */
-.page{display:none}
+/* HIDDEN - controlled by JS inline style */
+.page{}
 </style>
 </head>
 <body>
@@ -835,7 +835,7 @@ function showPage(page){
   });
   // Show target
   const el=document.getElementById('page-'+page);
-  if(el) el.style.display='';
+  if(el) el.style.display='block';
   const nav=document.getElementById('nav-'+page);
   if(nav) nav.classList.add('active');
 
