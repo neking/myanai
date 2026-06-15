@@ -2415,6 +2415,7 @@ function renderTenants(list) {
       <td><span style="font-size:.72rem;color:${t.is_active?'#059669':'#dc2626'}">${t.is_active?'✓ Active':'✗ Off'}</span></td>
       <td>
         <button class="btn btn-ghost btn-sm" onclick="impersonateAsTenant(${t.id},'${t.name}')">👤 View</button>
+        <button class="btn btn-ghost btn-sm" onclick="downloadTenantBackup(${t.id},'${t.name}')">💾</button>
         <button class="btn btn-ghost btn-sm" onclick="toggleTenant(${t.id},${t.is_active})">${t.is_active?'Disable':'Enable'}</button>
         <button class="btn btn-ghost btn-sm" onclick="setTenantExpiry(${t.id},'${t.name}')">📅</button>
       </td>
@@ -2713,4 +2714,23 @@ async function saveAnnouncement() {
   }).then(r=>r.json());
   if(r.ok) toast('✅ Announcement saved');
   else toast(r.msg||'Error','err');
+}
+
+/* ── Per-tenant backup (admin) ── */
+async function downloadTenantBackup(tid, name){
+  toast(`⏳ ${name} backup ပြင်ဆင်နေသည်...`);
+  try {
+    const res = await fetch(`backup_api.php?action=export&tenant_id=${tid}`,{credentials:'include'});
+    if(!res.ok) throw new Error('Export failed');
+    const blob = await res.blob();
+    const fname = res.headers.get('Content-Disposition')?.match(/filename="([^"]+)"/)?.[1] || `backup-${name}-${Date.now()}.json`;
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href=url; a.download=fname; document.body.appendChild(a); a.click();
+    document.body.removeChild(a); URL.revokeObjectURL(url);
+    const records = res.headers.get('X-Backup-Records') || '?';
+    toast(`✅ ${name} — ${records} records downloaded`,'ok');
+  } catch(e) {
+    toast('Backup failed: '+e.message,'err');
+  }
 }
