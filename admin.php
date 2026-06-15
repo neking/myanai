@@ -867,6 +867,41 @@ if (isset($_GET['api'])) { // GET+POST both handled
         exit;
     }
 
+    /* ── IMPERSONATE TENANT ── */
+    if ($_GET['api'] === 'impersonate') {
+        if (($_SESSION['admin']['role'] ?? '') !== 'superadmin') {
+            echo json_encode(['ok'=>false,'msg'=>'Superadmin only']); exit;
+        }
+        $b   = json_decode(file_get_contents('php://input'), true) ?? [];
+        $tid = (int)($b['tenant_id'] ?? 0);
+        if (!$tid) { echo json_encode(['ok'=>false,'msg'=>'tenant_id required']); exit; }
+
+        $row = $pdo->prepare("SELECT id,name,slug,plan,plan_expires,owner_email FROM tenants WHERE id=? AND is_active=1");
+        $row->execute([$tid]);
+        $tenant = $row->fetch(PDO::FETCH_ASSOC);
+        if (!$tenant) { echo json_encode(['ok'=>false,'msg'=>'Tenant not found']); exit; }
+
+        // Set impersonation session
+        $_SESSION['tenant_admin']      = ['user'=>$tenant['owner_email'],'role'=>'tenant'];
+        $_SESSION['tenant_id']         = $tenant['id'];
+        $_SESSION['tenant_slug']       = $tenant['slug'];
+        $_SESSION['tenant_name']       = $tenant['name'];
+        $_SESSION['tenant_plan']       = $tenant['plan'];
+        $_SESSION['tenant_plan_expires']= $tenant['plan_expires'];
+        $_SESSION['impersonating']     = true;
+        $_SESSION['impersonate_admin'] = $_SESSION['admin']['user'] ?? 'admin';
+        $_SESSION['impersonate_started']= time();
+
+        // Log access
+        try {
+            $pdo->prepare("INSERT INTO tenant_access_log (admin_user,tenant_id,action,ip,started_at) VALUES (?,?,?,?,NOW()) ON DUPLICATE KEY UPDATE started_at=NOW()")
+                ->execute([$_SESSION['impersonate_admin'], $tid, 'impersonate', $_SERVER['REMOTE_ADDR']??'']);
+        } catch (\Exception $e) {}
+
+        echo json_encode(['ok'=>true,'name'=>$tenant['name'],'slug'=>$tenant['slug']]);
+        exit;
+    }
+
     /* ── GET SITE SETTINGS (landing page CMS) ── */
     if ($_GET['api'] === 'get_settings') {
         $rows = db()->query("SELECT setting_key,setting_value FROM site_settings")->fetchAll();
