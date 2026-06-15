@@ -278,7 +278,6 @@ if ($action === 'approve_upgrade') {
     // Update tenant plan
     $planLimits = ['free'=>[1,3,20],'basic'=>[1,5,50],'pro'=>[3,15,200],'enterprise'=>[10,50,500]];
     $limits = $planLimits[$plan];
-    // Set plan_expires = 1 year from now
     $expires = date('Y-m-d', strtotime('+1 year'));
     $pdo->prepare("UPDATE tenants SET plan=?, max_branches=?, max_staff=?, max_menu_items=?, plan_expires=? WHERE id=?")
         ->execute([$plan, $limits[0], $limits[1], $limits[2], $expires, $tid]);
@@ -287,6 +286,18 @@ if ($action === 'approve_upgrade') {
     try {
         $pdo->prepare("UPDATE upgrade_requests SET status='approved', updated_at=NOW() WHERE id=?")->execute([$reqId]);
     } catch (\Exception $e) {}
+
+    // Send email notification
+    try {
+        require_once __DIR__ . '/mailer.php';
+        $tenantRow = $pdo->prepare("SELECT name,owner_email FROM tenants WHERE id=?");
+        $tenantRow->execute([$tid]);
+        $tenantInfo = $tenantRow->fetch(PDO::FETCH_ASSOC);
+        if($tenantInfo && $tenantInfo['owner_email']){
+            $body = upgradeApprovedEmail($tenantInfo['owner_email'], $tenantInfo['name'], $plan);
+            sendMail($tenantInfo['owner_email'], "✅ Your MyanAi plan has been upgraded to {$plan}!", $body);
+        }
+    } catch(\Exception $e){ error_log('Mailer error: '.$e->getMessage()); }
 
     ok(['message' => "Upgraded to $plan"]);
 }
@@ -299,6 +310,19 @@ if ($action === 'reject_upgrade') {
     try {
         $pdo->prepare("UPDATE upgrade_requests SET status='rejected', updated_at=NOW() WHERE id=?")->execute([$reqId]);
     } catch (\Exception $e) {}
+
+    // Email notification for rejection
+    try {
+        require_once __DIR__ . '/mailer.php';
+        $reqRow = $pdo->prepare("SELECT ur.requested_plan, t.name, t.owner_email FROM upgrade_requests ur JOIN tenants t ON t.id=ur.tenant_id WHERE ur.id=?");
+        $reqRow->execute([$reqId]);
+        $reqInfo = $reqRow->fetch(PDO::FETCH_ASSOC);
+        if($reqInfo && $reqInfo['owner_email']){
+            $body = upgradeRejectedEmail($reqInfo['owner_email'], $reqInfo['name'], $reqInfo['requested_plan']);
+            sendMail($reqInfo['owner_email'], "MyanAi — Upgrade request update", $body);
+        }
+    } catch(\Exception $e){ error_log('Mailer error: '.$e->getMessage()); }
+
     ok(['message' => 'Rejected']);
 }
 
