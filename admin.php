@@ -933,50 +933,124 @@ if ($_IS_TENANT && !isset($_GET['tenant_id'])) {
 <title>MyanAi POS — Admin</title>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&family=Noto+Sans+Myanmar:wght@400;500&family=Noto+Sans+SC:wght@400;500&display=swap" rel="stylesheet">
 <style>
-:root{
-  --ink:#1a1209;--paper:#fdf6ec;--warm:#f5ede0;--accent:#e84c2b;--accent2:#f0a500;
-  --muted:#8a7560;--border:#e2d5c3;--card:#ffffff;--green:#2d7a4f;
-  --radius:12px;--shadow:0 4px 24px rgba(26,18,9,.10);
+/* ── MyanAi POS Theme System ──
+   Light: Warm Sand Glass (Theme 5)
+   Dark:  Midnight Black  (Theme 2)
+── */
+:root {
+  /* Warm Sand — Light mode */
+  --ink:     #1c1409;
+  --paper:   #f0e6d3;
+  --warm:    #fdf6ec;
+  --card:    rgba(253,246,236,.82);
+  --card-solid: #fdf6ec;
+  --border:  rgba(28,20,9,.09);
+  --muted:   #8a7560;
+  --accent:  #1c1409;
+  --accent2: #5c4a2a;
+  --green:   #2d6a4f;
+  --radius:  12px;
+  --shadow:  0 2px 16px rgba(28,20,9,.08);
+  --sidebar-bg: rgba(253,246,236,.82);
+  --sidebar-blur: blur(20px);
+  --sidebar-border: rgba(28,20,9,.08);
+  --sidebar-text: #1c1409;
+  --sidebar-muted: #8a7560;
+  --sidebar-active-bg: rgba(28,20,9,.08);
+  --sidebar-active-text: #1c1409;
+  --sidebar-active-bar: #1c1409;
+  --topbar-bg: rgba(253,246,236,.75);
+  --topbar-blur: blur(16px);
+  --logo-mark-bg: #1c1409;
+  --logo-mark-text: #fdf6ec;
+  --logo-mark-radius: 50%;
+  --stat-bg: rgba(255,255,255,.65);
+  --icon-btn-bg: rgba(28,20,9,.07);
+  --icon-btn-text: #1c1409;
+  --theme-label: "☀️";
+}
+[data-theme="dark"] {
+  /* Midnight Black — Dark mode */
+  --ink:     #f5f5f7;
+  --paper:   #000000;
+  --warm:    #1c1c1e;
+  --card:    rgba(28,28,30,.92);
+  --card-solid: #1c1c1e;
+  --border:  rgba(255,255,255,.07);
+  --muted:   rgba(235,235,240,.45);
+  --accent:  #f5f5f7;
+  --accent2: #ebebf0;
+  --green:   #34c759;
+  --radius:  12px;
+  --shadow:  0 2px 24px rgba(0,0,0,.5);
+  --sidebar-bg: rgba(28,28,30,.92);
+  --sidebar-blur: blur(24px);
+  --sidebar-border: rgba(255,255,255,.06);
+  --sidebar-text: #f5f5f7;
+  --sidebar-muted: rgba(235,235,240,.45);
+  --sidebar-active-bg: rgba(255,255,255,.10);
+  --sidebar-active-text: #ffffff;
+  --sidebar-active-bar: rgba(255,255,255,.7);
+  --topbar-bg: rgba(28,28,30,.80);
+  --topbar-blur: blur(16px);
+  --logo-mark-bg: rgba(255,255,255,.10);
+  --logo-mark-text: #f5f5f7;
+  --logo-mark-radius: 50%;
+  --stat-bg: rgba(255,255,255,.05);
+  --icon-btn-bg: rgba(255,255,255,.08);
+  --icon-btn-text: #f5f5f7;
+  --theme-label: "🌙";
+}
+/* System dark mode fallback */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --ink:#f5f5f7;--paper:#000;--warm:#1c1c1e;
+    --card:rgba(28,28,30,.92);--card-solid:#1c1c1e;
+    --border:rgba(255,255,255,.07);--muted:rgba(235,235,240,.45);
+    --accent:#f5f5f7;--accent2:#ebebf0;--green:#34c759;
+    --shadow:0 2px 24px rgba(0,0,0,.5);
+    --sidebar-bg:rgba(28,28,30,.92);--sidebar-blur:blur(24px);
+    --sidebar-border:rgba(255,255,255,.06);
+    --sidebar-text:#f5f5f7;--sidebar-muted:rgba(235,235,240,.45);
+    --sidebar-active-bg:rgba(255,255,255,.10);--sidebar-active-text:#fff;
+    --sidebar-active-bar:rgba(255,255,255,.7);
+    --topbar-bg:rgba(28,28,30,.80);--topbar-blur:blur(16px);
+    --logo-mark-bg:rgba(255,255,255,.10);--logo-mark-text:#f5f5f7;
+    --logo-mark-radius:50%;--stat-bg:rgba(255,255,255,.05);
+    --icon-btn-bg:rgba(255,255,255,.08);--icon-btn-text:#f5f5f7;
+  }
 }
 *{box-sizing:border-box;margin:0;padding:0;}
-body{font-family:'DM Sans','Noto Sans Myanmar','Noto Sans SC','Noto Sans',sans-serif;background:var(--paper);color:var(--ink);min-height:100vh;}
+body{font-family:'DM Sans','Noto Sans Myanmar','Noto Sans SC','Noto Sans',sans-serif;background:var(--paper);color:var(--ink);min-height:100vh;transition:background .3s,color .3s;}
 
 /* LOGIN */
-.login-wrap{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:1rem;}
-.login-box{background:var(--card);border-radius:20px;padding:2.5rem;width:100%;max-width:380px;box-shadow:var(--shadow);border:1px solid var(--border);}
-.login-logo{font-family:'Playfair Display',serif;font-size:1.8rem;text-align:center;margin-bottom:.3rem;}
+.login-wrap{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:1rem;background:var(--paper);transition:background .3s;}
+.login-box{background:var(--card);backdrop-filter:var(--sidebar-blur);-webkit-backdrop-filter:var(--sidebar-blur);border-radius:20px;padding:2.5rem;width:100%;max-width:380px;box-shadow:var(--shadow);border:0.5px solid var(--border);}
+.login-logo{font-size:1.5rem;font-weight:700;letter-spacing:-.5px;text-align:center;margin-bottom:.3rem;display:flex;align-items:center;justify-content:center;gap:.5rem;}
 .login-logo span{color:var(--accent2);}
 .login-sub{text-align:center;color:var(--muted);font-size:.85rem;margin-bottom:1.8rem;}
 
 /* LAYOUT */
 .app{display:flex;min-height:100vh;}
-.sidebar{width:220px;background:var(--ink);color:var(--paper);flex-shrink:0;display:flex;flex-direction:column;}
-.sidebar-logo{padding:1.4rem 1.2rem;font-family:'Playfair Display',serif;font-size:1.2rem;border-bottom:1px solid rgba(255,255,255,.1);}
-.sidebar-logo span{color:var(--accent2);}
-.sidebar-badge{font-size:.7rem;background:rgba(255,255,255,.1);padding:.15rem .5rem;border-radius:4px;margin-left:.4rem;vertical-align:middle;}
-nav{flex:1;padding:.8rem 0;}
-.nav-item{display:flex;align-items:center;gap:.7rem;padding:.75rem 1.2rem;cursor:pointer;font-size:.88rem;color:rgba(255,255,255,.7);transition:all .15s;border-left:3px solid transparent;}
-.nav-item:hover{background:rgba(255,255,255,.06);color:#fff;}
-.nav-item.active{background:rgba(255,255,255,.1);color:#fff;border-left-color:var(--accent2);}
-.nav-icon{font-size:1rem;width:20px;text-align:center;}
-.nav-section-header{padding:.75rem 1rem .25rem;font-size:.72rem;font-weight:700;letter-spacing:.08em;color:#f0a500;text-transform:uppercase;user-select:none;cursor:pointer;display:flex;justify-content:space-between;align-items:center;transition:color .15s;}
-.nav-section-divider{height:1px;background:rgba(255,255,255,.09);margin:.4rem .8rem .3rem;}
-#branch-ops-selector{padding:.25rem .7rem .45rem;}
-#branch-ops-selector select{width:100%;padding:.32rem .55rem;border-radius:6px;border:1px solid rgba(255,255,255,.22);background:rgba(255,255,255,.09);color:#fff;font-size:.76rem;cursor:pointer;outline:none;}
-
-.sidebar-foot{padding:1rem 1.2rem;border-top:1px solid rgba(255,255,255,.1);}
-.logout-btn{width:100%;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.15);color:rgba(255,255,255,.7);padding:.5rem;border-radius:8px;cursor:pointer;font-size:.82rem;font-family:'DM Sans',sans-serif;transition:all .15s;}
-.logout-btn:hover{background:var(--accent);border-color:var(--accent);color:#fff;}
-
-/* MAIN */
-.main{flex:1;overflow:auto;}
-.page-head{padding:1.4rem 2rem;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;background:var(--card);position:sticky;top:0;z-index:10;}
+.sidebar{width:220px;background:var(--sidebar-bg);backdrop-filter:var(--sidebar-blur);-webkit-backdrop-filter:var(--sidebar-blur);color:var(--sidebar-text);flex-shrink:0;display:flex;flex-direction:column;border-right:0.5px solid var(--sidebar-border);}
+.sidebar-logo{padding:1.1rem .9rem 1rem;border-bottom:0.5px solid var(--sidebar-border);display:flex;align-items:center;gap:.55rem;}
+.sidebar-logo-mark{width:28px;height:28px;border-radius:var(--logo-mark-radius);background:var(--logo-mark-bg);color:var(--logo-mark-text);display:flex;align-items:center;justify-content:center;font-size:.75rem;font-weight:700;flex-shrink:0;}
+.sidebar-logo-text{font-size:.85rem;font-weight:600;letter-spacing:-.3px;color:var(--sidebar-text);line-height:1.1;}
+.sidebar-logo-tag{font-size:.58rem;font-weight:500;padding:.1rem .4rem;border-radius:99px;background:rgba(128,128,128,.12);color:var(--sidebar-muted);display:inline-block;margin-top:1px;}
+.sidebar-logo span{color:var(--sidebar-muted);}
+.sidebar-badge{font-size:.58rem;background:rgba(128,128,128,.1);padding:.1rem .4rem;border-radius:4px;margin-left:.3rem;vertical-align:middle;color:var(--sidebar-muted);}
+nav{flex:1;padding:.4rem 0;overflow-y:auto;}
+.nav-item{display:flex;align-items:center;gap:.6rem;padding:.6rem .75rem;margin:.5px .5rem;border-radius:8px;cursor:pointer;font-size:.82rem;color:var(--sidebar-muted);transition:all .12s;border-left:2px solid transparent;}
+.nav-item:hover{background:rgba(128,128,128,.07);color:var(--sidebar-text);}
+.nav-item.active{background:var(--sidebar-active-bg);color:var(--sidebar-active-text);font-weight:500;border-left:2px solid var(--sidebar-active-bar);border-radius:0 8px 8px 0;margin-left:0;padding-left:.85rem;}
+.main{flex:1;overflow:auto;background:var(--paper);transition:background .3s;}
+.page-head{padding:1.4rem 2rem;border-bottom:0.5px solid var(--border);display:flex;align-items:center;justify-content:space-between;background:var(--topbar-bg);backdrop-filter:var(--topbar-blur);-webkit-backdrop-filter:var(--topbar-blur);position:sticky;top:0;z-index:10;transition:background .3s;}
 .page-title{font-family:'Playfair Display',serif;font-size:1.3rem;}
 .content{padding:1.5rem 2rem;}
 
 /* STATS */
 .stats-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:1rem;margin-bottom:1.5rem;}
-.stat-card{background:var(--card);border-radius:var(--radius);padding:1.1rem 1.2rem;box-shadow:var(--shadow);border:1px solid var(--border);}
+.stat-card{background:var(--stat-bg);backdrop-filter:var(--sidebar-blur);border-radius:var(--radius);padding:1.1rem 1.2rem;box-shadow:none;border:0.5px solid var(--border);}
 .stat-label{font-size:.75rem;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:.4rem;}
 .stat-val{font-size:1.6rem;font-weight:700;font-family:'DM Mono',monospace;}
 .stat-val.green{color:var(--green);}
@@ -984,7 +1058,7 @@ nav{flex:1;padding:.8rem 0;}
 .stat-val.amber{color:var(--accent2);}
 
 /* TABLE */
-.table-wrap{background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);border:1px solid var(--border);overflow:hidden;}
+.table-wrap{background:var(--card);backdrop-filter:var(--sidebar-blur);border-radius:var(--radius);box-shadow:none;border:0.5px solid var(--border);overflow:hidden;}
 .table-toolbar{padding:.9rem 1.2rem;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.6rem;}
 .search-input{border:1px solid var(--border);border-radius:8px;padding:.45rem .9rem;font-family:'DM Sans',sans-serif;font-size:.85rem;outline:none;min-width:200px;}
 .search-input:focus{border-color:var(--ink);}
@@ -1254,7 +1328,10 @@ tr.drop-below{box-shadow:0 2px 0 var(--accent);}
 <!-- ═══════════ LOGIN PAGE ═══════════ -->
 <div class="login-wrap" id="login-page">
   <div class="login-box">
-    <div class="login-logo">🤖 Myan<span>Ai</span> POS</div>
+    <div class="login-logo">
+      <div style="width:36px;height:36px;border-radius:50%;background:var(--ink);color:var(--warm);display:flex;align-items:center;justify-content:center;font-size:.9rem;font-weight:700;flex-shrink:0">M</div>
+      <span style="color:var(--ink)">MyanAi <span style="color:var(--muted);font-weight:400">POS</span></span>
+    </div>
     <div class="login-sub">Admin Dashboard</div>
     <div class="form-group">
       <label>Username</label>
@@ -1293,9 +1370,21 @@ async function doLogin() {
 <div class="app" id="app">
   <!-- SIDEBAR -->
   <div class="sidebar" id="sidebar">
-    <div class="sidebar-logo" style="display:flex;align-items:center;justify-content:space-between">
-      <span>🍜 <?php if($_IS_TENANT && !empty($_SESSION['tenant_name'])): ?><span><?= htmlspecialchars($_SESSION['tenant_name']) ?></span><span class="sidebar-badge">Tenant</span><?php else: ?>Myan<span>Ai</span> POS<span class="sidebar-badge">Admin</span><?php endif; ?></span>
-      <button onclick="closeSidebar()" style="background:none;border:none;color:rgba(255,255,255,.6);font-size:1.2rem;cursor:pointer;display:none" id="sidebar-close-btn">✕</button>
+    <div class="sidebar-logo">
+      <div class="sidebar-logo-mark">M</div>
+      <div style="flex:1;min-width:0">
+        <?php if($_IS_TENANT && !empty($_SESSION['tenant_name'])): ?>
+        <div class="sidebar-logo-text"><?= htmlspecialchars($_SESSION['tenant_name']) ?></div>
+        <div class="sidebar-logo-tag">Tenant</div>
+        <?php else: ?>
+        <div class="sidebar-logo-text">MyanAi POS</div>
+        <div class="sidebar-logo-tag">Admin</div>
+        <?php endif; ?>
+      </div>
+      <button onclick="toggleTheme()" id="theme-toggle-btn" title="Toggle light/dark"
+        style="background:none;border:none;cursor:pointer;font-size:1rem;padding:.2rem;opacity:.6;flex-shrink:0;transition:opacity .15s"
+        onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=.6">☀️</button>
+      <button onclick="closeSidebar()" style="background:none;border:none;color:var(--sidebar-muted);font-size:1.1rem;cursor:pointer;display:none;padding:.2rem;flex-shrink:0" id="sidebar-close-btn">✕</button>
     </div>
     <div style="display:none">
       <select id="branch-select" onchange="switchBranch(this.value)"
@@ -1399,8 +1488,17 @@ async function doLogin() {
         </div>
       </div>
     </nav>
-    <div class="sidebar-foot">
-      <button class="logout-btn" onclick="doLogout()">↩ Logout</button>
+    <div class="sidebar-foot" style="padding:.75rem .9rem;border-top:0.5px solid var(--sidebar-border)">
+      <div style="display:flex;align-items:center;gap:.6rem">
+        <div style="width:28px;height:28px;border-radius:50%;background:rgba(128,128,128,.1);display:flex;align-items:center;justify-content:center;font-size:.7rem;font-weight:600;color:var(--sidebar-text);flex-shrink:0">
+          <?= strtoupper(substr($_SESSION['admin']['user'] ?? 'A', 0, 2)) ?>
+        </div>
+        <div style="flex:1;min-width:0">
+          <div style="font-size:.78rem;font-weight:500;color:var(--sidebar-text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis"><?= htmlspecialchars($_SESSION['admin']['user'] ?? 'Admin') ?></div>
+          <div style="font-size:.68rem;color:var(--sidebar-muted)"><?= $_IS_TENANT ? 'Tenant' : 'Super admin' ?></div>
+        </div>
+        <button onclick="doLogout()" title="Logout" style="background:none;border:none;cursor:pointer;color:var(--sidebar-muted);font-size:1rem;padding:.2rem;opacity:.6;transition:opacity .15s;flex-shrink:0" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=.6">↩</button>
+      </div>
     </div>
   </div>
 
@@ -2819,6 +2917,25 @@ window.__USER_ROLE     = <?= json_encode($_SESSION['admin']['role'] ?? 'superadm
 // Auto-set branch context for tenant login
 if(window.__TENANT_ID > 0 && window.__IS_TENANT) {
   window._currentTenant = window.__TENANT_ID;
+}
+
+/* ── Theme Toggle: Warm Sand (light) / Midnight Black (dark) ── */
+(function initTheme(){
+  const saved = localStorage.getItem('myanai_theme');
+  const prefersDark = window.matchMedia('(prefers-color-scheme:dark)').matches;
+  const theme = saved || (prefersDark ? 'dark' : 'light');
+  document.documentElement.setAttribute('data-theme', theme);
+  const btn = document.getElementById('theme-toggle-btn');
+  if(btn) btn.textContent = theme==='dark' ? '🌙' : '☀️';
+})();
+
+function toggleTheme(){
+  const cur = document.documentElement.getAttribute('data-theme') || 'light';
+  const next = cur === 'dark' ? 'light' : 'dark';
+  document.documentElement.setAttribute('data-theme', next);
+  localStorage.setItem('myanai_theme', next);
+  const btn = document.getElementById('theme-toggle-btn');
+  if(btn) btn.textContent = next === 'dark' ? '🌙' : '☀️';
 }
 </script>
 <!-- ── UPGRADE PAGE ── -->
