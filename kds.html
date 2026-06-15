@@ -1,0 +1,491 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NoodleHaus — Kitchen Display</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500;700&family=DM+Sans:wght@600;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0d1117;--panel:#161b22;--border:#30363d;--yellow:#f0a500;--blue:#58a6ff;--green:#3fb950;--red:#f85149;--text:#e6edf3;--muted:#8b949e;--purple:#bc8cff;}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--bg);color:var(--text);font-family:'DM Mono',monospace;min-height:100vh;}
+header{background:var(--panel);border-bottom:1px solid var(--border);padding:.8rem 1.5rem;display:flex;align-items:center;justify-content:space-between;}
+.logo{font-family:'DM Sans',sans-serif;font-size:1.2rem;color:var(--yellow);font-weight:700;}
+.hdr-right{display:flex;align-items:center;gap:1.2rem;}
+.clock{font-size:.9rem;color:var(--muted);}
+.sse-pill{display:flex;align-items:center;gap:.4rem;font-size:.75rem;padding:.25rem .7rem;border-radius:50px;border:1px solid var(--border);}
+.sse-pill.live{color:var(--green);border-color:var(--green);}
+.sse-pill.wait{color:var(--yellow);border-color:var(--yellow);}
+.sse-pill.fail{color:var(--red);border-color:var(--red);}
+.dot{width:7px;height:7px;border-radius:50%;background:currentColor;}
+.blink{animation:blink 1.2s infinite;}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.2}}
+.sbar{background:#0a0d10;padding:.5rem 1.5rem;display:flex;gap:2rem;font-size:.8rem;border-bottom:1px solid var(--border);flex-wrap:wrap;}
+.sc{display:flex;align-items:center;gap:.4rem;}
+.sd{width:8px;height:8px;border-radius:50%;}
+.sd.p{background:var(--yellow);animation:blink 1.5s infinite;}
+.sd.r{background:var(--blue);}
+.sd.g{background:var(--green);}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:1rem;padding:1.2rem 1.5rem;}
+.ticket{background:var(--panel);border:1px solid var(--border);border-radius:10px;overflow:hidden;animation:pop .3s ease;}
+@keyframes pop{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:translateY(0)}}
+.ticket.pending{border-top:3px solid var(--yellow);}
+.ticket.preparing{border-top:3px solid var(--blue);}
+.ticket.ready{border-top:3px solid var(--green);}
+.th{padding:.7rem 1rem;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--border);}
+.tid{font-size:1rem;font-weight:700;color:var(--blue);}
+.ttime{font-size:.75rem;color:var(--muted);}
+.tcust{padding:.4rem 1rem;font-size:.78rem;color:var(--purple);border-bottom:1px solid var(--border);}
+.titems{padding:.6rem 1rem;}
+.tmod{font-size:.72rem;color:#aaa;margin-top:1px;line-height:1.3}
+.titem{display:flex;align-items:center;gap:.5rem;padding:.35rem 0;border-bottom:1px solid #1c2128;font-size:.88rem;}
+.titem:last-child{border:none;}
+.qty{background:var(--yellow);color:#000;width:22px;height:22px;border-radius:4px;display:grid;place-items:center;font-weight:700;font-size:.78rem;flex-shrink:0;}
+.tnotes{margin:.3rem 1rem .5rem;background:#1c2128;border-radius:6px;padding:.4rem .7rem;font-size:.78rem;color:var(--yellow);}
+.ttimer{font-size:.75rem;color:var(--muted);padding:0 1rem .5rem;text-align:right;}
+.ttimer.over{color:var(--red);}
+.tbtns{padding:.6rem 1rem;display:flex;gap:.5rem;border-top:1px solid var(--border);}
+.tbtn{flex:1;padding:.5rem;border:1px solid var(--border);background:none;color:var(--text);border-radius:6px;font-family:'DM Mono',monospace;font-size:.75rem;font-weight:700;cursor:pointer;transition:opacity .15s;text-transform:uppercase;letter-spacing:.05em;}
+    .tbtn-note{padding:.4rem .6rem;border:1px solid #444;background:#333;color:#aaa;border-radius:6px;font-size:.72rem;cursor:pointer;font-family:'DM Mono',monospace;}
+    .tbtn-cancel{padding:.4rem .6rem;border:none;background:#4a1010;color:#f88;border-radius:6px;font-size:.72rem;cursor:pointer;font-family:'DM Mono',monospace;}
+    .tbtn-cancel:hover{background:#6a1515;}
+    .note-row{display:flex;gap:.4rem;margin-top:.4rem;}
+.tbtn:hover{opacity:.7;}
+.tbtn.s{border-color:var(--blue);color:var(--blue);}
+.tbtn.r{border-color:var(--green);color:var(--green);}
+.tbtn.d{border-color:var(--muted);color:var(--muted);}
+.tbtn:disabled{opacity:.3;cursor:not-allowed;}
+.empty{grid-column:1/-1;text-align:center;padding:4rem 1rem;color:var(--muted);}
+.eicon{font-size:3rem;display:block;margin-bottom:.8rem;}
+.toast{position:fixed;bottom:1.5rem;right:1.5rem;z-index:999;background:var(--panel);border:1px solid var(--border);color:var(--text);padding:.7rem 1.2rem;border-radius:8px;font-size:.82rem;transform:translateY(80px);opacity:0;transition:all .3s ease;max-width:280px;}
+.toast.show{transform:translateY(0);opacity:1;}
+.toast.ok{border-color:var(--green);color:var(--green);}
+.toast.err{border-color:var(--red);color:var(--red);}
+
+/* ── TABLET (≤900px) ── */
+@media(max-width:900px){
+  .grid{grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:.8rem;padding:1rem;}
+  .sbar{padding:.4rem 1rem;gap:1rem;}
+}
+
+/* ── MOBILE (≤600px) ── */
+@media(max-width:600px){
+  header{padding:.6rem 1rem;}
+  .logo{font-size:1rem;}
+  .clock{font-size:.75rem;}
+  .sse-pill{font-size:.68rem;padding:.2rem .5rem;}
+  .hdr-right{gap:.6rem;}
+
+  .sbar{padding:.35rem .8rem;gap:.8rem;font-size:.72rem;}
+  .sd{width:6px;height:6px;}
+
+  /* Single column grid on mobile */
+  .grid{
+    grid-template-columns:1fr;
+    gap:.7rem;
+    padding:.7rem .8rem;
+  }
+
+  /* Bigger touch targets on ticket buttons */
+  .ticket{border-radius:8px;}
+  .th{padding:.6rem .8rem;}
+  .tid{font-size:.95rem;}
+  .tcust{padding:.35rem .8rem;font-size:.75rem;}
+  .titems{padding:.5rem .8rem;}
+  .titem{font-size:.85rem;padding:.4rem 0;}
+  .qty{width:26px;height:26px;font-size:.8rem;}
+  .tnotes{margin:.3rem .8rem .4rem;font-size:.75rem;}
+  .ttimer{padding:0 .8rem .4rem;font-size:.72rem;}
+
+  .tbtns{padding:.5rem .8rem;gap:.4rem;flex-wrap:wrap;}
+  .tbtn{
+    padding:.55rem .5rem;
+    font-size:.8rem;
+    min-height:44px; /* iOS touch target */
+    flex:1;min-width:80px;
+  }
+  .tbtn-note{
+    padding:.5rem .7rem;
+    font-size:.78rem;
+    min-height:44px;
+  }
+  .tbtn-cancel{
+    padding:.5rem .7rem;
+    font-size:.78rem;
+    min-height:44px;
+  }
+
+  .toast{
+    bottom:1rem;
+    right:.8rem;
+    left:.8rem;
+    max-width:none;
+    text-align:center;
+    font-size:.8rem;
+  }
+}
+
+/* ── SMALL MOBILE (≤380px) ── */
+@media(max-width:380px){
+  .grid{padding:.5rem;}
+  .tbtns{gap:.3rem;}
+  .tbtn{font-size:.72rem;padding:.5rem .3rem;}
+}
+</style>
+</head>
+<body>
+<header>
+  <div class="logo">NoodleHaus KDS<span id="station-label" style="font-size:.75rem;margin-left:.6rem;opacity:.6;font-weight:400"></span></div>
+  <div class="hdr-right">
+    <div class="sse-pill wait" id="pill">
+      <span class="dot blink"></span>
+      <span id="pill-txt">Connecting…</span>
+    </div>
+    <div class="clock" id="clk">--:--:--</div>
+  </div>
+</header>
+<div class="sbar">
+  <div class="sc"><span class="sd p"></span><span id="cn-p">0 Pending</span></div>
+  <div class="sc"><span class="sd r"></span><span id="cn-r">0 Preparing</span></div>
+  <div class="sc"><span class="sd g"></span><span id="cn-g">0 Ready</span></div>
+</div>
+<div class="grid" id="grid">
+  <div class="empty"><span class="eicon">👨‍🍳</span>Waiting for orders…</div>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+/* ── STATE ── */
+let orders = {};
+let maxId  = 0;
+let es     = null;
+let retryDelay = 2000;
+let timerInt   = null;
+
+/* ── STATION (Phase 1C) ── */
+const URL_P        = new URLSearchParams(location.search);
+const STATION      = (URL_P.get('station') || 'all').toLowerCase();
+const STATION_LABEL = {
+  kitchen: '— Kitchen', drinks: '— Drinks', counter: '— Counter',
+  bar: '— Bar', grill: '— Grill', all: ''
+}[STATION] || '';
+document.addEventListener('DOMContentLoaded', () => {
+  const lbl = document.getElementById('station-label');
+  if (lbl && STATION_LABEL) lbl.textContent = STATION_LABEL;
+});
+
+/* ── CLOCK ── */
+setInterval(() => {
+  document.getElementById('clk').textContent =
+    function(){var n=new Date();return('0'+(n.getHours()%12||12)).slice(-2)+':'+('0'+n.getMinutes()).slice(-2)+':'+('0'+n.getSeconds()).slice(-2)+' '+( n.getHours()>=12?'PM':'AM')}();
+}, 1000);
+
+
+/* ── Browser Notification ── */
+function requestNotifyPermission() {
+  if ('Notification' in window && Notification.permission === 'default') {
+    Notification.requestPermission();
+  }
+}
+
+function showOrderNotification(orderRef, customerName, items) {
+  if (!('Notification' in window)) return;
+  if (Notification.permission !== 'granted') { requestNotifyPermission(); return; }
+  const itemText = items?.map(i=>i.qty+'x '+i.name).join(', ') || 'New order';
+  new Notification('🍜 New Order — ' + orderRef, {
+    body: customerName + '\n' + itemText,
+    icon: '/favicon.ico',
+    badge: '/favicon.ico',
+    tag: orderRef,
+    renotify: true,
+  });
+}
+
+/* ── Notification Sound ── */
+function playOrderSound() {
+  try {
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    [880, 1100, 880].forEach((freq, i) => {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.frequency.value = freq;
+      osc.type = 'sine';
+      gain.gain.setValueAtTime(0.3, ctx.currentTime + i * 0.15);
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + i * 0.15 + 0.12);
+      osc.start(ctx.currentTime + i * 0.15);
+      osc.stop(ctx.currentTime + i * 0.15 + 0.12);
+    });
+  } catch(e) {}
+}
+
+/* ── SSE ── */
+function connect() {
+  setPill('wait', 'Connecting…');
+  if (es) { es.close(); es = null; }
+
+  const stnQ = STATION !== 'all' ? '&station=' + encodeURIComponent(STATION) : '';
+  const branchQ = window._kdsBranch > 0 ? '&branch_id=' + window._kdsBranch : '';
+  es = new EventSource('kds_stream.php?lastId=' + maxId + stnQ + branchQ);
+
+  es.addEventListener('init', e => {
+    const list = JSON.parse(e.data);
+    /* served ဖြတ်၊ active သာ ထည့် */
+    list
+      .filter(o => ['pending','preparing','ready'].includes(o.status))
+      .forEach(o => { orders[o.kds_id] = o; maxId = Math.max(maxId, o.kds_id); });
+    render();
+    setPill('live', 'Live ●');
+    retryDelay = 2000;
+  });
+
+  es.addEventListener('meta', e => {
+    const m = JSON.parse(e.data);
+    const lbl = document.getElementById('station-label');
+    if (lbl && m.station && m.station !== 'all') {
+      lbl.textContent = '— ' + m.station.charAt(0).toUpperCase() + m.station.slice(1);
+    }
+  });
+
+  es.addEventListener('new_order', e => {
+    const o = JSON.parse(e.data);
+    if (!['pending','preparing','ready'].includes(o.status)) return;
+    orders[o.kds_id] = o;
+    maxId = Math.max(maxId, o.kds_id);
+    upsertTicket(o);
+    updateCounts();
+    playOrderSound();
+    showOrderNotification(o.order_ref, o.customer_name, o.items);
+    showToast('New order: ' + o.order_ref, 'ok');
+    setPill('live', 'Live');
+  });
+
+  es.addEventListener('sse_error', () => {
+    setPill('fail', 'Error');
+  });
+
+  es.onerror = () => {
+    // Only reconnect if not already live (ping-only connections fire onerror on close)
+    if (es && es.readyState === EventSource.CLOSED) {
+      setPill('fail', 'Reconnecting…');
+      es = null;
+      retryDelay = Math.min(retryDelay * 1.5, 15000);
+      setTimeout(connect, retryDelay);
+    }
+  };
+
+  es.onopen = () => {
+    setPill('live', 'Live');
+    retryDelay = 2000;
+  };
+}
+
+/* ── RENDER ALL ── */
+function render() {
+  const grid   = document.getElementById('grid');
+  const active = Object.values(orders).filter(o =>
+    ['pending','preparing','ready'].includes(o.status)
+  );
+  updateCounts();
+  if (active.length === 0) {
+    grid.innerHTML = '<div class="empty"><span class="eicon">👨‍🍳</span>No active orders — standing by</div>';
+    return;
+  }
+  const ord = {pending:0, preparing:1, ready:2};
+  active.sort((a,b) => (ord[a.status]??9)-(ord[b.status]??9) || new Date(a.time.replace(' ','T')+'Z')-new Date(b.time.replace(' ','T')+'Z'));
+  grid.innerHTML = active.map(ticketHTML).join('');
+  resetTimerInterval();
+}
+
+/* ── SINGLE TICKET UPSERT (no full re-render) ── */
+function upsertTicket(o) {
+  const grid = document.getElementById('grid');
+  const empty = grid.querySelector('.empty');
+  if (empty) empty.remove();
+  const existing = document.getElementById('tk-' + o.kds_id);
+  const html = ticketHTML(o);
+  if (existing) {
+    existing.outerHTML = html;
+  } else {
+    grid.insertAdjacentHTML('afterbegin', html);
+  }
+  resetTimerInterval();
+}
+
+/* ── TICKET HTML ── */
+function ticketHTML(o) {
+  const serverTime = o.time ? new Date(o.time.replace(' ','T')+'Z') : new Date();
+  const mins = Math.floor((Date.now() - serverTime) / 60000);
+  const over = mins > 20;
+  const items = (o.items || []).map(i => {
+    const mods = (i.modifiers || []).map(m => {
+      if (typeof m === 'string') return m;
+      const lbl = m.label || m.name || m.option_name || '';
+      const price = m.price_delta || m.price_add;
+      return lbl + (price ? ' +'+price.toLocaleString()+'Ks' : '');
+    }).filter(Boolean);
+    const modStr = mods.length ? `<div class="tmod">${mods.join(' · ')}</div>` : '';
+    const note = i.free_text ? `<div class="tmod" style="color:#f0a500">📝 ${i.free_text}</div>` : '';
+    return `<div class="titem"><span class="qty">${i.qty}</span><div><span>${i.name}</span>${modStr}${note}</div></div>`;
+  }).join('');
+
+  // Action buttons
+  let actionBtn = '';
+  if (o.status === 'pending')   actionBtn = `<button class="tbtn s" onclick="doUpdate(${o.kds_id},'preparing')">▶ START</button>`;
+  if (o.status === 'preparing') actionBtn = `<button class="tbtn r" onclick="doUpdate(${o.kds_id},'ready')">✔ READY</button>`;
+  if (o.status === 'ready')     actionBtn = `<button class="tbtn d" onclick="doUpdate(${o.kds_id},'served')">↗ SERVED</button>`;
+
+  // Note input (collapsible)
+  const noteSection = `
+    <div class="note-row" id="note-row-${o.kds_id}" style="display:none">
+      <input id="note-input-${o.kds_id}" placeholder="Add note…"
+        style="flex:1;padding:.3rem .5rem;border-radius:6px;border:1px solid #444;
+               background:#222;color:#fff;font-size:.78rem;font-family:inherit">
+      <button onclick="saveNote(${o.kds_id})"
+        style="background:#555;border:none;color:#fff;border-radius:6px;
+               padding:.3rem .6rem;cursor:pointer;font-size:.75rem">Save</button>
+    </div>`;
+
+  return `
+    <div class="ticket ${o.status}" id="tk-${o.kds_id}">
+      <div class="th">
+        <span class="tid">${o.order_ref}</span>
+        <span class="ttime">${function(){var d=new Date(o.time.replace(' ','T')+'Z');return('0'+(d.getHours()%12||12)).slice(-2)+':'+('0'+d.getMinutes()).slice(-2)+' '+(d.getHours()>=12?'PM':'AM')}()}</span>
+      </div>
+      <div class="tcust">
+        ${o.customer}
+        ${o.order_type === 'dine_in' && o.table_id ? `<span style="margin-left:.5rem;font-size:.72rem;background:rgba(240,165,0,.2);color:var(--yellow);padding:.1rem .4rem;border-radius:4px;font-weight:600">Table ${o.table_id}</span>` : ''}
+        ${o.station && o.station !== 'kitchen' ? `<span style="margin-left:.3rem;font-size:.68rem;opacity:.5">${o.station}</span>` : ''}
+      </div>
+      <div class="titems">${items}</div>
+      ${o.notes ? `<div class="tnotes">📝 ${o.notes}</div>` : ''}
+      <div class="ttimer${over?' over':''}" data-time="${o.time}" id="tmr-${o.kds_id}">⏱ ${mins}m ago${over?' — OVERDUE':''}</div>
+      ${noteSection}
+      <div class="tbtns">
+        ${actionBtn}
+        <button class="tbtn-note" onclick="toggleNote(${o.kds_id})">📝 Note</button>
+        <button class="tbtn-cancel" onclick="cancelOrder(${o.kds_id}, '${o.order_ref}')">✕ Cancel</button>
+      </div>
+    </div>`;
+}
+
+/* ── UPDATE STATUS ── */
+function toggleNote(id) {
+  const r = document.getElementById('note-row-'+id);
+  if (r) r.style.display = r.style.display==='none'?'flex':'none';
+}
+
+async function saveNote(id) {
+  const inp = document.getElementById('note-input-'+id);
+  if (!inp || !inp.value.trim()) return;
+  try {
+    await fetch('kds_update.php',{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({kds_id:id, note:inp.value.trim()})});
+    inp.value=''; toggleNote(id);
+  } catch(e){}
+}
+
+async function cancelOrder(id, ref) {
+  const reason = prompt('Cancel '+ref+'?\nReason (optional):');
+  if (reason === null) return;
+  try {
+    const r = await fetch('kds_update.php',{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({kds_id:id, status:'cancelled', cancel_reason:reason||'Cancelled by kitchen'})});
+    const d = await r.json();
+    if (d.ok) {
+      const tk = document.getElementById('tk-'+id);
+      if (tk) { tk.style.opacity='.3'; setTimeout(()=>tk.remove(),800); }
+    }
+  } catch(e){}
+}
+
+async function doUpdate(kdsId, newStatus) {
+  const btn = document.querySelector(`#tk-${kdsId} .tbtn`);
+  if (btn) { btn.disabled = true; btn.textContent = '…'; }
+  try {
+    const res  = await fetch('kds_update.php', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({kds_id: kdsId, status: newStatus})
+    });
+    const data = await res.json();
+    if (!data.ok && !data.success) throw new Error(data.msg || data.message || 'Failed');
+
+    if (newStatus === 'served') {
+      delete orders[kdsId];
+      const tk = document.getElementById('tk-' + kdsId);
+      if (tk) {
+        tk.style.transition = 'opacity .4s';
+        tk.style.opacity = '0';
+        setTimeout(() => { tk.remove(); updateCounts(); checkEmpty(); }, 420);
+      }
+    } else {
+      if (orders[kdsId]) orders[kdsId].status = newStatus;
+      upsertTicket(orders[kdsId]);
+      updateCounts();
+    }
+    showToast(newStatus === 'served' ? 'Order served!' : 'Status updated', 'ok');
+  } catch(err) {
+    showToast('Failed: ' + err.message, 'err');
+    if (btn) { btn.disabled = false; }
+    render();
+  }
+}
+
+/* ── HELPERS ── */
+function updateCounts() {
+  const a = Object.values(orders);
+  document.getElementById('cn-p').textContent = a.filter(o=>o.status==='pending').length   + ' Pending';
+  document.getElementById('cn-r').textContent = a.filter(o=>o.status==='preparing').length + ' Preparing';
+  document.getElementById('cn-g').textContent = a.filter(o=>o.status==='ready').length     + ' Ready';
+}
+
+function checkEmpty() {
+  const grid = document.getElementById('grid');
+  if (!grid.querySelector('.ticket')) {
+    grid.innerHTML = '<div class="empty"><span class="eicon">👨‍🍳</span>No active orders — standing by</div>';
+  }
+}
+
+function resetTimerInterval() {
+  clearInterval(timerInt);
+  timerInt = setInterval(() => {
+    document.querySelectorAll('[id^="tmr-"]').forEach(el => {
+      const serverTime = el.dataset.time ? new Date(el.dataset.time.replace(' ','T')+'Z') : new Date();
+      const mins = Math.floor((Date.now() - serverTime) / 60000);
+      const over = mins > 20;
+      el.textContent = `⏱ ${mins}m ago${over?' — OVERDUE':''}`;
+      el.classList.toggle('over', over);
+    });
+  }, 30000);
+}
+
+function setPill(state, txt) {
+  const p = document.getElementById('pill');
+  const d = p.querySelector('.dot');
+  p.className = 'sse-pill ' + (state==='live'?'live':state==='fail'?'fail':'wait');
+  d.className = 'dot' + (state==='live'?'':' blink');
+  document.getElementById('pill-txt').textContent = txt;
+}
+
+let toastTmr;
+function showToast(msg, type) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.className = 'toast show ' + (type||'');
+  clearTimeout(toastTmr);
+  toastTmr = setTimeout(() => el.classList.remove('show'), 3000);
+}
+
+connect();
+</script>
+
+<script>
+// Branch context for KDS
+window._kdsBranch = parseInt(new URLSearchParams(location.search).get('branch_id') || localStorage.getItem('kds_branch') || '0');
+// If branch_id in URL, save it
+if(window._kdsBranch > 0) localStorage.setItem('kds_branch', window._kdsBranch);
+</script>
+</body>
+</html>
