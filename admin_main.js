@@ -203,57 +203,36 @@ async function doLogout() {
    PAGE NAV
 ═══════════════════════════════════════ */
 function showPage(page) {
-  // Tenant users can't access super-admin pages
-  if(window.__IS_TENANT && ['saas','storefront'].includes(page)) {
-    toast('⚠ Upgrade to access this feature');
-    page = 'dashboard';
-  }
-  ['dashboard','tenants','revenue','upgrades','plans','landing','demo','announce','saas','settings','menu','orders','tables','crm','shift','stock','reserve','branches','delivery','stocklog','staff','promos','expenses','schedule','storefront','upgrade'].forEach(p => {
+  // Platform admin pages only
+  const PAGES = ['dashboard','tenants','revenue','upgrades','plans','landing','demo','announce','saas','settings'];
+
+  PAGES.forEach(p => {
     const pageEl = document.getElementById('page-'+p);
     const navEl  = document.getElementById('nav-'+p);
-    if(pageEl) pageEl.style.display = p===page ? '' : 'none';
+    if(pageEl) pageEl.style.display = p===page ? 'block' : 'none';
     if(navEl)  navEl.classList.toggle('active', p===page);
-    // Mobile bottom nav sync
-    const mb = document.getElementById('mnav-'+p);
-    if (mb) mb.classList.toggle('active', p===page);
   });
-  if (page==='dashboard') { loadStats(); loadOrders(); loadAnalytics(7); loadHealthCheck(); loadCrossBranchAnalytics(); }
-  if (page==='stocklog')  { loadStockLogs(); }
-  if (page==='staff')      { loadStaff(); }
-  if (page==='promos')     { promoLoad(); }
-  if (page==='expenses')   { if(typeof expLoad==='function') expLoad(); }
-  if (page==='schedule')   { if(typeof schedLoad==='function') schedLoad(); }
-  if (page==='menu')      { loadMenuItems(); }
-  if (page==='orders')    { loadOrders(); }
-  if (page==='settings')  { loadSettings(); }
-  if (page==='storefront') { loadSettings(); }
-  if (page==='tables')    { loadTables(); }
-  if (page==='crm')       { crmLoadCustomers(); }
-  if (page==='shift')      { shiftLoad(); }
-  if (page==='stock')      { stockLoad(); }
-  if (page==='reserve')    { resLoad(); }
-  if (page==='branches')   { branchLoad(); }
-  if (page==='delivery')   { delLoad(); }
-  if (page==='promos')     { promoLoad(); }
-  if (page==='expenses')   { if(typeof expLoad==='function') expLoad(); }
-  if (page==='schedule')   { if(typeof schedLoad==='function') schedLoad(); }
-  if (page==='expenses')   { expLoad(); }
-  if (page==='schedule')   { schedLoad(); }
-  if (page==='saas')      { loadSaas(); }       { saasLoad(); }
-  if (page==='upgrade')   { loadUpgrade(); }
-  if (page==='settings')  { loadSettings(); }
-  if (page==='tenants')   { loadTenants(); }
-  if (page==='revenue')   { loadRevenue(); }
-  if (page==='upgrades')  { loadUpgradeRequests(); }
-  if (page==='plans')     { loadPlans(); }
-  if (page==='landing')   { loadLandingPage(); }
-  if (page==='demo')      { loadDemoInfo(); }
-  if (page==='announce')  { loadAnnouncementPage(); }
-  if (page==='dashboard') { loadPlatformDashboard(); }
-  // Close sidebar on mobile after nav
-  closeSidebar();
-  // Scroll to top
-  document.querySelector('.main')?.scrollTo(0,0);
+
+  // Update page title
+  const titles = {
+    dashboard:'Platform Dashboard', tenants:'Tenants', revenue:'Revenue',
+    upgrades:'Upgrade Requests', plans:'Plans & Pricing', landing:'Landing Page',
+    demo:'Demo Control', announce:'Announcements', saas:'SaaS Dashboard', settings:'Settings'
+  };
+  const ptEl = document.querySelector('.page-title');
+  if(ptEl) ptEl.textContent = titles[page] || page;
+
+  // Load page data
+  if(page==='dashboard')  loadPlatformDashboard();
+  if(page==='tenants')    loadTenants();
+  if(page==='revenue')    loadRevenue();
+  if(page==='upgrades')   loadUpgradeRequests();
+  if(page==='plans')      loadPlans();
+  if(page==='landing')    loadLandingPage();
+  if(page==='demo')       loadDemoInfo();
+  if(page==='announce')   loadAnnouncementPage();
+  if(page==='saas')       loadSaas();
+  if(page==='settings')   loadSettings();
 }
 
 /* ── Sidebar open/close (tablet/mobile) ── */
