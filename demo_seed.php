@@ -115,7 +115,7 @@ try {
         $insOrder = $pdo->prepare("INSERT INTO orders
             (tenant_id,branch_id,table_id,customer_name,customer_phone,subtotal,delivery_fee,total_amount,payment_method,order_type,status,created_at)
             VALUES (?,?,?,?,?,?,0,?,?,?,?,NOW() - INTERVAL ? MINUTE)");
-        $insItem = $pdo->prepare("INSERT INTO order_items (order_id,menu_item_id,name,qty,unit_price,total_price) VALUES (?,?,?,?,?,?)");
+        $insItem = $pdo->prepare("INSERT INTO order_items (order_id,menu_item_id,item_name,qty,unit_price,subtotal) VALUES (?,?,?,?,?,?)");
 
         foreach ($demoOrders as $i => [$status,$table,$itemIdxs]) {
             $tableRow = $pdo->prepare("SELECT id FROM restaurant_tables WHERE tenant_id=? AND table_code=? LIMIT 1");
