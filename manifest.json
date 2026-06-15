@@ -1,24 +1,14 @@
 {
-  "name": "MyanAi POS",
-  "short_name": "MyanAi POS",
-  "description": "Myanmar F&B Operating System — Restaurant POS, KDS, Delivery, CRM",
-  "start_url": "/index.html",
+  "name": "MyanAi — Myanmar AI Platform",
+  "short_name": "MyanAi",
+  "description": "Myanmar businesses အတွက် AI-powered software platform",
+  "start_url": "/landing-page.html",
   "display": "standalone",
-  "orientation": "any",
-  "background_color": "#faf8f5",
-  "theme_color": "#e84c2b",
-  "categories": ["business", "food"],
+  "background_color": "#09090b",
+  "theme_color": "#6366f1",
   "lang": "my",
-  "dir": "ltr",
   "icons": [
-    {"src": "/icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable"},
-    {"src": "/icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable"}
-  ],
-  "screenshots": [
-    {"src": "/icons/screenshot-wide.png", "sizes": "1280x720", "type": "image/png", "form_factor": "wide"},
-    {"src": "/icons/screenshot-narrow.png", "sizes": "390x844", "type": "image/png", "form_factor": "narrow"}
-  ],
-  "prefer_related_applications": false,
-  "scope": "/",
-  "id": "myanai"
+    {"src": "/icon-192.png", "sizes": "192x192", "type": "image/png"},
+    {"src": "/icon-512.png", "sizes": "512x512", "type": "image/png"}
+  ]
 }
