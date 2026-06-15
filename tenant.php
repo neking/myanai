@@ -466,8 +466,300 @@ td{padding:.65rem .9rem;color:var(--ink)}
       </div>
     </div>
 
-    <!-- Pages injected by JS -->
-    <div id="page-container" style="flex:1"></div>
+    <!-- Pages -->
+    <div id="page-container" style="flex:1;overflow-y:auto">
+<!-- ═══ PAGE HTML ═══ -->
+<div id="page-dashboard" class="page" style="display:none">
+  <div class="content">
+    <div class="stats-grid">
+      <div class="stat-card" onclick="showPage('orders')"><div class="stat-val" id="stat-orders">—</div><div class="stat-lbl">Orders today</div></div>
+      <div class="stat-card"><div class="stat-val" id="stat-revenue">—</div><div class="stat-lbl">Revenue</div></div>
+      <div class="stat-card" onclick="showPage('orders')"><div class="stat-val" id="stat-pending">—</div><div class="stat-lbl">Pending</div></div>
+      <div class="stat-card" onclick="showPage('stock')"><div class="stat-val" id="stat-low">—</div><div class="stat-lbl">Low stock</div></div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem">
+      <div class="table-wrap" style="padding:1rem">
+        <div style="font-size:.82rem;font-weight:600;margin-bottom:.75rem;color:var(--muted)">📊 Branch revenue (30d)</div>
+        <div id="branch-chart-area">Loading…</div>
+      </div>
+      <div class="table-wrap" style="padding:0">
+        <div style="padding:.75rem 1rem;font-size:.82rem;font-weight:600;border-bottom:0.5px solid var(--border)">Recent orders</div>
+        <table><thead><tr><th>#</th><th>Customer</th><th>Amount</th><th>Status</th><th>Time</th></tr></thead>
+        <tbody id="recent-orders-body"><tr><td colspan="5" style="text-align:center;padding:1.5rem;color:var(--muted)">Loading...</td></tr></tbody></table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="page-menu" class="page" style="display:none">
+  <div class="content">
+    <div style="background:var(--card);border:0.5px solid var(--border);border-radius:var(--radius);padding:.9rem 1.1rem;margin-bottom:1rem;display:flex;align-items:center;gap:1rem">
+      <div style="flex:1">
+        <div style="font-size:.8rem;font-weight:600;color:var(--ink);margin-bottom:4px" id="menu-usage-lbl">Loading…</div>
+        <div style="height:5px;background:var(--border);border-radius:99px;overflow:hidden"><div id="menu-usage-bar" style="height:100%;width:0;border-radius:99px;transition:width .4s"></div></div>
+      </div>
+      <button class="btn btn-primary btn-sm" onclick="toast('Add item — coming soon')">+ Add item</button>
+    </div>
+    <div class="table-wrap">
+      <div class="table-toolbar" style="padding:.6rem 1rem;border-bottom:0.5px solid var(--border);display:flex;gap:.5rem;flex-wrap:wrap">
+        <input id="menu-search" placeholder="Search..." oninput="filterMenu()" style="padding:.4rem .7rem;border:0.5px solid var(--border);border-radius:8px;background:var(--warm);color:var(--ink);font-size:.82rem;width:180px">
+        <select id="menu-cat-filter" onchange="filterMenu()" style="padding:.4rem .7rem;border:0.5px solid var(--border);border-radius:8px;background:var(--warm);color:var(--ink);font-size:.82rem">
+          <option value="">All categories</option>
+        </select>
+      </div>
+      <table><thead><tr><th>Item</th><th>Category</th><th>Price</th><th>Stock</th><th>Status</th><th>Actions</th></tr></thead>
+      <tbody id="menu-tbody"><tr><td colspan="6" style="text-align:center;padding:2rem;color:var(--muted)">Loading...</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+  <!-- Add/Edit Item Modal -->
+  <div class="modal-overlay" id="modal-menu-item">
+    <div class="modal" style="max-width:540px">
+      <div class="modal-head">
+        <span class="modal-title" id="menu-modal-title">Add menu item</span>
+        <button class="modal-close" onclick="closeModal('modal-menu-item')">✕</button>
+      </div>
+      <input type="hidden" id="item-edit-id">
+      <div style="display:grid;gap:.75rem">
+        <div style="display:grid;grid-template-columns:1fr auto;gap:.5rem;align-items:end">
+          <div class="field"><label>Item name *</label><input id="item-name" placeholder="Mohinga"></div>
+          <div class="field" style="width:70px"><label>Emoji</label><input id="item-emoji" placeholder="🍜" style="text-align:center;font-size:1.3rem"></div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:.75rem">
+          <div class="field"><label>Category *</label><input id="item-category" placeholder="Main, Drinks, Starters..."></div>
+          <div class="field"><label>Price (MMK) *</label><input id="item-price" type="number" placeholder="3500"></div>
+        </div>
+        <div class="field"><label>Description</label><textarea id="item-desc" rows="2" style="width:100%;padding:.5rem .7rem;border:0.5px solid var(--border);border-radius:8px;background:var(--warm);color:var(--ink);font-family:inherit;font-size:.85rem" placeholder="Optional description"></textarea></div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:.75rem">
+          <div class="field"><label>Initial stock qty</label><input id="item-stock" type="number" placeholder="100" value="100"></div>
+          <div class="field" style="display:flex;align-items:center;gap:.5rem;padding-top:1.4rem">
+            <input type="checkbox" id="item-active" checked style="width:18px;height:18px">
+            <label for="item-active" style="cursor:pointer">Active</label>
+          </div>
+        </div>
+      </div>
+      <div style="margin-top:1.2rem;display:flex;gap:.5rem;justify-content:flex-end">
+        <button class="btn btn-ghost" onclick="closeModal('modal-menu-item')">Cancel</button>
+        <button class="btn btn-primary" onclick="saveMenuItem()">💾 Save item</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="page-staff" class="page" style="display:none">
+  <div class="content">
+    <div class="table-wrap"><table>
+      <thead><tr><th>Name</th><th>Role</th><th>PIN</th><th>Status</th></tr></thead>
+      <tbody id="staff-tbody"><tr><td colspan="4" style="text-align:center;padding:2rem;color:var(--muted)">Loading...</td></tr></tbody>
+    </table></div>
+  </div>
+</div>
+
+<div id="page-crm" class="page" style="display:none">
+  <div class="content">
+    <div class="table-wrap"><table>
+      <thead><tr><th>Name</th><th>Phone</th><th>Loyalty</th><th>Last visit</th></tr></thead>
+      <tbody id="crm-tbody"><tr><td colspan="4" style="text-align:center;padding:2rem;color:var(--muted)">Loading...</td></tr></tbody>
+    </table></div>
+  </div>
+</div>
+
+<div id="page-orders" class="page" style="display:none">
+  <div class="content">
+    <div class="table-wrap"><table>
+      <thead><tr><th>#</th><th>Customer</th><th>Amount</th><th>Payment</th><th>Status</th></tr></thead>
+      <tbody id="orders-tbody"><tr><td colspan="5" style="text-align:center;padding:2rem;color:var(--muted)">Loading...</td></tr></tbody>
+    </table></div>
+  </div>
+</div>
+
+<div id="page-tables" class="page" style="display:none">
+  <div class="page-head">
+    <div style="display:flex;align-items:center;gap:.75rem">
+      <button class="hamburger" onclick="openSidebar()">☰</button>
+      <span id="topbar-title" style="font-size:.95rem;font-weight:600">Tables</span>
+    </div>
+    <div style="display:flex;gap:.5rem">
+      <a id="kds-link" href="kds.html" target="_blank" class="btn btn-ghost btn-sm">👨‍🍳 Open KDS</a>
+      <button class="btn btn-primary btn-sm" onclick="openAddTable()">+ Add table</button>
+    </div>
+  </div>
+  <div class="content">
+    <div id="tables-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:.75rem;margin-bottom:1rem"></div>
+  </div>
+  <!-- Add Table Modal -->
+  <div class="modal-overlay" id="modal-add-table">
+    <div class="modal">
+      <div class="modal-head"><span class="modal-title">Add table</span><button class="modal-close" onclick="closeModal('modal-add-table')">✕</button></div>
+      <div class="form-row"><div class="field"><label>Table code</label><input id="add-table-code" placeholder="T1"></div>
+      <div class="field"><label>Label</label><input id="add-table-label" placeholder="Table 1"></div></div>
+      <div class="field"><label>Seats</label><input id="add-table-seats" type="number" value="4" min="1" max="50"></div>
+      <div style="margin-top:1rem;display:flex;gap:.5rem;justify-content:flex-end">
+        <button class="btn btn-ghost" onclick="closeModal('modal-add-table')">Cancel</button>
+        <button class="btn btn-primary" onclick="saveNewTable()">Save</button>
+      </div>
+    </div>
+  </div>
+</div>
+<div id="page-reserve" class="page" style="display:none">
+  <div class="page-head">
+    <div style="display:flex;align-items:center;gap:.75rem"><button class="hamburger" onclick="openSidebar()">☰</button><span style="font-size:.95rem;font-weight:600">Reservations</span></div>
+    <button class="btn btn-primary btn-sm" onclick="openAddReserve()">+ New reservation</button>
+  </div>
+  <div class="content">
+    <div class="table-wrap">
+      <table><thead><tr><th>Name</th><th>Phone</th><th>Date/Time</th><th>Party</th><th>Table</th><th>Status</th></tr></thead>
+      <tbody id="reserve-tbody"><tr><td colspan="6" style="text-align:center;padding:2rem;color:var(--muted)">Loading...</td></tr></tbody></table>
+    </div>
+  </div>
+</div>
+<div id="page-stock" class="page" style="display:none">
+  <div class="page-head">
+    <div style="display:flex;align-items:center;gap:.75rem"><button class="hamburger" onclick="openSidebar()">☰</button><span style="font-size:.95rem;font-weight:600">Stock</span></div>
+  </div>
+  <div class="content">
+    <div id="stock-summary" class="stats-grid" style="margin-bottom:1rem"></div>
+    <div class="table-wrap">
+      <div class="table-toolbar"><input id="stock-search" placeholder="Search items..." oninput="filterStock()" style="padding:.4rem .7rem;border:0.5px solid var(--border);border-radius:8px;background:var(--warm);color:var(--ink);font-size:.82rem;width:200px"></div>
+      <table><thead><tr><th>Item</th><th>Category</th><th>Stock</th><th>Status</th><th>Action</th></tr></thead>
+      <tbody id="stock-tbody"><tr><td colspan="5" style="text-align:center;padding:2rem;color:var(--muted)">Loading...</td></tr></tbody></table>
+    </div>
+  </div>
+  <!-- Adjust Modal -->
+  <div class="modal-overlay" id="modal-stock-adj">
+    <div class="modal">
+      <div class="modal-head"><span class="modal-title" id="adj-title">Adjust stock</span><button class="modal-close" onclick="closeModal('modal-stock-adj')">✕</button></div>
+      <input type="hidden" id="adj-item-id">
+      <div class="field" style="margin-bottom:.75rem"><label>Change qty (+/-)</label><input id="adj-qty" type="number" placeholder="-5 or +10"></div>
+      <div class="field" style="margin-bottom:.75rem"><label>Reason</label><input id="adj-reason" placeholder="Sale / Waste / Restock"></div>
+      <div style="display:flex;gap:.5rem;justify-content:flex-end">
+        <button class="btn btn-ghost" onclick="closeModal('modal-stock-adj')">Cancel</button>
+        <button class="btn btn-primary" onclick="submitStockAdj()">Save</button>
+      </div>
+    </div>
+  </div>
+</div>
+<div id="page-stocklog" class="page" style="display:none"><div class="content"><div id="stocklog-content"><div style="color:var(--muted)">Loading...</div></div></div></div>
+<div id="page-shift" class="page" style="display:none"><div class="content"><div id="shift-content"><div style="color:var(--muted)">Loading...</div></div></div></div>
+<div id="page-delivery" class="page" style="display:none">
+  <div class="page-head">
+    <div style="display:flex;align-items:center;gap:.75rem"><button class="hamburger" onclick="openSidebar()">☰</button><span style="font-size:.95rem;font-weight:600">Delivery</span></div>
+    <a href="driver.html" target="_blank" class="btn btn-ghost btn-sm">🛵 Driver app</a>
+  </div>
+  <div class="content">
+    <div class="table-wrap">
+      <table><thead><tr><th>#</th><th>Customer</th><th>Address</th><th>Amount</th><th>Status</th><th>Action</th></tr></thead>
+      <tbody id="delivery-tbody"><tr><td colspan="6" style="text-align:center;padding:2rem;color:var(--muted)">Loading...</td></tr></tbody></table>
+    </div>
+  </div>
+</div>
+<div id="page-expenses" class="page" style="display:none">
+  <div class="page-head">
+    <div style="display:flex;align-items:center;gap:.75rem"><button class="hamburger" onclick="openSidebar()">☰</button><span style="font-size:.95rem;font-weight:600">Expenses</span></div>
+    <button class="btn btn-primary btn-sm" onclick="openAddExpense()">+ Add expense</button>
+  </div>
+  <div class="content">
+    <div id="expense-summary" class="stats-grid" style="margin-bottom:1rem"></div>
+    <div class="table-wrap">
+      <table><thead><tr><th>Date</th><th>Category</th><th>Description</th><th>Amount</th></tr></thead>
+      <tbody id="expense-tbody"><tr><td colspan="4" style="text-align:center;padding:2rem;color:var(--muted)">Loading...</td></tr></tbody></table>
+    </div>
+  </div>
+  <!-- Add Expense Modal -->
+  <div class="modal-overlay" id="modal-add-expense">
+    <div class="modal">
+      <div class="modal-head"><span class="modal-title">Add expense</span><button class="modal-close" onclick="closeModal('modal-add-expense')">✕</button></div>
+      <div style="display:grid;gap:.75rem">
+        <div class="field"><label>Category</label>
+          <select id="exp-cat" style="width:100%;padding:.5rem .7rem;border:0.5px solid var(--border);border-radius:8px;background:var(--warm);color:var(--ink)">
+            <option>Food & Ingredients</option><option>Utilities</option><option>Staff</option><option>Rent</option><option>Equipment</option><option>Other</option>
+          </select>
+        </div>
+        <div class="field"><label>Description</label><input id="exp-desc" placeholder="Tomatoes, electricity bill..."></div>
+        <div class="field"><label>Amount (MMK)</label><input id="exp-amount" type="number" placeholder="5000"></div>
+        <div class="field"><label>Date</label><input id="exp-date" type="date"></div>
+      </div>
+      <div style="margin-top:1rem;display:flex;gap:.5rem;justify-content:flex-end">
+        <button class="btn btn-ghost" onclick="closeModal('modal-add-expense')">Cancel</button>
+        <button class="btn btn-primary" onclick="saveExpense()">Save</button>
+      </div>
+    </div>
+  </div>
+</div>
+<div id="page-promos" class="page" style="display:none">
+  <div class="page-head">
+    <div style="display:flex;align-items:center;gap:.75rem"><button class="hamburger" onclick="openSidebar()">☰</button><span style="font-size:.95rem;font-weight:600">Promotions</span></div>
+    <button class="btn btn-primary btn-sm" onclick="openAddPromo()">+ Add promo</button>
+  </div>
+  <div class="content">
+    <div class="table-wrap">
+      <table><thead><tr><th>Code</th><th>Discount</th><th>Min order</th><th>Valid</th><th>Status</th></tr></thead>
+      <tbody id="promos-tbody"><tr><td colspan="5" style="text-align:center;padding:2rem;color:var(--muted)">Loading...</td></tr></tbody></table>
+    </div>
+  </div>
+</div>
+<div id="page-branches" class="page" style="display:none">
+  <div class="page-head">
+    <div style="display:flex;align-items:center;gap:.75rem"><button class="hamburger" onclick="openSidebar()">☰</button><span style="font-size:.95rem;font-weight:600">My branches</span></div>
+  </div>
+  <div class="content">
+    <div id="branches-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:1rem"></div>
+  </div>
+</div>
+<div id="page-schedule" class="page" style="display:none">
+  <div class="page-head">
+    <div style="display:flex;align-items:center;gap:.75rem"><button class="hamburger" onclick="openSidebar()">☰</button><span style="font-size:.95rem;font-weight:600">Scheduling</span></div>
+  </div>
+  <div class="content"><div style="color:var(--muted);padding:2rem;text-align:center">Scheduling feature coming soon.</div></div>
+</div>
+<div id="page-storefront" class="page" style="display:none"><div class="content"><p style="color:var(--muted)">Storefront customisation — coming soon.</p></div></div>
+
+<div id="page-upgrade" class="page" style="display:none">
+  <div class="content">
+    <div style="background:var(--card);border:0.5px solid var(--border);border-radius:var(--radius);padding:1rem 1.2rem;margin-bottom:1rem;display:flex;align-items:center;gap:1rem">
+      <span style="font-size:1.8rem">📋</span>
+      <div>
+        <div style="font-size:.75rem;color:var(--muted);text-transform:uppercase;letter-spacing:.07em">လက်ရှိ Plan</div>
+        <div style="font-size:1rem;font-weight:700" id="cur-plan-display">Loading…</div>
+        <div style="font-size:.78rem;color:var(--muted)" id="cur-expires-display"></div>
+      </div>
+    </div>
+    <div id="upgrade-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:1rem">
+      <div style="color:var(--muted);padding:1rem">Loading plans…</div>
+    </div>
+  </div>
+</div>
+
+<div id="page-settings" class="page" style="display:none">
+  <div class="content">
+    <div style="background:var(--card);border:0.5px solid var(--border);border-radius:var(--radius);padding:1.2rem;margin-bottom:1rem">
+      <div style="font-weight:600;margin-bottom:1rem">💜 KBZPay (KPay) Settings</div>
+      <div class="form-row">
+        <div class="field"><label>Merchant ID / Phone</label><input id="t-kpay-merchant" type="text" placeholder="09xxxxxxxxx"></div>
+        <div class="field"><label>QR Code URL / Base64</label><input id="t-kpay-qr" type="text" placeholder="https://..."></div>
+      </div>
+    </div>
+    <div style="background:var(--card);border:0.5px solid var(--border);border-radius:var(--radius);padding:1.2rem;margin-bottom:1rem">
+      <div style="font-weight:600;margin-bottom:1rem">🌊 Wave Money Settings</div>
+      <div class="form-row">
+        <div class="field"><label>Merchant ID / Phone</label><input id="t-wave-merchant" type="text" placeholder="09xxxxxxxxx"></div>
+        <div class="field"><label>QR Code URL</label><input id="t-wave-qr" type="text" placeholder="https://..."></div>
+      </div>
+    </div>
+    <button class="btn btn-primary" onclick="saveTenantSettings()">💾 Save Settings</button>
+  </div>
+</div>
+
+<script>
+/* ── Auto-init if already logged in ── */
+if(window.__IS_TENANT && window.__TENANT_ID > 0){
+  initShell();
+  showPage('dashboard');
+}
+</script>
+</body>
+</html>
+    </div>
   </div>
 </div>
 
@@ -894,297 +1186,6 @@ function loadTables(){const el=document.getElementById('tables-content');if(el)e
 function openEditItem(id){toast('Edit item #'+id);}
 </script>
 
-<!-- ═══ PAGE HTML ═══ -->
-<div id="page-dashboard" class="page" style="display:none">
-  <div class="content">
-    <div class="stats-grid">
-      <div class="stat-card" onclick="showPage('orders')"><div class="stat-val" id="stat-orders">—</div><div class="stat-lbl">Orders today</div></div>
-      <div class="stat-card"><div class="stat-val" id="stat-revenue">—</div><div class="stat-lbl">Revenue</div></div>
-      <div class="stat-card" onclick="showPage('orders')"><div class="stat-val" id="stat-pending">—</div><div class="stat-lbl">Pending</div></div>
-      <div class="stat-card" onclick="showPage('stock')"><div class="stat-val" id="stat-low">—</div><div class="stat-lbl">Low stock</div></div>
-    </div>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem">
-      <div class="table-wrap" style="padding:1rem">
-        <div style="font-size:.82rem;font-weight:600;margin-bottom:.75rem;color:var(--muted)">📊 Branch revenue (30d)</div>
-        <div id="branch-chart-area">Loading…</div>
-      </div>
-      <div class="table-wrap" style="padding:0">
-        <div style="padding:.75rem 1rem;font-size:.82rem;font-weight:600;border-bottom:0.5px solid var(--border)">Recent orders</div>
-        <table><thead><tr><th>#</th><th>Customer</th><th>Amount</th><th>Status</th><th>Time</th></tr></thead>
-        <tbody id="recent-orders-body"><tr><td colspan="5" style="text-align:center;padding:1.5rem;color:var(--muted)">Loading...</td></tr></tbody></table>
-      </div>
-    </div>
-  </div>
-</div>
-
-<div id="page-menu" class="page" style="display:none">
-  <div class="content">
-    <div style="background:var(--card);border:0.5px solid var(--border);border-radius:var(--radius);padding:.9rem 1.1rem;margin-bottom:1rem;display:flex;align-items:center;gap:1rem">
-      <div style="flex:1">
-        <div style="font-size:.8rem;font-weight:600;color:var(--ink);margin-bottom:4px" id="menu-usage-lbl">Loading…</div>
-        <div style="height:5px;background:var(--border);border-radius:99px;overflow:hidden"><div id="menu-usage-bar" style="height:100%;width:0;border-radius:99px;transition:width .4s"></div></div>
-      </div>
-      <button class="btn btn-primary btn-sm" onclick="toast('Add item — coming soon')">+ Add item</button>
-    </div>
-    <div class="table-wrap">
-      <div class="table-toolbar" style="padding:.6rem 1rem;border-bottom:0.5px solid var(--border);display:flex;gap:.5rem;flex-wrap:wrap">
-        <input id="menu-search" placeholder="Search..." oninput="filterMenu()" style="padding:.4rem .7rem;border:0.5px solid var(--border);border-radius:8px;background:var(--warm);color:var(--ink);font-size:.82rem;width:180px">
-        <select id="menu-cat-filter" onchange="filterMenu()" style="padding:.4rem .7rem;border:0.5px solid var(--border);border-radius:8px;background:var(--warm);color:var(--ink);font-size:.82rem">
-          <option value="">All categories</option>
-        </select>
-      </div>
-      <table><thead><tr><th>Item</th><th>Category</th><th>Price</th><th>Stock</th><th>Status</th><th>Actions</th></tr></thead>
-      <tbody id="menu-tbody"><tr><td colspan="6" style="text-align:center;padding:2rem;color:var(--muted)">Loading...</td></tr></tbody>
-      </table>
-    </div>
-  </div>
-  <!-- Add/Edit Item Modal -->
-  <div class="modal-overlay" id="modal-menu-item">
-    <div class="modal" style="max-width:540px">
-      <div class="modal-head">
-        <span class="modal-title" id="menu-modal-title">Add menu item</span>
-        <button class="modal-close" onclick="closeModal('modal-menu-item')">✕</button>
-      </div>
-      <input type="hidden" id="item-edit-id">
-      <div style="display:grid;gap:.75rem">
-        <div style="display:grid;grid-template-columns:1fr auto;gap:.5rem;align-items:end">
-          <div class="field"><label>Item name *</label><input id="item-name" placeholder="Mohinga"></div>
-          <div class="field" style="width:70px"><label>Emoji</label><input id="item-emoji" placeholder="🍜" style="text-align:center;font-size:1.3rem"></div>
-        </div>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:.75rem">
-          <div class="field"><label>Category *</label><input id="item-category" placeholder="Main, Drinks, Starters..."></div>
-          <div class="field"><label>Price (MMK) *</label><input id="item-price" type="number" placeholder="3500"></div>
-        </div>
-        <div class="field"><label>Description</label><textarea id="item-desc" rows="2" style="width:100%;padding:.5rem .7rem;border:0.5px solid var(--border);border-radius:8px;background:var(--warm);color:var(--ink);font-family:inherit;font-size:.85rem" placeholder="Optional description"></textarea></div>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:.75rem">
-          <div class="field"><label>Initial stock qty</label><input id="item-stock" type="number" placeholder="100" value="100"></div>
-          <div class="field" style="display:flex;align-items:center;gap:.5rem;padding-top:1.4rem">
-            <input type="checkbox" id="item-active" checked style="width:18px;height:18px">
-            <label for="item-active" style="cursor:pointer">Active</label>
-          </div>
-        </div>
-      </div>
-      <div style="margin-top:1.2rem;display:flex;gap:.5rem;justify-content:flex-end">
-        <button class="btn btn-ghost" onclick="closeModal('modal-menu-item')">Cancel</button>
-        <button class="btn btn-primary" onclick="saveMenuItem()">💾 Save item</button>
-      </div>
-    </div>
-  </div>
-</div>
-
-<div id="page-staff" class="page" style="display:none">
-  <div class="content">
-    <div class="table-wrap"><table>
-      <thead><tr><th>Name</th><th>Role</th><th>PIN</th><th>Status</th></tr></thead>
-      <tbody id="staff-tbody"><tr><td colspan="4" style="text-align:center;padding:2rem;color:var(--muted)">Loading...</td></tr></tbody>
-    </table></div>
-  </div>
-</div>
-
-<div id="page-crm" class="page" style="display:none">
-  <div class="content">
-    <div class="table-wrap"><table>
-      <thead><tr><th>Name</th><th>Phone</th><th>Loyalty</th><th>Last visit</th></tr></thead>
-      <tbody id="crm-tbody"><tr><td colspan="4" style="text-align:center;padding:2rem;color:var(--muted)">Loading...</td></tr></tbody>
-    </table></div>
-  </div>
-</div>
-
-<div id="page-orders" class="page" style="display:none">
-  <div class="content">
-    <div class="table-wrap"><table>
-      <thead><tr><th>#</th><th>Customer</th><th>Amount</th><th>Payment</th><th>Status</th></tr></thead>
-      <tbody id="orders-tbody"><tr><td colspan="5" style="text-align:center;padding:2rem;color:var(--muted)">Loading...</td></tr></tbody>
-    </table></div>
-  </div>
-</div>
-
-<div id="page-tables" class="page" style="display:none">
-  <div class="page-head">
-    <div style="display:flex;align-items:center;gap:.75rem">
-      <button class="hamburger" onclick="openSidebar()">☰</button>
-      <span id="topbar-title" style="font-size:.95rem;font-weight:600">Tables</span>
-    </div>
-    <div style="display:flex;gap:.5rem">
-      <a id="kds-link" href="kds.html" target="_blank" class="btn btn-ghost btn-sm">👨‍🍳 Open KDS</a>
-      <button class="btn btn-primary btn-sm" onclick="openAddTable()">+ Add table</button>
-    </div>
-  </div>
-  <div class="content">
-    <div id="tables-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:.75rem;margin-bottom:1rem"></div>
-  </div>
-  <!-- Add Table Modal -->
-  <div class="modal-overlay" id="modal-add-table">
-    <div class="modal">
-      <div class="modal-head"><span class="modal-title">Add table</span><button class="modal-close" onclick="closeModal('modal-add-table')">✕</button></div>
-      <div class="form-row"><div class="field"><label>Table code</label><input id="add-table-code" placeholder="T1"></div>
-      <div class="field"><label>Label</label><input id="add-table-label" placeholder="Table 1"></div></div>
-      <div class="field"><label>Seats</label><input id="add-table-seats" type="number" value="4" min="1" max="50"></div>
-      <div style="margin-top:1rem;display:flex;gap:.5rem;justify-content:flex-end">
-        <button class="btn btn-ghost" onclick="closeModal('modal-add-table')">Cancel</button>
-        <button class="btn btn-primary" onclick="saveNewTable()">Save</button>
-      </div>
-    </div>
-  </div>
-</div>
-<div id="page-reserve" class="page" style="display:none">
-  <div class="page-head">
-    <div style="display:flex;align-items:center;gap:.75rem"><button class="hamburger" onclick="openSidebar()">☰</button><span style="font-size:.95rem;font-weight:600">Reservations</span></div>
-    <button class="btn btn-primary btn-sm" onclick="openAddReserve()">+ New reservation</button>
-  </div>
-  <div class="content">
-    <div class="table-wrap">
-      <table><thead><tr><th>Name</th><th>Phone</th><th>Date/Time</th><th>Party</th><th>Table</th><th>Status</th></tr></thead>
-      <tbody id="reserve-tbody"><tr><td colspan="6" style="text-align:center;padding:2rem;color:var(--muted)">Loading...</td></tr></tbody></table>
-    </div>
-  </div>
-</div>
-<div id="page-stock" class="page" style="display:none">
-  <div class="page-head">
-    <div style="display:flex;align-items:center;gap:.75rem"><button class="hamburger" onclick="openSidebar()">☰</button><span style="font-size:.95rem;font-weight:600">Stock</span></div>
-  </div>
-  <div class="content">
-    <div id="stock-summary" class="stats-grid" style="margin-bottom:1rem"></div>
-    <div class="table-wrap">
-      <div class="table-toolbar"><input id="stock-search" placeholder="Search items..." oninput="filterStock()" style="padding:.4rem .7rem;border:0.5px solid var(--border);border-radius:8px;background:var(--warm);color:var(--ink);font-size:.82rem;width:200px"></div>
-      <table><thead><tr><th>Item</th><th>Category</th><th>Stock</th><th>Status</th><th>Action</th></tr></thead>
-      <tbody id="stock-tbody"><tr><td colspan="5" style="text-align:center;padding:2rem;color:var(--muted)">Loading...</td></tr></tbody></table>
-    </div>
-  </div>
-  <!-- Adjust Modal -->
-  <div class="modal-overlay" id="modal-stock-adj">
-    <div class="modal">
-      <div class="modal-head"><span class="modal-title" id="adj-title">Adjust stock</span><button class="modal-close" onclick="closeModal('modal-stock-adj')">✕</button></div>
-      <input type="hidden" id="adj-item-id">
-      <div class="field" style="margin-bottom:.75rem"><label>Change qty (+/-)</label><input id="adj-qty" type="number" placeholder="-5 or +10"></div>
-      <div class="field" style="margin-bottom:.75rem"><label>Reason</label><input id="adj-reason" placeholder="Sale / Waste / Restock"></div>
-      <div style="display:flex;gap:.5rem;justify-content:flex-end">
-        <button class="btn btn-ghost" onclick="closeModal('modal-stock-adj')">Cancel</button>
-        <button class="btn btn-primary" onclick="submitStockAdj()">Save</button>
-      </div>
-    </div>
-  </div>
-</div>
-<div id="page-stocklog" class="page" style="display:none"><div class="content"><div id="stocklog-content"><div style="color:var(--muted)">Loading...</div></div></div></div>
-<div id="page-shift" class="page" style="display:none"><div class="content"><div id="shift-content"><div style="color:var(--muted)">Loading...</div></div></div></div>
-<div id="page-delivery" class="page" style="display:none">
-  <div class="page-head">
-    <div style="display:flex;align-items:center;gap:.75rem"><button class="hamburger" onclick="openSidebar()">☰</button><span style="font-size:.95rem;font-weight:600">Delivery</span></div>
-    <a href="driver.html" target="_blank" class="btn btn-ghost btn-sm">🛵 Driver app</a>
-  </div>
-  <div class="content">
-    <div class="table-wrap">
-      <table><thead><tr><th>#</th><th>Customer</th><th>Address</th><th>Amount</th><th>Status</th><th>Action</th></tr></thead>
-      <tbody id="delivery-tbody"><tr><td colspan="6" style="text-align:center;padding:2rem;color:var(--muted)">Loading...</td></tr></tbody></table>
-    </div>
-  </div>
-</div>
-<div id="page-expenses" class="page" style="display:none">
-  <div class="page-head">
-    <div style="display:flex;align-items:center;gap:.75rem"><button class="hamburger" onclick="openSidebar()">☰</button><span style="font-size:.95rem;font-weight:600">Expenses</span></div>
-    <button class="btn btn-primary btn-sm" onclick="openAddExpense()">+ Add expense</button>
-  </div>
-  <div class="content">
-    <div id="expense-summary" class="stats-grid" style="margin-bottom:1rem"></div>
-    <div class="table-wrap">
-      <table><thead><tr><th>Date</th><th>Category</th><th>Description</th><th>Amount</th></tr></thead>
-      <tbody id="expense-tbody"><tr><td colspan="4" style="text-align:center;padding:2rem;color:var(--muted)">Loading...</td></tr></tbody></table>
-    </div>
-  </div>
-  <!-- Add Expense Modal -->
-  <div class="modal-overlay" id="modal-add-expense">
-    <div class="modal">
-      <div class="modal-head"><span class="modal-title">Add expense</span><button class="modal-close" onclick="closeModal('modal-add-expense')">✕</button></div>
-      <div style="display:grid;gap:.75rem">
-        <div class="field"><label>Category</label>
-          <select id="exp-cat" style="width:100%;padding:.5rem .7rem;border:0.5px solid var(--border);border-radius:8px;background:var(--warm);color:var(--ink)">
-            <option>Food & Ingredients</option><option>Utilities</option><option>Staff</option><option>Rent</option><option>Equipment</option><option>Other</option>
-          </select>
-        </div>
-        <div class="field"><label>Description</label><input id="exp-desc" placeholder="Tomatoes, electricity bill..."></div>
-        <div class="field"><label>Amount (MMK)</label><input id="exp-amount" type="number" placeholder="5000"></div>
-        <div class="field"><label>Date</label><input id="exp-date" type="date"></div>
-      </div>
-      <div style="margin-top:1rem;display:flex;gap:.5rem;justify-content:flex-end">
-        <button class="btn btn-ghost" onclick="closeModal('modal-add-expense')">Cancel</button>
-        <button class="btn btn-primary" onclick="saveExpense()">Save</button>
-      </div>
-    </div>
-  </div>
-</div>
-<div id="page-promos" class="page" style="display:none">
-  <div class="page-head">
-    <div style="display:flex;align-items:center;gap:.75rem"><button class="hamburger" onclick="openSidebar()">☰</button><span style="font-size:.95rem;font-weight:600">Promotions</span></div>
-    <button class="btn btn-primary btn-sm" onclick="openAddPromo()">+ Add promo</button>
-  </div>
-  <div class="content">
-    <div class="table-wrap">
-      <table><thead><tr><th>Code</th><th>Discount</th><th>Min order</th><th>Valid</th><th>Status</th></tr></thead>
-      <tbody id="promos-tbody"><tr><td colspan="5" style="text-align:center;padding:2rem;color:var(--muted)">Loading...</td></tr></tbody></table>
-    </div>
-  </div>
-</div>
-<div id="page-branches" class="page" style="display:none">
-  <div class="page-head">
-    <div style="display:flex;align-items:center;gap:.75rem"><button class="hamburger" onclick="openSidebar()">☰</button><span style="font-size:.95rem;font-weight:600">My branches</span></div>
-  </div>
-  <div class="content">
-    <div id="branches-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:1rem"></div>
-  </div>
-</div>
-<div id="page-schedule" class="page" style="display:none">
-  <div class="page-head">
-    <div style="display:flex;align-items:center;gap:.75rem"><button class="hamburger" onclick="openSidebar()">☰</button><span style="font-size:.95rem;font-weight:600">Scheduling</span></div>
-  </div>
-  <div class="content"><div style="color:var(--muted);padding:2rem;text-align:center">Scheduling feature coming soon.</div></div>
-</div>
-<div id="page-storefront" class="page" style="display:none"><div class="content"><p style="color:var(--muted)">Storefront customisation — coming soon.</p></div></div>
-
-<div id="page-upgrade" class="page" style="display:none">
-  <div class="content">
-    <div style="background:var(--card);border:0.5px solid var(--border);border-radius:var(--radius);padding:1rem 1.2rem;margin-bottom:1rem;display:flex;align-items:center;gap:1rem">
-      <span style="font-size:1.8rem">📋</span>
-      <div>
-        <div style="font-size:.75rem;color:var(--muted);text-transform:uppercase;letter-spacing:.07em">လက်ရှိ Plan</div>
-        <div style="font-size:1rem;font-weight:700" id="cur-plan-display">Loading…</div>
-        <div style="font-size:.78rem;color:var(--muted)" id="cur-expires-display"></div>
-      </div>
-    </div>
-    <div id="upgrade-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:1rem">
-      <div style="color:var(--muted);padding:1rem">Loading plans…</div>
-    </div>
-  </div>
-</div>
-
-<div id="page-settings" class="page" style="display:none">
-  <div class="content">
-    <div style="background:var(--card);border:0.5px solid var(--border);border-radius:var(--radius);padding:1.2rem;margin-bottom:1rem">
-      <div style="font-weight:600;margin-bottom:1rem">💜 KBZPay (KPay) Settings</div>
-      <div class="form-row">
-        <div class="field"><label>Merchant ID / Phone</label><input id="t-kpay-merchant" type="text" placeholder="09xxxxxxxxx"></div>
-        <div class="field"><label>QR Code URL / Base64</label><input id="t-kpay-qr" type="text" placeholder="https://..."></div>
-      </div>
-    </div>
-    <div style="background:var(--card);border:0.5px solid var(--border);border-radius:var(--radius);padding:1.2rem;margin-bottom:1rem">
-      <div style="font-weight:600;margin-bottom:1rem">🌊 Wave Money Settings</div>
-      <div class="form-row">
-        <div class="field"><label>Merchant ID / Phone</label><input id="t-wave-merchant" type="text" placeholder="09xxxxxxxxx"></div>
-        <div class="field"><label>QR Code URL</label><input id="t-wave-qr" type="text" placeholder="https://..."></div>
-      </div>
-    </div>
-    <button class="btn btn-primary" onclick="saveTenantSettings()">💾 Save Settings</button>
-  </div>
-</div>
-
-<script>
-/* ── Auto-init if already logged in ── */
-if(window.__IS_TENANT && window.__TENANT_ID > 0){
-  initShell();
-  showPage('dashboard');
-}
-</script>
-</body>
-</html>
 
 <script>
 /* ═══ TENANT MODULE JS ═══ */
