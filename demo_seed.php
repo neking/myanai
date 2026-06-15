@@ -42,22 +42,22 @@ try {
     $log[] = "✅ Cleared old demo menu items";
 
     /* ── 4. Copy menu items from tenant 1 ── */
-    $items = $pdo->prepare("SELECT * FROM menu_items WHERE tenant_id=? ORDER BY category,sort_order,name");
+    $items = $pdo->prepare("SELECT * FROM menu_items WHERE tenant_id=? ORDER BY cat,sort_order,name");
     $items->execute([$FROM]);
     $allItems = $items->fetchAll(PDO::FETCH_ASSOC);
 
     $ins = $pdo->prepare("INSERT INTO menu_items
-        (tenant_id,branch_id,name,description,price,category,emoji,image_url,is_active,sort_order,stock_qty,track_stock)
+        (tenant_id,branch_id,name,desc,price,cat,emoji,image_path,is_active,sort_order,stock_qty,track_stock)
         VALUES (?,?,?,?,?,?,?,?,?,?,?,?)");
 
     foreach ($allItems as $item) {
         $ins->execute([
             $TO, $demoBranch,
-            $item['name'], $item['description']??'',
-            $item['price'], $item['category']??'Main',
-            $item['emoji']??'🍽', $item['image_url']??'',
+            $item['name'], $item['desc']??'',
+            $item['price'], $item['cat']??'Main',
+            $item['emoji']??'🍽', '',
             1, $item['sort_order']??0,
-            $item['stock_qty']??100, $item['track_stock']??0,
+            100, 0,
         ]);
     }
     $log[] = "✅ Copied ".count($allItems)." menu items";
@@ -137,7 +137,7 @@ try {
     $settings['admin_pass_hash'] = password_hash('demo1234', PASSWORD_BCRYPT);
     $settings['store_name'] = 'MyanAi Demo';
     $pdo->prepare("UPDATE tenants SET settings=?, owner_email='demo@myanai.net' WHERE id=?")
-        ->execute([json_encode($settings,$TO), $TO]);
+        ->execute([json_encode($settings, JSON_UNESCAPED_UNICODE), $TO]);
     $log[] = "✅ Updated demo login: demo@myanai.net / demo1234";
 
     echo json_encode(['ok'=>true,'log'=>$log]);
