@@ -76,8 +76,8 @@ try {
     $demoStaff = [
         ['Demo Manager','manager','1234','Demo account manager'],
         ['Demo Cashier','cashier','2222','Demo cashier'],
-        ['Demo Waiter','waiter','3333','Demo waiter'],
-        ['Demo Chef','kitchen','4444','Demo kitchen staff'],
+        ['Demo Waiter 1','waiter','3333','Demo waiter'],
+        ['Demo Waiter 2','waiter','4444','Demo kitchen staff'],
     ];
     foreach ($demoStaff as $s) {
         $insStaff->execute([$demoBranch, $s[0], $s[1], $s[2], $s[3]]);
