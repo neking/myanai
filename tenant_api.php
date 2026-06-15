@@ -254,6 +254,54 @@ if ($action === 'resolve' && $_SERVER['REQUEST_METHOD'] === 'GET') {
     ok(['tenant_id'=>(int)$t['id'], 'name'=>$t['name'], 'plan'=>$t['plan'], 'business_type'=>$t['business_type'] ?? 'restaurant', 'branch_id'=>(int)($t['branch_id'] ?? 1), 'branch_code'=>$t['branch_code'] ?? 'MAIN']);
 }
 
+/* ── GET UPGRADE REQUESTS (super-admin) ── */
+if ($action === 'upgrade_requests') {
+    requireSuperAdmin();
+    try {
+        $rows = $pdo->query("SELECT ur.*, t.name as tenant_name FROM upgrade_requests ur LEFT JOIN tenants t ON t.id=ur.tenant_id ORDER BY ur.created_at DESC LIMIT 50")->fetchAll(PDO::FETCH_ASSOC);
+        ok(['requests' => $rows]);
+    } catch (\Exception $e) {
+        ok(['requests' => []]);
+    }
+}
+
+/* ── APPROVE UPGRADE (super-admin) ── */
+if ($action === 'approve_upgrade') {
+    requireSuperAdmin();
+    $b = json_decode(file_get_contents('php://input'), true) ?? [];
+    $reqId   = (int)($b['request_id'] ?? 0);
+    $tid     = (int)($b['tenant_id']  ?? 0);
+    $plan    = trim($b['plan'] ?? '');
+    $validPlans = ['free','basic','pro','enterprise'];
+    if (!in_array($plan, $validPlans)) fail('Invalid plan');
+
+    // Update tenant plan
+    $planLimits = ['free'=>[1,3,20],'basic'=>[1,5,50],'pro'=>[3,15,200],'enterprise'=>[10,50,500]];
+    $limits = $planLimits[$plan];
+    // Set plan_expires = 1 year from now
+    $expires = date('Y-m-d', strtotime('+1 year'));
+    $pdo->prepare("UPDATE tenants SET plan=?, max_branches=?, max_staff=?, max_menu_items=?, plan_expires=? WHERE id=?")
+        ->execute([$plan, $limits[0], $limits[1], $limits[2], $expires, $tid]);
+
+    // Update request status
+    try {
+        $pdo->prepare("UPDATE upgrade_requests SET status='approved', updated_at=NOW() WHERE id=?")->execute([$reqId]);
+    } catch (\Exception $e) {}
+
+    ok(['message' => "Upgraded to $plan"]);
+}
+
+/* ── REJECT UPGRADE (super-admin) ── */
+if ($action === 'reject_upgrade') {
+    requireSuperAdmin();
+    $b = json_decode(file_get_contents('php://input'), true) ?? [];
+    $reqId = (int)($b['request_id'] ?? 0);
+    try {
+        $pdo->prepare("UPDATE upgrade_requests SET status='rejected', updated_at=NOW() WHERE id=?")->execute([$reqId]);
+    } catch (\Exception $e) {}
+    ok(['message' => 'Rejected']);
+}
+
 /* ── REQUEST UPGRADE (tenant) ── */
 if ($action === 'request_upgrade') {
     if(session_status()===PHP_SESSION_NONE) session_start();
