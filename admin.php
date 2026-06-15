@@ -98,7 +98,7 @@ if (isset($_GET['api'])) { // GET+POST both handled
         // Demo user (read-only demo access)
         $demoHash = '$2y$12$m/erGB4KFb4H/x/f6EA/zuri0Ekl8aXe88FF6nk2kpwppTuYI0kFq';
         if ($inputUser === 'demo' && password_verify($inputPass, $demoHash)) {
-            $_SESSION['admin'] = true;
+            $_SESSION['admin'] = ['user'=>'admin','role'=>'superadmin'];
             $_SESSION['demo_mode'] = true;
             $_SESSION['login_time'] = time();
             @unlink($lockFile);
@@ -132,7 +132,7 @@ if (isset($_GET['api'])) { // GET+POST both handled
         if ($inputUser === ADMIN_USER && password_verify($inputPass, $hash)) {
             // Reset rate limit on successful login
             $_SESSION['login_attempts'] = 0;
-            $_SESSION['admin'] = true;
+            $_SESSION['admin'] = ['user'=>'admin','role'=>'superadmin'];
             $_SESSION['login_time'] = time();
             // Reset fail counter on success
             @unlink($lockFile);
@@ -869,7 +869,9 @@ if (isset($_GET['api'])) { // GET+POST both handled
 
     /* ── IMPERSONATE TENANT ── */
     if ($_GET['api'] === 'impersonate') {
-        if (($_SESSION['admin']['role'] ?? '') !== 'superadmin') {
+        if (empty($_SESSION['admin'])) { echo json_encode(['ok'=>false,'msg'=>'Not logged in']); exit; }
+        $adminRole = is_array($_SESSION['admin']) ? ($_SESSION['admin']['role'] ?? '') : 'superadmin';
+        if ($adminRole !== 'superadmin') {
             echo json_encode(['ok'=>false,'msg'=>'Superadmin only']); exit;
         }
         $b   = json_decode(file_get_contents('php://input'), true) ?? [];
