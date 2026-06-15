@@ -113,22 +113,22 @@ try {
         ];
 
         $insOrder = $pdo->prepare("INSERT INTO orders
-            (tenant_id,branch_id,table_id,customer_name,total_amount,payment_method,status,created_at)
-            VALUES (?,?,?,?,?,?,?,NOW() - INTERVAL ? MINUTE)");
-        $insItem = $pdo->prepare("INSERT INTO order_items (order_id,menu_item_id,name,qty,price) VALUES (?,?,?,?,?)");
+            (tenant_id,branch_id,table_id,customer_name,customer_phone,subtotal,delivery_fee,total_amount,payment_method,order_type,status,created_at)
+            VALUES (?,?,?,?,?,?,0,?,?,?,?,NOW() - INTERVAL ? MINUTE)");
+        $insItem = $pdo->prepare("INSERT INTO order_items (order_id,menu_item_id,name,qty,unit_price,total_price) VALUES (?,?,?,?,?,?)");
 
         foreach ($demoOrders as $i => [$status,$table,$itemIdxs]) {
             $tableRow = $pdo->prepare("SELECT id FROM restaurant_tables WHERE tenant_id=? AND table_code=? LIMIT 1");
             $tableRow->execute([$TO,$table]);
             $tableId = $tableRow->fetchColumn() ?: null;
 
-            $total = array_sum(array_map(fn($idx)=>($demoItemList[$idx%count($demoItemList)]['price']??0)*1,$itemIdxs));
-            $insOrder->execute([$TO,$demoBranch,$tableId,'Demo Customer',$total,'kpay',$status,($i*8)]);
+            $subtotal = array_sum(array_map(fn($idx)=>($demoItemList[$idx%count($demoItemList)]['price']??0),$itemIdxs));
+            $insOrder->execute([$TO,$demoBranch,$tableId,'Demo Customer','09000000000',$subtotal,$subtotal,'kpay','dine_in',$status,($i*8)]);
             $orderId = $pdo->lastInsertId();
 
             foreach ($itemIdxs as $idx) {
                 $it = $demoItemList[$idx%count($demoItemList)];
-                $insItem->execute([$orderId,$it['id'],$it['name'],1,$it['price']]);
+                $insItem->execute([$orderId,$it['id'],$it['name'],1,$it['price'],$it['price']]);
             }
         }
         $log[] = "✅ Created ".count($demoOrders)." demo orders";
