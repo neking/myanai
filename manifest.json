@@ -1,6 +1,6 @@
 {
-  "name": "NoodleHaus POS",
-  "short_name": "NoodleHaus",
+  "name": "MyanAi POS",
+  "short_name": "MyanAi POS",
   "description": "Myanmar F&B Operating System — Restaurant POS, KDS, Delivery, CRM",
   "start_url": "/index.html",
   "display": "standalone",
@@ -20,5 +20,5 @@
   ],
   "prefer_related_applications": false,
   "scope": "/",
-  "id": "noodlehaus-pos"
+  "id": "myanai"
 }
