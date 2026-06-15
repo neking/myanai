@@ -39,7 +39,7 @@ $items = $items->fetchAll(PDO::FETCH_ASSOC);
 
 $settings = $pdo->query("SELECT setting_key,setting_value FROM site_settings WHERE setting_key IN ('store_name','store_emoji','footer_phone','footer_address','loyalty_stamps_required')")->fetchAll(PDO::FETCH_KEY_PAIR);
 
-$store_name = $settings['store_name'] ?? 'NoodleHaus';
+$store_name = $settings['store_name'] ?? 'MyanAi POS';
 $store_emoji = $settings['store_emoji'] ?? '🍜';
 $store_phone = $settings['footer_phone'] ?? '';
 $store_addr  = $settings['footer_address'] ?? '';
