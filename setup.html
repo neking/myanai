@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="mm">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>NoodleHaus — Setup</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--accent:#e84c2b;--accent2:#f0a500;--ink:#1a0f05;--muted:#888;--border:#e8e0d8;--bg:#f8f4f0;--surface:#fff;--radius:14px}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg);color:var(--ink);min-height:100vh}
+.wrap{max-width:540px;margin:auto;padding:1.5rem 1rem}
+.header{text-align:center;padding:2rem 0 1.5rem}
+.logo{font-size:3rem;margin-bottom:.5rem}
+.title{font-size:1.4rem;font-weight:700;color:var(--ink)}
+.sub{font-size:.88rem;color:var(--muted);margin-top:.25rem}
+/* Steps */
+.steps{display:flex;justify-content:center;gap:.5rem;margin-bottom:2rem}
+.step-dot{width:10px;height:10px;border-radius:50%;background:var(--border);transition:background .3s}
+.step-dot.active{background:var(--accent)}
+.step-dot.done{background:var(--accent2)}
+/* Step content */
+.step{display:none}
+.step.active{display:block}
+.step-title{font-size:1.1rem;font-weight:700;margin-bottom:.25rem}
+.step-sub{font-size:.85rem;color:var(--muted);margin-bottom:1.25rem}
+/* Business type cards */
+.biz-grid{display:grid;grid-template-columns:1fr 1fr;gap:.75rem;margin-bottom:1.5rem}
+.biz-card{background:var(--surface);border:2px solid var(--border);border-radius:var(--radius);padding:1.25rem 1rem;text-align:center;cursor:pointer;transition:all .2s}
+.biz-card:hover{border-color:var(--accent);background:#fff8f8}
+.biz-card.selected{border-color:var(--accent);background:#fff3f1}
+.biz-icon{font-size:2.5rem;margin-bottom:.5rem}
+.biz-name{font-size:.95rem;font-weight:700;color:var(--ink)}
+.biz-desc{font-size:.75rem;color:var(--muted);margin-top:.25rem;line-height:1.4}
+/* Module toggles */
+.module-list{display:flex;flex-direction:column;gap:.6rem;margin-bottom:1.5rem}
+.module-row{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:.9rem 1rem;display:flex;align-items:center;gap:.75rem}
+.module-icon{font-size:1.4rem;width:36px;text-align:center;flex-shrink:0}
+.module-info{flex:1}
+.module-name{font-size:.9rem;font-weight:600}
+.module-desc{font-size:.75rem;color:var(--muted);margin-top:1px}
+.module-toggle{position:relative;width:44px;height:24px;flex-shrink:0}
+.module-toggle input{opacity:0;width:0;height:0}
+.toggle-track{position:absolute;inset:0;background:var(--border);border-radius:20px;cursor:pointer;transition:background .2s}
+.module-toggle input:checked + .toggle-track{background:var(--accent)}
+.toggle-thumb{position:absolute;top:3px;left:3px;width:18px;height:18px;background:#fff;border-radius:50%;transition:transform .2s;pointer-events:none}
+.module-toggle input:checked ~ .toggle-thumb{transform:translateX(20px)}
+.module-row.disabled{opacity:.5}
+.module-row.disabled .toggle-track{cursor:not-allowed}
+/* Store info */
+.form-group{margin-bottom:1rem}
+.form-group label{display:block;font-size:.82rem;font-weight:600;margin-bottom:.4rem;color:var(--ink)}
+.form-group input,.form-group select{width:100%;padding:.6rem .9rem;border:1.5px solid var(--border);border-radius:9px;font-size:.9rem;color:var(--ink);background:var(--surface);outline:none}
+.form-group input:focus,.form-group select:focus{border-color:var(--accent)}
+/* Buttons */
+.btn-row{display:flex;gap:.75rem;margin-top:1.5rem}
+.btn{flex:1;padding:.8rem;border-radius:10px;font-size:.95rem;font-weight:600;cursor:pointer;border:none;transition:all .15s}
+.btn-back{background:var(--bg);color:var(--muted);border:1px solid var(--border)}
+.btn-next{background:var(--accent);color:#fff}
+.btn-next:hover{background:#c73d22}
+.btn-finish{background:var(--accent2);color:var(--ink)}
+/* Summary */
+.summary-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:1.25rem;margin-bottom:1rem}
+.summary-title{font-size:.82rem;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:.75rem}
+.summary-row{display:flex;justify-content:space-between;align-items:center;padding:.35rem 0;border-bottom:.5px solid var(--border);font-size:.88rem}
+.summary-row:last-child{border-bottom:none}
+.summary-val{color:var(--accent);font-weight:600}
+.module-badge{font-size:.72rem;background:#eaf3de;color:#3b6d11;padding:2px 7px;border-radius:10px;margin:2px}
+.module-badge.off{background:#f0f0f0;color:#aaa}
+/* Congrats */
+.congrats{text-align:center;padding:2rem 1rem}
+.congrats-icon{font-size:4rem;margin-bottom:1rem}
+.congrats-title{font-size:1.3rem;font-weight:700;color:var(--ink);margin-bottom:.5rem}
+.congrats-sub{font-size:.88rem;color:var(--muted);margin-bottom:2rem}
+.link-grid{display:grid;grid-template-columns:1fr 1fr;gap:.75rem}
+.link-card{background:var(--surface);border:1.5px solid var(--border);border-radius:var(--radius);padding:1rem;text-align:center;text-decoration:none;color:var(--ink);transition:all .2s}
+.link-card:hover{border-color:var(--accent)}
+.link-icon{font-size:1.8rem;margin-bottom:.4rem}
+.link-name{font-size:.88rem;font-weight:600}
+.link-desc{font-size:.75rem;color:var(--muted);margin-top:.2rem}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="header">
+    <div class="logo">🍜</div>
+    <div class="title">NoodleHaus Setup</div>
+    <div class="sub">ဆိုင်အမျိုးအစားနဲ့ features ကို configure လုပ်ပါ</div>
+  </div>
+
+  <div class="steps">
+    <div class="step-dot active" id="dot-1"></div>
+    <div class="step-dot" id="dot-2"></div>
+    <div class="step-dot" id="dot-3"></div>
+    <div class="step-dot" id="dot-4"></div>
+  </div>
+
+  <!-- Step 1: Business Type -->
+  <div class="step active" id="step-1">
+    <div class="step-title">ဆိုင်အမျိုးအစား ရွေးပါ</div>
+    <div class="step-sub">သင့်ဆိုင်နဲ့ အကိုက်ညီဆုံး type ကို ရွေးချယ်ပါ</div>
+    <div class="biz-grid">
+      <div class="biz-card selected" id="biz-noodle" onclick="selectBiz('noodle_shop')">
+        <div class="biz-icon">🍜</div>
+        <div class="biz-name">Noodle / Casual</div>
+        <div class="biz-desc">နူဒယ်ဆိုင် · ထမင်းဆိုင် · ကော်ဖီဆိုင်</div>
+      </div>
+      <div class="biz-card" id="biz-bubble" onclick="selectBiz('bubble_tea')">
+        <div class="biz-icon">🥤</div>
+        <div class="biz-name">Bubble Tea / အအေး</div>
+        <div class="biz-desc">အဖျော်ယမကာ · ice cream · dessert</div>
+      </div>
+      <div class="biz-card" id="biz-fine" onclick="selectBiz('fine_dining')">
+        <div class="biz-icon">🍽️</div>
+        <div class="biz-name">Fine Dining</div>
+        <div class="biz-desc">Full service · reservation · multi-course</div>
+      </div>
+      <div class="biz-card" id="biz-canteen" onclick="selectBiz('canteen')">
+        <div class="biz-icon">🏢</div>
+        <div class="biz-name">Canteen / Volume</div>
+        <div class="biz-desc">Office canteen · school · high volume</div>
+      </div>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-next" onclick="goStep(2)">Next →</button>
+    </div>
+  </div>
+
+  <!-- Step 2: Modules -->
+  <div class="step" id="step-2">
+    <div class="step-title">Features ရွေးပါ</div>
+    <div class="step-sub">လိုအပ်တာတွေကို on/off လုပ်ပါ</div>
+    <div class="module-list" id="module-list"></div>
+    <div class="btn-row">
+      <button class="btn btn-back" onclick="goStep(1)">← Back</button>
+      <button class="btn btn-next" onclick="goStep(3)">Next →</button>
+    </div>
+  </div>
+
+  <!-- Step 3: Store Info -->
+  <div class="step" id="step-3">
+    <div class="step-title">ဆိုင်အချက်အလက်</div>
+    <div class="step-sub">Basic info ထည့်ပါ — နောက်မှ admin မှာ ပြင်လို့ရတယ်</div>
+    <div class="form-group">
+      <label>ဆိုင်အမည်</label>
+      <input type="text" id="inp-store-name" placeholder="e.g. NoodleHaus" value="NoodleHouse">
+    </div>
+    <div class="form-group">
+      <label>Emoji</label>
+      <input type="text" id="inp-store-emoji" placeholder="🍜" value="🍜" style="width:80px">
+    </div>
+    <div class="form-group">
+      <label>ဖွင့်ချိန်</label>
+      <input type="text" id="inp-open-hours" placeholder="Open until 11 PM" value="Open until 11 PM">
+    </div>
+    <div class="form-group">
+      <label>ဖုန်းနံပါတ်</label>
+      <input type="text" id="inp-phone" placeholder="09xxxxxxxxx">
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-back" onclick="goStep(2)">← Back</button>
+      <button class="btn btn-next" onclick="goStep(4)">Next →</button>
+    </div>
+  </div>
+
+  <!-- Step 4: Summary + Finish -->
+  <div class="step" id="step-4">
+    <div class="step-title">အတည်ပြုပါ</div>
+    <div class="step-sub">အောက်ပါ settings တွေကို သေချာစစ်ပါ</div>
+    <div id="summary-content"></div>
+    <div class="btn-row">
+      <button class="btn btn-back" onclick="goStep(3)">← Back</button>
+      <button class="btn btn-finish" onclick="finishSetup()">✅ Setup ပြီးပြီ</button>
+    </div>
+  </div>
+
+  <!-- Step 5: Done -->
+  <div class="step" id="step-5">
+    <div class="congrats">
+      <div class="congrats-icon">🎉</div>
+      <div class="congrats-title">Setup ပြီးပြီ!</div>
+      <div class="congrats-sub">NoodleHaus စတင်အသုံးပြုနိုင်ပြီ</div>
+      <div class="link-grid">
+        <a href="/" class="link-card">
+          <div class="link-icon">📱</div>
+          <div class="link-name">Customer App</div>
+          <div class="link-desc">Order page</div>
+        </a>
+        <a href="/admin.php" class="link-card">
+          <div class="link-icon">🔧</div>
+          <div class="link-name">Admin Panel</div>
+          <div class="link-desc">Dashboard</div>
+        </a>
+        <a href="/kds.html" class="link-card">
+          <div class="link-icon">🍳</div>
+          <div class="link-name">Kitchen Display</div>
+          <div class="link-desc">KDS screen</div>
+        </a>
+        <a href="/waiter.html" class="link-card">
+          <div class="link-icon">🛎️</div>
+          <div class="link-name">Waiter App</div>
+          <div class="link-desc">Staff tablet</div>
+        </a>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+const BIZ_TYPES = {
+  noodle_shop: {
+    name:'Noodle / Casual dining',
+    modules:{online_ordering:true,kds:true,dine_in:true,delivery:true,loyalty:true,waiter_app:true,queue_display:false,reservation:false,kiosk:false,split_bill:false}
+  },
+  bubble_tea: {
+    name:'Bubble tea / အအေးဆိုင်',
+    modules:{online_ordering:true,kds:false,dine_in:false,delivery:true,loyalty:true,waiter_app:false,queue_display:true,reservation:false,kiosk:false,split_bill:false}
+  },
+  fine_dining: {
+    name:'Fine dining / Full service',
+    modules:{online_ordering:false,kds:true,dine_in:true,delivery:false,loyalty:true,waiter_app:true,queue_display:false,reservation:true,kiosk:false,split_bill:true}
+  },
+  canteen: {
+    name:'Canteen / High volume',
+    modules:{online_ordering:false,kds:true,dine_in:true,delivery:false,loyalty:false,waiter_app:false,queue_display:true,reservation:false,kiosk:true,split_bill:false}
+  },
+};
+
+const MODULE_INFO = {
+  online_ordering: {icon:'📱',name:'Online ordering',desc:'Customer မှ phone/link ဖြင့် order'},
+  kds:             {icon:'🍳',name:'Kitchen display (KDS)',desc:'Real-time ticket · sound · notification'},
+  dine_in:         {icon:'🪑',name:'Dine-in QR tables',desc:'Table QR code · multi-round ordering'},
+  delivery:        {icon:'🚚',name:'Delivery',desc:'Township fees · delivery address'},
+  loyalty:         {icon:'🎟',name:'Loyalty stamps',desc:'Auto-stamp · redeem reward'},
+  waiter_app:      {icon:'🛎️',name:'Waiter tablet app',desc:'Staff PIN login · table order'},
+  queue_display:   {icon:'📺',name:'Queue display',desc:'TV screen · "Your order ready"'},
+  reservation:     {icon:'📅',name:'Table reservation',desc:'Date/time booking · phone confirm'},
+  kiosk:           {icon:'🖥️',name:'Self-service kiosk',desc:'Full-screen customer terminal'},
+  split_bill:      {icon:'💳',name:'Split bill',desc:'Multiple payment methods တွဲ'},
+};
+
+let selectedBiz = 'noodle_shop';
+let modules = {...BIZ_TYPES.noodle_shop.modules};
+let currentStep = 1;
+
+function selectBiz(type) {
+  selectedBiz = type;
+  document.querySelectorAll('.biz-card').forEach(c=>c.classList.remove('selected'));
+  document.getElementById('biz-'+type.replace('_','-').replace('_','-'))?.classList.add('selected');
+  modules = {...BIZ_TYPES[type].modules};
+}
+
+function renderModules() {
+  const list = document.getElementById('module-list');
+  list.innerHTML = Object.entries(MODULE_INFO).map(([key,info])=>{
+    const on = modules[key];
+    return `<div class="module-row ${!on&&!modules.hasOwnProperty(key)?'disabled':''}">
+      <div class="module-icon">${info.icon}</div>
+      <div class="module-info">
+        <div class="module-name">${info.name}</div>
+        <div class="module-desc">${info.desc}</div>
+      </div>
+      <label class="module-toggle">
+        <input type="checkbox" ${on?'checked':''} onchange="modules['${key}']=this.checked">
+        <div class="toggle-track"></div>
+        <div class="toggle-thumb"></div>
+      </label>
+    </div>`;
+  }).join('');
+}
+
+function renderSummary() {
+  const biz = BIZ_TYPES[selectedBiz];
+  const storeName = document.getElementById('inp-store-name')?.value || 'NoodleHouse';
+  const emoji = document.getElementById('inp-store-emoji')?.value || '🍜';
+  const hours = document.getElementById('inp-open-hours')?.value || '';
+  const phone = document.getElementById('inp-phone')?.value || '';
+  const enabledMods = Object.entries(modules).filter(([,v])=>v).map(([k])=>MODULE_INFO[k]?.name||k);
+  const disabledMods = Object.entries(modules).filter(([,v])=>!v).map(([k])=>MODULE_INFO[k]?.name||k);
+
+  document.getElementById('summary-content').innerHTML = `
+    <div class="summary-card">
+      <div class="summary-title">ဆိုင်အမျိုးအစား</div>
+      <div class="summary-row"><span>Type</span><span class="summary-val">${BIZ_TYPES[selectedBiz].name}</span></div>
+      <div class="summary-row"><span>ဆိုင်အမည်</span><span class="summary-val">${emoji} ${storeName}</span></div>
+      <div class="summary-row"><span>ဖွင့်ချိန်</span><span class="summary-val">${hours}</span></div>
+      ${phone?`<div class="summary-row"><span>ဖုန်း</span><span class="summary-val">${phone}</span></div>`:''}
+    </div>
+    <div class="summary-card">
+      <div class="summary-title">Enabled features</div>
+      <div style="display:flex;flex-wrap:wrap;gap:4px;padding:.25rem 0">
+        ${enabledMods.map(m=>`<span class="module-badge">${m}</span>`).join('')}
+      </div>
+      ${disabledMods.length?`<div style="margin-top:.5rem;display:flex;flex-wrap:wrap;gap:4px">
+        ${disabledMods.map(m=>`<span class="module-badge off">${m}</span>`).join('')}
+      </div>`:''}
+    </div>`;
+}
+
+function goStep(n) {
+  document.getElementById('step-'+currentStep).classList.remove('active');
+  document.getElementById('dot-'+Math.min(currentStep,4)).classList.remove('active');
+  document.getElementById('dot-'+Math.min(currentStep,4)).classList.add('done');
+  currentStep = n;
+  document.getElementById('step-'+n).classList.add('active');
+  if (n<=4) {
+    document.getElementById('dot-'+n).classList.remove('done');
+    document.getElementById('dot-'+n).classList.add('active');
+  }
+  if (n===2) renderModules();
+  if (n===4) renderSummary();
+  window.scrollTo(0,0);
+}
+
+async function finishSetup() {
+  const storeName = document.getElementById('inp-store-name')?.value.trim() || 'NoodleHouse';
+  const emoji     = document.getElementById('inp-store-emoji')?.value.trim() || '🍜';
+  const hours     = document.getElementById('inp-open-hours')?.value.trim() || '';
+  const phone     = document.getElementById('inp-phone')?.value.trim() || '';
+
+  const settings = {
+    business_type: selectedBiz,
+    enabled_modules: JSON.stringify(modules),
+    store_name: storeName,
+    store_emoji: emoji,
+    open_hours: hours,
+    footer_phone: phone,
+    setup_complete: '1',
+  };
+
+  const r = await fetch('/site_settings.php?action=save',{
+    method:'POST',headers:{'Content-Type':'application/json'},
+    body: JSON.stringify(settings)
+  });
+  const d = await r.json();
+  if (d.ok) {
+    document.getElementById('step-4').classList.remove('active');
+    document.getElementById('step-5').classList.add('active');
+    document.querySelectorAll('.step-dot').forEach(d=>d.classList.remove('active'));
+  } else {
+    alert('Save failed: '+d.msg);
+  }
+}
+
+// Init biz card id fix
+document.getElementById('biz-noodle') && (document.getElementById('biz-noodle').id = 'biz-noodle_shop'.replace('biz-noodle','biz-noodle'));
+</script>
+</body>
+</html>
