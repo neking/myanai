@@ -9,10 +9,10 @@ $csrfToken = generateCsrfToken();
    Password ပြောင်းချင်ရင်:
    1. admin.php ဖွင့်ပါ
    2. ADMIN_PASS_HASH ကို PHP တွင် password_hash('yourpassword', PASSWORD_BCRYPT) ဖြင့် generate လုပ်
-   3. ဒါမှမဟုတ် http://localhost/noodlehaus/genhash.php မှ copy ပါ
+   3. ဒါမှမဟုတ် http://localhost/myanai/genhash.php မှ copy ပါ
 ── */
 define('ADMIN_USER', 'admin');
-// bcrypt hash of 'noodlehaus2024' — genhash.php သုံးပြီး ပြောင်းနိုင်
+// bcrypt hash of 'myanai2024' — genhash.php သုံးပြီး ပြောင်းနိုင်
 define('ADMIN_PASS_HASH', '$2y$12$DwR3F2j7J6W7kOwP2upfF.jaE7O64EBTjimp8UO4qI2bueDIwDtV2');  // ← blank ဆိုရင် auto-set ဖြစ်မည်
 
 /* ── DB ── */
@@ -930,7 +930,7 @@ if ($_IS_TENANT && !isset($_GET['tenant_id'])) {
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>NoodleHaus Admin</title>
+<title>MyanAi POS — Admin</title>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&family=Noto+Sans+Myanmar:wght@400;500&family=Noto+Sans+SC:wght@400;500&display=swap" rel="stylesheet">
 <style>
 :root{
@@ -1254,7 +1254,7 @@ tr.drop-below{box-shadow:0 2px 0 var(--accent);}
 <!-- ═══════════ LOGIN PAGE ═══════════ -->
 <div class="login-wrap" id="login-page">
   <div class="login-box">
-    <div class="login-logo">🍜 Noodle<span>Haus</span></div>
+    <div class="login-logo">🤖 Myan<span>Ai</span> POS</div>
     <div class="login-sub">Admin Dashboard</div>
     <div class="form-group">
       <label>Username</label>
@@ -1294,7 +1294,7 @@ async function doLogin() {
   <!-- SIDEBAR -->
   <div class="sidebar" id="sidebar">
     <div class="sidebar-logo" style="display:flex;align-items:center;justify-content:space-between">
-      <span>🍜 <?php if($_IS_TENANT && !empty($_SESSION['tenant_name'])): ?><span><?= htmlspecialchars($_SESSION['tenant_name']) ?></span><span class="sidebar-badge">Tenant</span><?php else: ?>Noodle<span>Haus</span><span class="sidebar-badge">Admin</span><?php endif; ?></span>
+      <span>🍜 <?php if($_IS_TENANT && !empty($_SESSION['tenant_name'])): ?><span><?= htmlspecialchars($_SESSION['tenant_name']) ?></span><span class="sidebar-badge">Tenant</span><?php else: ?>Myan<span>Ai</span> POS<span class="sidebar-badge">Admin</span><?php endif; ?></span>
       <button onclick="closeSidebar()" style="background:none;border:none;color:rgba(255,255,255,.6);font-size:1.2rem;cursor:pointer;display:none" id="sidebar-close-btn">✕</button>
     </div>
     <div style="display:none">
@@ -2377,7 +2377,7 @@ async function doLogin() {
           <div style="display:grid;grid-template-columns:2fr 1fr;gap:.8rem">
             <div>
               <label style="font-size:.82rem;color:var(--text-muted)">Branch Name *</label>
-              <input id="branch-name" type="text" placeholder="NoodleHaus Mandalay"
+              <input id="branch-name" type="text" placeholder="MyanAi POS Mandalay"
                 style="width:100%;padding:.6rem;border-radius:8px;border:1px solid var(--border);background:var(--surface);color:var(--text)">
             </div>
             <div>
