@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no">
+<title>NoodleHaus — Driver App</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--bg:#0f1117;--surface:#1a1d27;--surface2:#252836;--accent:#e84c2b;--green:#27ae60;--yellow:#f1c40f;--text:#f5f5f5;--muted:#8b8d97;--border:#2e3140}
+body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min-height:100vh}
+
+.login-screen{display:flex;flex-direction:column;align-items:center;justify-content:center;height:100vh;padding:2rem}
+.login-screen h1{font-size:1.5rem;margin-bottom:.5rem}
+.login-screen .sub{color:var(--muted);margin-bottom:2rem}
+.pin-input{width:200px;padding:1rem;font-size:1.5rem;text-align:center;letter-spacing:.5em;border:2px solid var(--border);border-radius:12px;background:var(--surface);color:var(--text)}
+.login-btn{margin-top:1rem;padding:.8rem 2rem;background:var(--accent);color:#fff;border:none;border-radius:12px;font-size:1rem;font-weight:700;cursor:pointer}
+
+.app{display:none}
+.app-header{padding:1rem 1.5rem;background:var(--surface);display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--border)}
+.app-header .name{font-weight:700;font-size:1.1rem}
+.status-toggle{padding:.4rem 1rem;border-radius:20px;font-size:.8rem;font-weight:700;border:none;cursor:pointer}
+.status-toggle.available{background:var(--green);color:#fff}
+.status-toggle.offline{background:var(--muted);color:#fff}
+
+.orders-list{padding:1rem}
+.order-card{background:var(--surface);border-radius:14px;padding:1.2rem;margin-bottom:1rem;border-left:4px solid var(--yellow)}
+.order-card.assigned{border-left-color:var(--accent)}
+.order-card.picked_up,.order-card.delivering{border-left-color:var(--green)}
+.order-card .order-num{font-weight:800;font-size:1.1rem;color:var(--accent)}
+.order-card .customer{margin-top:.4rem;font-weight:600}
+.order-card .address{color:var(--muted);font-size:.85rem;margin-top:.2rem}
+.order-card .items{color:var(--muted);font-size:.82rem;margin-top:.4rem}
+.order-card .amount{font-weight:700;margin-top:.4rem}
+.order-card .actions{display:flex;gap:.5rem;margin-top:.8rem;flex-wrap:wrap}
+.action-btn{padding:.6rem 1.2rem;border:none;border-radius:10px;font-weight:700;font-size:.85rem;cursor:pointer}
+.action-btn.pickup{background:var(--accent);color:#fff}
+.action-btn.deliver{background:var(--green);color:#fff}
+.action-btn.complete{background:var(--green);color:#fff}
+
+.empty{text-align:center;padding:3rem;color:var(--muted)}
+.empty .icon{font-size:3rem;margin-bottom:.5rem}
+</style>
+</head>
+<body>
+
+<!-- Login Screen -->
+<div class="login-screen" id="d-login">
+  <div style="font-size:2.5rem;margin-bottom:1rem">🛵</div>
+  <h1>NoodleHaus Driver</h1>
+  <div class="sub">Enter your PIN to start</div>
+  <input class="pin-input" id="d-pin" type="password" maxlength="6" placeholder="••••">
+  <button class="login-btn" onclick="dLogin()">Start Driving →</button>
+  <div id="d-login-err" style="color:#e74c3c;margin-top:1rem;font-size:.85rem"></div>
+</div>
+
+<!-- Main App -->
+<div class="app" id="d-app">
+  <div class="app-header">
+    <div>
+      <div class="name" id="d-name">Driver</div>
+      <div style="font-size:.8rem;color:var(--muted)" id="d-vehicle">🛵 motorbike</div>
+    </div>
+    <button class="status-toggle available" id="d-status-btn" onclick="dToggleStatus()">🟢 Available</button>
+  </div>
+
+  <div class="orders-list" id="d-orders">
+    <div class="empty"><div class="icon">📦</div>No active deliveries</div>
+  </div>
+</div>
+
+<script>
+let driver = null;
+let driverStatus = 'available';
+
+async function dLogin() {
+  const pin = document.getElementById('d-pin').value.trim();
+  if (!pin) return;
+  try {
+    const r = await fetch('delivery_api.php?action=driver_login', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({pin})
+    });
+    const d = await r.json();
+    if (!d.ok) throw new Error(d.msg);
+    driver = d.driver;
+    driverStatus = 'available';
+    document.getElementById('d-login').style.display = 'none';
+    document.getElementById('d-app').style.display = 'block';
+    document.getElementById('d-name').textContent = driver.name;
+    const icons = {motorbike:'🛵',bicycle:'🚲',car:'🚗',walk:'🚶'};
+    document.getElementById('d-vehicle').textContent = (icons[driver.vehicle_type]||'🛵') + ' ' + driver.vehicle_type;
+    dLoadOrders();
+    setInterval(dLoadOrders, 8000);
+  } catch(e) {
+    document.getElementById('d-login-err').textContent = e.message;
+  }
+}
+
+async function dToggleStatus() {
+  driverStatus = driverStatus === 'available' ? 'offline' : 'available';
+  const btn = document.getElementById('d-status-btn');
+  btn.className = 'status-toggle ' + driverStatus;
+  btn.textContent = driverStatus === 'available' ? '🟢 Available' : '⚫ Offline';
+  await fetch('delivery_api.php?action=driver_status', {
+    method:'POST', headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({id: driver.id, status: driverStatus})
+  });
+}
+
+async function dLoadOrders() {
+  if (!driver) return;
+  try {
+    const r = await fetch(`delivery_api.php?action=driver_orders&driver_id=${driver.id}`);
+    const d = await r.json();
+    if (!d.ok) return;
+    const el = document.getElementById('d-orders');
+    if (!d.orders.length) {
+      el.innerHTML = '<div class="empty"><div class="icon">📦</div>No active deliveries<br><span style="font-size:.85rem">Wait for assignments...</span></div>';
+      return;
+    }
+    el.innerHTML = d.orders.map(o => {
+      let actions = '';
+      if (o.status === 'assigned') actions = `<button class="action-btn pickup" onclick="dUpdate(${o.id},'picked_up')">📦 Picked Up</button>`;
+      else if (o.status === 'picked_up') actions = `<button class="action-btn deliver" onclick="dUpdate(${o.id},'delivering')">🛵 On The Way</button>`;
+      else if (o.status === 'delivering') actions = `<button class="action-btn complete" onclick="dUpdate(${o.id},'delivered')">✅ Delivered</button>`;
+      return `
+      <div class="order-card ${o.status}">
+        <div class="order-num">NH-${String(o.order_id).padStart(6,'0')}</div>
+        <div class="customer">👤 ${esc(o.customer_name)}</div>
+        <div class="address">📍 ${esc(o.customer_phone || '')} ${esc(o.address_info || '')}</div>
+        <div class="items">🍜 ${esc(o.items || '')}</div>
+        <div class="amount">💰 ${Number(o.total_amount).toLocaleString()} MMK · ${esc(o.payment_method)}</div>
+        <div class="actions">${actions}</div>
+      </div>`;
+    }).join('');
+  } catch(e) {}
+}
+
+async function dUpdate(trackingId, status) {
+  try {
+    await fetch('delivery_api.php?action=update_status', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({tracking_id: trackingId, status})
+    });
+    dLoadOrders();
+  } catch(e) {}
+}
+
+function esc(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+document.getElementById('d-pin').addEventListener('keydown', e => { if (e.key==='Enter') dLogin(); });
+</script>
+</body>
+</html>
