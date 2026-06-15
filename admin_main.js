@@ -248,7 +248,7 @@ function showPage(page) {
   if (page==='plans')     { loadPlans(); }
   if (page==='landing')   { loadLandingPage(); }
   if (page==='demo')      { loadDemoInfo(); }
-  if (page==='announce')  { loadAnnouncement(); }
+  if (page==='announce')  { loadAnnouncementPage(); }
   if (page==='dashboard') { loadPlatformDashboard(); }
   // Close sidebar on mobile after nav
   closeSidebar();
@@ -2594,6 +2594,7 @@ async function resetDemoData() {
 }
 
 /* ── Announcement save ── */
+function loadAnnouncementPage(){} // placeholder — form is static
 async function saveAnnouncement() {
   const msg = document.getElementById('ann-message')?.value?.trim()||'';
   const type = document.getElementById('ann-type')?.value||'info';
