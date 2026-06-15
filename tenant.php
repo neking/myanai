@@ -462,6 +462,7 @@ td{padding:.65rem .9rem;color:var(--ink)}
       <div style="margin-left:auto;display:flex;gap:.5rem;align-items:center">
         <span id="topbar-plan-badge" class="plan-badge"></span>
         <span id="topbar-biz" style="font-size:.78rem;color:var(--muted)"></span>
+        <div id="topbar-action"></div>
       </div>
     </div>
 
@@ -553,7 +554,7 @@ function showPage(page){
   const nav=document.getElementById('nav-'+page);
   if(nav) nav.classList.add('active');
 
-  // Update topbar title
+  // Update topbar title + right action button
   const titles={dashboard:'Dashboard',menu:'Menu items',staff:'Staff',crm:'CRM / Loyalty',
     stocklog:'Stock log',promos:'Promotions',branches:'My branches',orders:'Orders',
     tables:'Tables',reserve:'Reservations',stock:'Stock',shift:'Shifts',
@@ -561,6 +562,18 @@ function showPage(page){
     storefront:'Storefront',settings:'Settings',schedule:'Scheduling'};
   const tb=document.getElementById('topbar-title');
   if(tb) tb.textContent=titles[page]||page;
+
+  // Per-page action buttons in topbar
+  const actions = {
+    menu:     `<button class="btn btn-primary btn-sm" onclick="openAddItem()">+ Add item</button>`,
+    tables:   `<div style="display:flex;gap:.4rem"><a id="kds-link" href="kds.html?tenant=${window.__TENANT_ID}&branch=${window._currentBranch||0}" target="_blank" class="btn btn-ghost btn-sm">👨‍🍳 KDS</a><button class="btn btn-primary btn-sm" onclick="openAddTable()">+ Add table</button></div>`,
+    expenses: `<button class="btn btn-primary btn-sm" onclick="openAddExpense()">+ Add expense</button>`,
+    promos:   `<button class="btn btn-primary btn-sm" onclick="openAddPromo()">+ Add promo</button>`,
+    reserve:  `<button class="btn btn-primary btn-sm" onclick="openAddReserve()">+ New reservation</button>`,
+    delivery: `<a href="driver.html" target="_blank" class="btn btn-ghost btn-sm">🛵 Driver app</a>`,
+  };
+  const tbAction = document.getElementById('topbar-action');
+  if(tbAction) tbAction.innerHTML = actions[page] || '';
 
   // Load page data
   if(page==='dashboard')  initDashboard();
