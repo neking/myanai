@@ -87,6 +87,62 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_GET['api'])) {
         exit;
     }
 
+    /* ── STATS ── */
+    if ($_GET['api'] === 'stats') {
+        $bid = (int)($_GET['branch_id'] ?? 0);
+        $bWhere = $bid ? "AND o.branch_id=:bid" : "";
+        $params = [':tid' => $tid];
+        if ($bid) $params[':bid'] = $bid;
+
+        $stmt = $pdo->prepare("SELECT COUNT(*) FROM orders o WHERE o.tenant_id=:tid AND DATE(o.created_at)=CURDATE() $bWhere");
+        $stmt->execute($params);
+        $today = (int)$stmt->fetchColumn();
+
+        $stmt2 = $pdo->prepare("SELECT COALESCE(SUM(total_amount),0) FROM orders o WHERE o.tenant_id=:tid AND DATE(o.created_at)=CURDATE() AND o.status!='cancelled' $bWhere");
+        $stmt2->execute($params);
+        $revenue = (float)$stmt2->fetchColumn();
+
+        $stmt3 = $pdo->prepare("SELECT COUNT(*) FROM orders o WHERE o.tenant_id=:tid AND o.status='pending' $bWhere");
+        $stmt3->execute($params);
+        $pending = (int)$stmt3->fetchColumn();
+
+        $stmt4 = $pdo->prepare("SELECT COUNT(*) FROM branch_stock bs JOIN branches b ON b.id=bs.branch_id WHERE b.tenant_id=:tid AND bs.stock_qty<=5");
+        $stmt4->execute([':tid' => $tid]);
+        $low = (int)$stmt4->fetchColumn();
+
+        echo json_encode(['ok'=>true,'today'=>$today,'revenue'=>$revenue,'pending'=>$pending,'low'=>$low]);
+        exit;
+    }
+
+    /* ── ORDERS ── */
+    if ($_GET['api'] === 'orders') {
+        $bid   = (int)($_GET['branch_id'] ?? 0);
+        $limit = (int)($_GET['limit'] ?? 50);
+        $bWhere = $bid ? "AND branch_id=:bid" : "";
+        $params = [':tid' => $tid];
+        if ($bid) $params[':bid'] = $bid;
+        $stmt = $pdo->prepare("SELECT * FROM orders WHERE tenant_id=:tid $bWhere ORDER BY id DESC LIMIT $limit");
+        $stmt->execute($params);
+        echo json_encode(['ok'=>true,'orders'=>$stmt->fetchAll(PDO::FETCH_ASSOC)]);
+        exit;
+    }
+
+    /* ── ITEMS ── */
+    if ($_GET['api'] === 'items') {
+        $stmt = $pdo->prepare("SELECT * FROM menu_items WHERE tenant_id=:tid ORDER BY is_active DESC, sort_order ASC, category, name");
+        $stmt->execute([':tid' => $tid]);
+        echo json_encode(['ok'=>true,'items'=>$stmt->fetchAll(PDO::FETCH_ASSOC)]);
+        exit;
+    }
+
+    /* ── BRANCHES ── */
+    if ($_GET['api'] === 'branches') {
+        $stmt = $pdo->prepare("SELECT * FROM branches WHERE tenant_id=:tid AND is_active=1 ORDER BY name");
+        $stmt->execute([':tid' => $tid]);
+        echo json_encode(['ok'=>true,'branches'=>$stmt->fetchAll(PDO::FETCH_ASSOC)]);
+        exit;
+    }
+
     echo json_encode(['ok'=>false,'msg'=>'Unknown action']); exit;
 }
 
@@ -391,7 +447,7 @@ td{padding:.65rem .9rem;color:var(--ink)}
           <div class="foot-name" id="foot-name">Loading...</div>
           <div class="foot-role" id="foot-role">Tenant</div>
         </div>
-        <button onclick="doTenantLogout()" title="Logout" style="background:none;border:none;cursor:pointer;color:var(--sidebar-muted);font-size:1rem;opacity:.55;transition:opacity .15s" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=.55">↩</button>
+        <button onclick="doTenantLogout()" title="Logout" style="background:none;border:none;cursor:pointer;color:var(--sidebar-muted);font-size:1rem;opacity:.55;transition:opacity .15s" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=.55">↩ Logout</button>
       </div>
     </div>
   </aside>
@@ -467,7 +523,7 @@ function toast(msg, type){
 /* ── API helper ── */
 async function api(action, params=''){
   const sep = params?'&':'';
-  const r = await fetch(`admin.php?api=${action}${sep}${params}&tenant_id=${window.__TENANT_ID}`,{credentials:'include'});
+  const r = await fetch(`tenant.php?api=${action}${sep}${params}`,{credentials:'include'});
   return r.json();
 }
 async function tenantApi(action, body=null){
@@ -610,7 +666,7 @@ async function loadBranchOptions(){
   const sel=document.getElementById('branch-select');
   if(!sel) return;
   sel.innerHTML='<option value="0">All branches</option>';
-  d.branches.filter(b=>b.tenant_id==window.__TENANT_ID||window._currentTenant==b.tenant_id).forEach(b=>{
+  d.branches.forEach(b=>{
     sel.innerHTML+=`<option value="${b.id}">${b.name}</option>`;
   });
 }
@@ -650,7 +706,7 @@ async function loadRecentOrders(){
 async function loadCrossBranchChart(){
   const to=new Date().toISOString().slice(0,10);
   const from=new Date(Date.now()-30*86400000).toISOString().slice(0,10);
-  const d=await fetch(`reports_api.php?action=branches&from=${from}&to=${to}&tenant_id=${window._currentTenant}`,{credentials:'include'}).then(r=>r.json()).catch(()=>({ok:false}));
+  const d=await fetch(`reports_api.php?action=branches&from=${from}&to=${to}&tenant_id=${window.__TENANT_ID}`,{credentials:'include'}).then(r=>r.json()).catch(()=>({ok:false}));
   const area=document.getElementById('branch-chart-area');
   if(!area) return;
   if(!d.ok||!d.branches?.length){area.innerHTML='<div style="color:var(--muted);font-size:.82rem;padding:1rem">Branch data မရသေး</div>';return;}
@@ -735,6 +791,17 @@ async function loadOrders(){
 
 /* ── Upgrade ── */
 async function loadUpgradePage(){
+  // Current plan display
+  const plan = window.__TENANT_PLAN||'free';
+  const planColors={free:'#6b7280',basic:'#2563eb',pro:'#059669',enterprise:'#7c3aed'};
+  const el=document.getElementById('cur-plan-display');
+  if(el) el.innerHTML=`<span style="background:${planColors[plan]||'#888'};color:#fff;padding:2px 12px;border-radius:99px;font-size:.9rem">${plan.toUpperCase()}</span>`;
+  const expEl=document.getElementById('cur-expires-display');
+  if(expEl && window.__PLAN_EXPIRES){
+    const d=new Date(window.__PLAN_EXPIRES);
+    const diff=Math.ceil((d-new Date())/86400000);
+    expEl.textContent=diff<=0?'⚠️ သက်တမ်းကုန်သွားပြီ':`သက်တမ်း: ${d.toLocaleDateString('en-GB')} (${diff} ရက် ကျန်)`;
+  }
   const d=await fetch('tenant_api.php?action=plans',{credentials:'include'}).then(r=>r.json());
   const grid=document.getElementById('upgrade-grid');
   if(!grid||!d.ok) return;
@@ -784,7 +851,7 @@ async function saveTenantSettings(){
 
 /* ── CRM stub ── */
 async function loadCRM(){
-  const d=await fetch(`crm_api.php?action=list&tenant_id=${window._currentTenant}`,{credentials:'include'}).then(r=>r.json());
+  const d=await fetch(`crm_api.php?action=list&tenant_id=${window.__TENANT_ID}`,{credentials:'include'}).then(r=>r.json());
   const tbody=document.getElementById('crm-tbody');
   if(!tbody) return;
   if(!d.ok||!d.customers?.length){tbody.innerHTML='<tr><td colspan="4" style="text-align:center;padding:2rem;color:var(--muted)">Customers မရှိသေး</td></tr>';return;}
