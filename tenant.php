@@ -6,10 +6,12 @@ $pdo = getPDO();
 $csrfToken = generateCsrfToken();
 
 /* ── TENANT LOGIN API ── */
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_GET['api'])) {
+if (isset($_GET['api'])) {
 
-    /* CSRF check */
-    $body = json_decode(file_get_contents('php://input'), true) ?? [];
+    /* Parse body for POST requests */
+    $body = $_SERVER['REQUEST_METHOD'] === 'POST'
+        ? (json_decode(file_get_contents('php://input'), true) ?? [])
+        : [];
     if ($_GET['api'] === 'login') {
         $ip   = $_SERVER['REMOTE_ADDR'] ?? '0.0.0.0';
         $attempts = $_SESSION['login_attempts'] ?? 0;
