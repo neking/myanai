@@ -2539,42 +2539,132 @@ async function loadPlans() {
 }
 
 /* ── Landing Page CMS ── */
+function lpTab(tab){
+  // Hide all panels
+  ['hero','brand','cta','announce','contact','demo','footer'].forEach(t=>{
+    const panel=document.getElementById('lp-panel-'+t);
+    const btn=document.getElementById('lp-tab-'+t);
+    if(panel) panel.style.display='none';
+    if(btn) btn.classList.remove('active');
+  });
+  // Show selected
+  const p=document.getElementById('lp-panel-'+tab);
+  const b=document.getElementById('lp-tab-'+tab);
+  if(p) p.style.display='';
+  if(b) b.classList.add('active');
+}
+
 async function loadLandingPage() {
   const d = await fetch('site_settings.php?action=get').then(r=>r.json()).catch(()=>({ok:false}));
   if(!d.ok||!d.settings) return;
   const s = d.settings;
   const set=(id,v)=>{const el=document.getElementById(id);if(el)el.value=v||'';};
+
+  // Hero
   set('lp-title1',   s.hero_title_line1);
   set('lp-title2',   s.hero_title_line2);
   set('lp-subtitle', s.hero_subtitle);
-  set('lp-emoji',    s.store_emoji||s.hero_emoji);
-  set('lp-ann-text', s.announcement_text);
+  set('lp-desc',     s.hero_desc);
+  set('lp-label',    s.hero_label);
+
+  // Brand
+  set('lp-store-name',  s.store_name);
+  set('lp-emoji',       s.store_emoji);
+  set('lp-page-title',  s.page_title);
+  set('lp-tagline',     s.tagline);
+
+  // CTA
   set('lp-cta1',     s.cta_primary_text);
+  set('lp-cta1-url', s.cta_primary_url);
   set('lp-cta2',     s.cta_demo_text);
   set('lp-demo-url', s.cta_demo_url);
+  set('lp-nav-cta',  s.nav_cta_text);
+
+  // Announce
+  set('lp-ann-text',      s.announcement_text);
+  set('lp-ann-color-hex', s.announcement_color||'#6366f1');
+  const annColor = document.getElementById('lp-ann-color');
+  if(annColor) annColor.value = s.announcement_color||'#6366f1';
   const annOn = document.getElementById('lp-ann-on');
   if(annOn) annOn.checked = s.announcement_on==='1';
-  // Preview
-  const prev = document.getElementById('lp-preview-hero');
-  if(prev) prev.textContent = (s.hero_title_line1||'') + ' / ' + (s.hero_title_line2||'');
+
+  // Contact
+  set('lp-phone',     s.contact_phone);
+  set('lp-email',     s.contact_email);
+  set('lp-address',   s.contact_address);
+  set('lp-facebook',  s.contact_facebook);
+  set('lp-messenger', s.contact_messenger);
+  set('lp-viber',     s.contact_viber);
+  set('lp-instagram', s.contact_instagram);
+  set('lp-tiktok',    s.contact_tiktok);
+
+  // Demo
+  set('lp-demo-heading', s.demo_heading);
+  set('lp-demo-sub',     s.demo_sub);
+  set('lp-demo-email',   s.demo_email);
+  set('lp-demo-pass',    s.demo_password);
+  set('lp-demo-btn',     s.demo_btn_text);
+
+  // Footer
+  set('lp-copyright',   s.footer_copyright);
+  set('lp-foot-tagline',s.footer_tagline);
 }
 
 async function saveLandingPage() {
   const g=(id)=>document.getElementById(id)?.value?.trim()||'';
+  const cb=(id)=>document.getElementById(id)?.checked?'1':'0';
+
   const payload = {
+    // Hero
     hero_title_line1: g('lp-title1'),
     hero_title_line2: g('lp-title2'),
     hero_subtitle:    g('lp-subtitle'),
-    hero_emoji:       g('lp-emoji'),
-    announcement_text:g('lp-ann-text'),
-    announcement_on:  document.getElementById('lp-ann-on')?.checked?'1':'0',
+    hero_desc:        g('lp-desc'),
+    hero_label:       g('lp-label'),
+    // Brand
+    store_name:       g('lp-store-name'),
+    store_emoji:      g('lp-emoji'),
+    page_title:       g('lp-page-title'),
+    tagline:          g('lp-tagline'),
+    // CTA
+    cta_primary_text: g('lp-cta1'),
+    cta_primary_url:  g('lp-cta1-url'),
+    cta_demo_text:    g('lp-cta2'),
+    cta_demo_url:     g('lp-demo-url'),
+    nav_cta_text:     g('lp-nav-cta'),
+    // Announce
+    announcement_text:  g('lp-ann-text'),
+    announcement_color: g('lp-ann-color-hex')||document.getElementById('lp-ann-color')?.value||'#6366f1',
+    announcement_on:    cb('lp-ann-on'),
+    // Contact
+    contact_phone:    g('lp-phone'),
+    contact_email:    g('lp-email'),
+    contact_address:  g('lp-address'),
+    contact_facebook: g('lp-facebook'),
+    contact_messenger:g('lp-messenger'),
+    contact_viber:    g('lp-viber'),
+    contact_instagram:g('lp-instagram'),
+    contact_tiktok:   g('lp-tiktok'),
+    // Demo
+    demo_heading:  g('lp-demo-heading'),
+    demo_sub:      g('lp-demo-sub'),
+    demo_email:    g('lp-demo-email'),
+    demo_password: g('lp-demo-pass'),
+    demo_btn_text: g('lp-demo-btn'),
+    // Footer
+    footer_copyright: g('lp-copyright'),
+    footer_tagline:   g('lp-foot-tagline'),
   };
+
   const r = await fetch('site_settings.php?action=save',{
     method:'POST', headers:{'Content-Type':'application/json'}, credentials:'include',
     body: JSON.stringify(payload)
   }).then(r=>r.json());
-  if(r.ok){ toast('✅ Landing page saved'); window.open('landing-page.html','_blank'); }
-  else toast(r.msg||'Error','err');
+
+  if(r.ok){
+    toast('✅ Landing page saved');
+    setTimeout(()=>window.open('landing-page.html?t='+Date.now(),'_blank'),500);
+  } else toast(r.msg||'Error','err');
 }
 
 /* ── Demo Control ── */
