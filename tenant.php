@@ -1447,7 +1447,17 @@ async function toggleItemStatus(id, current){
 
 /* ── Tables ── */
 async function loadTables(){
-  const bid = window._currentBranch || (await api('branches').then(d=>d.branches?.[0]?.id||0));
+  // Auto-select first branch if none selected
+  let bid = window._currentBranch;
+  if(!bid){
+    const br = await api('branches');
+    if(br.ok && br.branches?.length){
+      bid = br.branches[0].id;
+      window._currentBranch = bid;
+      const sel = document.getElementById('branch-select');
+      if(sel) sel.value = bid;
+    }
+  }
   const d = await fetch(`table_api.php?action=list&tenant_id=${window.__TENANT_ID}&branch_id=${bid}`,{credentials:'include'}).then(r=>r.json());
   const grid = document.getElementById('tables-grid');
   if(!grid) return;
@@ -1498,8 +1508,12 @@ function viewTable(id, status){ toast(`Table #${id} — ${status}`); }
 /* ── Stock ── */
 var _stockItems = [];
 async function stockLoad(){
-  const bid = window._currentBranch||0;
-  const d = await fetch(`stock_api.php?action=overview&tenant_id=${window.__TENANT_ID}&branch_id=${bid}`,{credentials:'include'}).then(r=>r.json());
+  let bid = window._currentBranch;
+  if(!bid){
+    const br = await api('branches');
+    if(br.ok && br.branches?.length) bid = br.branches[0].id;
+  }
+  const d = await fetch(`stock_api.php?action=overview&tenant_id=${window.__TENANT_ID}&branch_id=${bid||0}`,{credentials:'include'}).then(r=>r.json());
   if(!d.ok) return;
   _stockItems = d.items || [];
 
@@ -1735,8 +1749,9 @@ async function downloadBackup(){
 /* ── Storefront ── */
 async function loadStorefront(){
   // Set order URL
-  const slug = window.__TENANT_SLUG || 'demo';
-  const url = location.origin + '/index.html?t=' + slug;
+  const slug = window.__TENANT_SLUG || (window._currentTenant ? 'tenant' : 'demo');
+  const branchParam = window._currentBranch ? '&branch=' + window._currentBranch : '';
+  const url = location.origin + '/index.html?t=' + slug + branchParam;
   const urlEl = document.getElementById('sf-order-url');
   const linkEl = document.getElementById('sf-order-link');
   const previewBtn = document.getElementById('sf-preview-btn');
