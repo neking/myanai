@@ -152,6 +152,28 @@ if (isset($_GET['api'])) {
         exit;
     }
 
+    /* ── TABLES ── */
+    if ($_GET['api'] === 'tables') {
+        $bid = (int)($_GET['branch_id'] ?? 0);
+        if ($bid) {
+            $stmt = $pdo->prepare("SELECT * FROM restaurant_tables WHERE tenant_id=:t AND branch_id=:b AND is_active=1 ORDER BY table_code");
+            $stmt->execute([':t'=>$tid,':b'=>$bid]);
+        } else {
+            $stmt = $pdo->prepare("SELECT * FROM restaurant_tables WHERE tenant_id=:t AND is_active=1 ORDER BY table_code");
+            $stmt->execute([':t'=>$tid]);
+        }
+        echo json_encode(['ok'=>true,'tables'=>$stmt->fetchAll(PDO::FETCH_ASSOC)]);
+        exit;
+    }
+
+    /* ── STAFF (tenant) ── */
+    if ($_GET['api'] === 'staff') {
+        $stmt = $pdo->prepare("SELECT s.* FROM staff s JOIN branches b ON b.id=s.branch_id WHERE b.tenant_id=:t AND s.is_active=1 ORDER BY s.name");
+        $stmt->execute([':t'=>$tid]);
+        echo json_encode(['ok'=>true,'staff'=>$stmt->fetchAll(PDO::FETCH_ASSOC)]);
+        exit;
+    }
+
     /* ── BRANCHES ── */
     if ($_GET['api'] === 'branches') {
         $stmt = $pdo->prepare("SELECT * FROM branches WHERE tenant_id=:tid AND is_active=1 ORDER BY name");
@@ -1171,7 +1193,7 @@ function renderMenuItems(){
 
 /* ── Staff ── */
 async function loadStaff(){
-  const d=await fetch(`staff_api.php?action=list${branchParams()}`,{credentials:'include'}).then(r=>r.json());
+  const d = await api('staff');
   const tbody=document.getElementById('staff-tbody');
   if(!tbody) return;
   if(!d.ok||!d.staff?.length){tbody.innerHTML='<tr><td colspan="4" style="text-align:center;padding:2rem;color:var(--muted)">Staff မရှိသေး</td></tr>';return;}
@@ -1458,7 +1480,7 @@ async function loadTables(){
       if(sel) sel.value = bid;
     }
   }
-  const d = await fetch(`table_api.php?action=list&tenant_id=${window.__TENANT_ID}&branch_id=${bid}`,{credentials:'include'}).then(r=>r.json());
+  const d = await api('tables', `branch_id=${bid}`);
   const grid = document.getElementById('tables-grid');
   if(!grid) return;
 
