@@ -2351,8 +2351,40 @@ async function loadPlatformDashboard() {
       const alert = document.getElementById('upgrade-reqs-alert');
       if(alert) {
         alert.style.display='';
-        alert.querySelector('div[id="upgrade-reqs-list"]').innerHTML = expiring.map(t=>`
+        const listEl = document.getElementById('upgrade-reqs-list');
+        if(listEl) listEl.innerHTML = expiring.map(t=>`
           <div style="font-size:.82rem;padding:3px 0">• ${t.name} — expires ${t.plan_expires}</div>`).join('');
+      }
+    }
+
+    // Analytics mini: plan distribution bars
+    const miniDist = document.getElementById('plan-dist-mini');
+    if(miniDist){
+      const planColors={free:'#6b7280',basic:'#3b82f6',pro:'#10b981',enterprise:'#8b5cf6'};
+      const total2 = list.length||1;
+      miniDist.innerHTML = ['free','basic','pro','enterprise'].map(plan=>{
+        const cnt = list.filter(t=>t.plan===plan).length;
+        const pct = Math.round(cnt/total2*100);
+        return `<div style="display:flex;align-items:center;gap:.4rem;margin-bottom:4px;font-size:.75rem">
+          <span style="width:55px;color:var(--muted);text-transform:capitalize">${plan}</span>
+          <div style="flex:1;height:6px;background:var(--border);border-radius:99px;overflow:hidden">
+            <div style="height:100%;width:${pct}%;background:${planColors[plan]};border-radius:99px"></div>
+          </div>
+          <span style="width:20px;text-align:right;color:var(--muted)">${cnt}</span>
+        </div>`;
+      }).join('');
+    }
+
+    // Expiry mini
+    const expiryMini = document.getElementById('expiry-mini');
+    if(expiryMini){
+      if(expiring.length){
+        expiryMini.innerHTML = expiring.map(t=>`
+          <div style="font-size:.78rem;padding:2px 0;color:#dc2626">• ${t.name}</div>`).join('');
+        expiryMini.style.color='';
+      } else {
+        expiryMini.textContent = '✅ No plans expiring soon';
+        expiryMini.style.color='#059669';
       }
     }
   }
