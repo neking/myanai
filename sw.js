@@ -1,6 +1,6 @@
-const CACHE_NAME = '-branch-v6'noodlehaus-v1781149114';
-const STATIC_CACHE = 'noodlehaus-static-v20260610';
-const QUEUE_DB = 'noodlehaus-queue';
+const CACHE_NAME = '-branch-v6'myanai-v1781149114';
+const STATIC_CACHE = 'myanai-static-v20260610';
+const QUEUE_DB = 'myanai-queue';
 
 // Cache မည့် files
 const STATIC_ASSETS = [
