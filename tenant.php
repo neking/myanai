@@ -116,6 +116,21 @@ if (isset($_GET['api'])) {
         exit;
     }
 
+    /* ── UPDATE ORDER STATUS ── */
+    if ($_GET['api'] === 'update_order_status') {
+        $b   = json_decode(file_get_contents('php://input'), true) ?? [];
+        $oid = (int)($b['order_id'] ?? 0);
+        $st  = trim($b['status'] ?? '');
+        $valid = ['pending','confirmed','preparing','ready','out_for_delivery','delivered','cancelled'];
+        if (!$oid || !in_array($st, $valid)) {
+            echo json_encode(['ok'=>false,'msg'=>'Invalid']); exit;
+        }
+        $pdo->prepare("UPDATE orders SET status=?,updated_at=NOW() WHERE id=? AND tenant_id=?")
+            ->execute([$st,$oid,$tid]);
+        echo json_encode(['ok'=>true]);
+        exit;
+    }
+
     /* ── ORDERS ── */
     if ($_GET['api'] === 'orders') {
         $bid   = (int)($_GET['branch_id'] ?? 0);
@@ -352,6 +367,12 @@ td{padding:.65rem .9rem;color:var(--ink)}
   </div>
 </div>
 
+<!-- IMPERSONATION BANNER -->
+<div id="impersonate-banner" style="display:none;position:fixed;top:0;left:0;right:0;z-index:9999;background:#dc2626;color:#fff;padding:.5rem 1rem;font-size:.82rem;font-weight:600;text-align:center;display:flex;align-items:center;justify-content:center;gap:1rem">
+  <span>👤 Admin mode — viewing as tenant</span>
+  <button onclick="exitImpersonate()" style="background:rgba(255,255,255,.2);border:none;color:#fff;padding:.2rem .75rem;border-radius:6px;cursor:pointer;font-size:.8rem">✕ Exit</button>
+</div>
+
 <!-- SIDEBAR OVERLAY -->
 <div class="sidebar-overlay" id="sb-overlay" onclick="closeSidebar()"></div>
 
@@ -567,7 +588,7 @@ td{padding:.65rem .9rem;color:var(--ink)}
 <div id="page-orders" class="page" style="display:none">
   <div class="content">
     <div class="table-wrap"><table>
-      <thead><tr><th>#</th><th>Customer</th><th>Amount</th><th>Payment</th><th>Status</th></tr></thead>
+      <thead><tr><th>#</th><th>Customer</th><th>Amount</th><th>Payment</th><th>Status</th><th>Action</th></tr></thead>
       <tbody id="orders-tbody"><tr><td colspan="5" style="text-align:center;padding:2rem;color:var(--muted)">Loading...</td></tr></tbody>
     </table></div>
   </div>
@@ -760,7 +781,9 @@ td{padding:.65rem .9rem;color:var(--ink)}
 
 <script>
 /* ── Globals ── */
-window.__IS_TENANT    = <?= $loggedIn ? 'true' : 'false' ?>;
+window.__IS_TENANT      = <?= $loggedIn ? 'true' : 'false' ?>;
+window.__IMPERSONATING  = <?= !empty($_SESSION['impersonating']) ? 'true' : 'false' ?>;
+window.__IMPERSONATE_ADMIN = <?= json_encode($_SESSION['impersonate_admin'] ?? '') ?>;
 window.__TENANT_ID    = <?= json_encode($tid) ?>;
 window.__TENANT_NAME  = <?= json_encode($tname) ?>;
 window.__TENANT_PLAN  = <?= json_encode($tplan) ?>;
@@ -1076,17 +1099,33 @@ async function loadStaff(){
 
 /* ── Orders ── */
 async function loadOrders(){
-  const d=await api('orders',`branch_id=${window._currentBranch}`);
+  const d=await api('orders',`branch_id=${window._currentBranch}&limit=50`);
   const tbody=document.getElementById('orders-tbody');
   if(!tbody) return;
-  if(!d.ok||!d.orders?.length){tbody.innerHTML='<tr><td colspan="5" style="text-align:center;padding:2rem;color:var(--muted)">Orders မရှိသေး</td></tr>';return;}
+  if(!d.ok||!d.orders?.length){tbody.innerHTML='<tr><td colspan="6" style="text-align:center;padding:2rem;color:var(--muted)">Orders မရှိသေး</td></tr>';return;}
+  const statusColors={pending:'#d97706',confirmed:'#2563eb',preparing:'#7c3aed',ready:'#059669',out_for_delivery:'#0891b2',delivered:'#6b7280',cancelled:'#dc2626'};
+  const nextStatus={pending:'confirmed',confirmed:'preparing',preparing:'ready',ready:'out_for_delivery',out_for_delivery:'delivered'};
+  const nextLabel={pending:'✓ Confirm',confirmed:'👨‍🍳 Prepare',preparing:'✅ Ready',ready:'🛵 Send',out_for_delivery:'📦 Delivered'};
   tbody.innerHTML=d.orders.map(o=>`<tr>
-    <td style="font-weight:500">#${o.id}</td>
-    <td>${o.customer_name||'Walk-in'}</td>
+    <td style="font-weight:600">#${o.id}<div style="font-size:.7rem;color:var(--muted)">${o.created_at?.slice(11,16)||''}</div></td>
+    <td>${escH(o.customer_name||'Walk-in')}<div style="font-size:.72rem;color:var(--muted)">${o.order_type==='dine_in'?'🪑 Dine-in':'🛵 Delivery'}</div></td>
     <td style="font-weight:600">${parseInt(o.total_amount||0).toLocaleString()} MMK</td>
-    <td>${o.payment_method||'-'}</td>
-    <td><span style="font-size:.72rem;padding:2px 8px;border-radius:99px;background:rgba(128,128,128,.1)">${o.status}</span></td>
+    <td style="font-size:.8rem">${o.payment_method?.toUpperCase()||'-'}</td>
+    <td><span style="font-size:.72rem;padding:2px 8px;border-radius:99px;background:${statusColors[o.status]||'#888'}22;color:${statusColors[o.status]||'#888'};font-weight:600">${o.status}</span></td>
+    <td style="display:flex;gap:.3rem;flex-wrap:wrap">
+      ${nextStatus[o.status]?`<button class="btn btn-primary btn-sm" onclick="updateOrderStatus(${o.id},'${nextStatus[o.status]}')">${nextLabel[o.status]}</button>`:''}
+      ${o.status!=='cancelled'&&o.status!=='delivered'?`<button class="btn btn-ghost btn-sm" onclick="updateOrderStatus(${o.id},'cancelled')" style="color:#dc2626">✗</button>`:''}
+    </td>
   </tr>`).join('');
+}
+
+async function updateOrderStatus(orderId, status){
+  const d = await fetch('tenant.php?api=update_order_status',{
+    method:'POST', headers:{'Content-Type':'application/json'}, credentials:'include',
+    body: JSON.stringify({order_id:orderId, status})
+  }).then(r=>r.json()).catch(()=>({ok:false}));
+  if(d.ok){ toast(`✅ Order #${orderId} → ${status}`,'ok'); await loadOrders(); }
+  else toast(d.msg||'Error','err');
 }
 
 /* ── Upgrade ── */
@@ -1547,6 +1586,20 @@ window.__TENANT_SLUG = '<?= $_SESSION["tenant_slug"] ?? "demo" ?>';
 if(window.__IS_TENANT && window.__TENANT_ID > 0){
   initShell();
   showPage('dashboard');
+}
+
+/* ── Impersonation banner ── */
+if(window.__IMPERSONATING){
+  const ban = document.getElementById('impersonate-banner');
+  if(ban){
+    ban.style.display='flex';
+    document.body.style.paddingTop='36px';
+  }
+}
+function exitImpersonate(){
+  fetch('admin.php?api=logout',{method:'POST',credentials:'include'}).then(()=>{
+    window.location.href='admin.php';
+  });
 }
 </script>
 </body>
