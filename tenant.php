@@ -913,10 +913,49 @@ function openEditItem(id){toast('Edit item #'+id);}
       </div>
       <button class="btn btn-primary btn-sm" onclick="toast('Add item — coming soon')">+ Add item</button>
     </div>
-    <div class="table-wrap"><table>
-      <thead><tr><th>Name</th><th>Category</th><th>Price (MMK)</th><th>Status</th><th>Action</th></tr></thead>
-      <tbody id="menu-tbody"><tr><td colspan="5" style="text-align:center;padding:2rem;color:var(--muted)">Loading...</td></tr></tbody>
-    </table></div>
+    <div class="table-wrap">
+      <div class="table-toolbar" style="padding:.6rem 1rem;border-bottom:0.5px solid var(--border);display:flex;gap:.5rem;flex-wrap:wrap">
+        <input id="menu-search" placeholder="Search..." oninput="filterMenu()" style="padding:.4rem .7rem;border:0.5px solid var(--border);border-radius:8px;background:var(--warm);color:var(--ink);font-size:.82rem;width:180px">
+        <select id="menu-cat-filter" onchange="filterMenu()" style="padding:.4rem .7rem;border:0.5px solid var(--border);border-radius:8px;background:var(--warm);color:var(--ink);font-size:.82rem">
+          <option value="">All categories</option>
+        </select>
+      </div>
+      <table><thead><tr><th>Item</th><th>Category</th><th>Price</th><th>Stock</th><th>Status</th><th>Actions</th></tr></thead>
+      <tbody id="menu-tbody"><tr><td colspan="6" style="text-align:center;padding:2rem;color:var(--muted)">Loading...</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+  <!-- Add/Edit Item Modal -->
+  <div class="modal-overlay" id="modal-menu-item">
+    <div class="modal" style="max-width:540px">
+      <div class="modal-head">
+        <span class="modal-title" id="menu-modal-title">Add menu item</span>
+        <button class="modal-close" onclick="closeModal('modal-menu-item')">✕</button>
+      </div>
+      <input type="hidden" id="item-edit-id">
+      <div style="display:grid;gap:.75rem">
+        <div style="display:grid;grid-template-columns:1fr auto;gap:.5rem;align-items:end">
+          <div class="field"><label>Item name *</label><input id="item-name" placeholder="Mohinga"></div>
+          <div class="field" style="width:70px"><label>Emoji</label><input id="item-emoji" placeholder="🍜" style="text-align:center;font-size:1.3rem"></div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:.75rem">
+          <div class="field"><label>Category *</label><input id="item-category" placeholder="Main, Drinks, Starters..."></div>
+          <div class="field"><label>Price (MMK) *</label><input id="item-price" type="number" placeholder="3500"></div>
+        </div>
+        <div class="field"><label>Description</label><textarea id="item-desc" rows="2" style="width:100%;padding:.5rem .7rem;border:0.5px solid var(--border);border-radius:8px;background:var(--warm);color:var(--ink);font-family:inherit;font-size:.85rem" placeholder="Optional description"></textarea></div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:.75rem">
+          <div class="field"><label>Initial stock qty</label><input id="item-stock" type="number" placeholder="100" value="100"></div>
+          <div class="field" style="display:flex;align-items:center;gap:.5rem;padding-top:1.4rem">
+            <input type="checkbox" id="item-active" checked style="width:18px;height:18px">
+            <label for="item-active" style="cursor:pointer">Active</label>
+          </div>
+        </div>
+      </div>
+      <div style="margin-top:1.2rem;display:flex;gap:.5rem;justify-content:flex-end">
+        <button class="btn btn-ghost" onclick="closeModal('modal-menu-item')">Cancel</button>
+        <button class="btn btn-primary" onclick="saveMenuItem()">💾 Save item</button>
+      </div>
+    </div>
   </div>
 </div>
 
@@ -947,16 +986,145 @@ function openEditItem(id){toast('Edit item #'+id);}
   </div>
 </div>
 
-<div id="page-tables" class="page" style="display:none"><div class="content"><div id="tables-content"><div style="color:var(--muted)">Loading...</div></div></div></div>
-<div id="page-reserve" class="page" style="display:none"><div class="content"><div id="reserve-content"><div style="color:var(--muted)">Loading...</div></div></div></div>
-<div id="page-stock" class="page" style="display:none"><div class="content"><div id="stock-content"><div style="color:var(--muted)">Loading...</div></div></div></div>
+<div id="page-tables" class="page" style="display:none">
+  <div class="page-head">
+    <div style="display:flex;align-items:center;gap:.75rem">
+      <button class="hamburger" onclick="openSidebar()">☰</button>
+      <span id="topbar-title" style="font-size:.95rem;font-weight:600">Tables</span>
+    </div>
+    <div style="display:flex;gap:.5rem">
+      <a id="kds-link" href="kds.html" target="_blank" class="btn btn-ghost btn-sm">👨‍🍳 Open KDS</a>
+      <button class="btn btn-primary btn-sm" onclick="openAddTable()">+ Add table</button>
+    </div>
+  </div>
+  <div class="content">
+    <div id="tables-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:.75rem;margin-bottom:1rem"></div>
+  </div>
+  <!-- Add Table Modal -->
+  <div class="modal-overlay" id="modal-add-table">
+    <div class="modal">
+      <div class="modal-head"><span class="modal-title">Add table</span><button class="modal-close" onclick="closeModal('modal-add-table')">✕</button></div>
+      <div class="form-row"><div class="field"><label>Table code</label><input id="add-table-code" placeholder="T1"></div>
+      <div class="field"><label>Label</label><input id="add-table-label" placeholder="Table 1"></div></div>
+      <div class="field"><label>Seats</label><input id="add-table-seats" type="number" value="4" min="1" max="50"></div>
+      <div style="margin-top:1rem;display:flex;gap:.5rem;justify-content:flex-end">
+        <button class="btn btn-ghost" onclick="closeModal('modal-add-table')">Cancel</button>
+        <button class="btn btn-primary" onclick="saveNewTable()">Save</button>
+      </div>
+    </div>
+  </div>
+</div>
+<div id="page-reserve" class="page" style="display:none">
+  <div class="page-head">
+    <div style="display:flex;align-items:center;gap:.75rem"><button class="hamburger" onclick="openSidebar()">☰</button><span style="font-size:.95rem;font-weight:600">Reservations</span></div>
+    <button class="btn btn-primary btn-sm" onclick="openAddReserve()">+ New reservation</button>
+  </div>
+  <div class="content">
+    <div class="table-wrap">
+      <table><thead><tr><th>Name</th><th>Phone</th><th>Date/Time</th><th>Party</th><th>Table</th><th>Status</th></tr></thead>
+      <tbody id="reserve-tbody"><tr><td colspan="6" style="text-align:center;padding:2rem;color:var(--muted)">Loading...</td></tr></tbody></table>
+    </div>
+  </div>
+</div>
+<div id="page-stock" class="page" style="display:none">
+  <div class="page-head">
+    <div style="display:flex;align-items:center;gap:.75rem"><button class="hamburger" onclick="openSidebar()">☰</button><span style="font-size:.95rem;font-weight:600">Stock</span></div>
+  </div>
+  <div class="content">
+    <div id="stock-summary" class="stats-grid" style="margin-bottom:1rem"></div>
+    <div class="table-wrap">
+      <div class="table-toolbar"><input id="stock-search" placeholder="Search items..." oninput="filterStock()" style="padding:.4rem .7rem;border:0.5px solid var(--border);border-radius:8px;background:var(--warm);color:var(--ink);font-size:.82rem;width:200px"></div>
+      <table><thead><tr><th>Item</th><th>Category</th><th>Stock</th><th>Status</th><th>Action</th></tr></thead>
+      <tbody id="stock-tbody"><tr><td colspan="5" style="text-align:center;padding:2rem;color:var(--muted)">Loading...</td></tr></tbody></table>
+    </div>
+  </div>
+  <!-- Adjust Modal -->
+  <div class="modal-overlay" id="modal-stock-adj">
+    <div class="modal">
+      <div class="modal-head"><span class="modal-title" id="adj-title">Adjust stock</span><button class="modal-close" onclick="closeModal('modal-stock-adj')">✕</button></div>
+      <input type="hidden" id="adj-item-id">
+      <div class="field" style="margin-bottom:.75rem"><label>Change qty (+/-)</label><input id="adj-qty" type="number" placeholder="-5 or +10"></div>
+      <div class="field" style="margin-bottom:.75rem"><label>Reason</label><input id="adj-reason" placeholder="Sale / Waste / Restock"></div>
+      <div style="display:flex;gap:.5rem;justify-content:flex-end">
+        <button class="btn btn-ghost" onclick="closeModal('modal-stock-adj')">Cancel</button>
+        <button class="btn btn-primary" onclick="submitStockAdj()">Save</button>
+      </div>
+    </div>
+  </div>
+</div>
 <div id="page-stocklog" class="page" style="display:none"><div class="content"><div id="stocklog-content"><div style="color:var(--muted)">Loading...</div></div></div></div>
 <div id="page-shift" class="page" style="display:none"><div class="content"><div id="shift-content"><div style="color:var(--muted)">Loading...</div></div></div></div>
-<div id="page-delivery" class="page" style="display:none"><div class="content"><div id="delivery-content"><div style="color:var(--muted)">Loading...</div></div></div></div>
-<div id="page-expenses" class="page" style="display:none"><div class="content"><div id="expenses-content"><div style="color:var(--muted)">Loading...</div></div></div></div>
-<div id="page-promos" class="page" style="display:none"><div class="content"><div id="promos-content"><div style="color:var(--muted)">Loading...</div></div></div></div>
-<div id="page-branches" class="page" style="display:none"><div class="content"><div id="branches-content"><div style="color:var(--muted)">Loading...</div></div></div></div>
-<div id="page-schedule" class="page" style="display:none"><div class="content"><div id="schedule-content"><div style="color:var(--muted)">Loading...</div></div></div></div>
+<div id="page-delivery" class="page" style="display:none">
+  <div class="page-head">
+    <div style="display:flex;align-items:center;gap:.75rem"><button class="hamburger" onclick="openSidebar()">☰</button><span style="font-size:.95rem;font-weight:600">Delivery</span></div>
+    <a href="driver.html" target="_blank" class="btn btn-ghost btn-sm">🛵 Driver app</a>
+  </div>
+  <div class="content">
+    <div class="table-wrap">
+      <table><thead><tr><th>#</th><th>Customer</th><th>Address</th><th>Amount</th><th>Status</th><th>Action</th></tr></thead>
+      <tbody id="delivery-tbody"><tr><td colspan="6" style="text-align:center;padding:2rem;color:var(--muted)">Loading...</td></tr></tbody></table>
+    </div>
+  </div>
+</div>
+<div id="page-expenses" class="page" style="display:none">
+  <div class="page-head">
+    <div style="display:flex;align-items:center;gap:.75rem"><button class="hamburger" onclick="openSidebar()">☰</button><span style="font-size:.95rem;font-weight:600">Expenses</span></div>
+    <button class="btn btn-primary btn-sm" onclick="openAddExpense()">+ Add expense</button>
+  </div>
+  <div class="content">
+    <div id="expense-summary" class="stats-grid" style="margin-bottom:1rem"></div>
+    <div class="table-wrap">
+      <table><thead><tr><th>Date</th><th>Category</th><th>Description</th><th>Amount</th></tr></thead>
+      <tbody id="expense-tbody"><tr><td colspan="4" style="text-align:center;padding:2rem;color:var(--muted)">Loading...</td></tr></tbody></table>
+    </div>
+  </div>
+  <!-- Add Expense Modal -->
+  <div class="modal-overlay" id="modal-add-expense">
+    <div class="modal">
+      <div class="modal-head"><span class="modal-title">Add expense</span><button class="modal-close" onclick="closeModal('modal-add-expense')">✕</button></div>
+      <div style="display:grid;gap:.75rem">
+        <div class="field"><label>Category</label>
+          <select id="exp-cat" style="width:100%;padding:.5rem .7rem;border:0.5px solid var(--border);border-radius:8px;background:var(--warm);color:var(--ink)">
+            <option>Food & Ingredients</option><option>Utilities</option><option>Staff</option><option>Rent</option><option>Equipment</option><option>Other</option>
+          </select>
+        </div>
+        <div class="field"><label>Description</label><input id="exp-desc" placeholder="Tomatoes, electricity bill..."></div>
+        <div class="field"><label>Amount (MMK)</label><input id="exp-amount" type="number" placeholder="5000"></div>
+        <div class="field"><label>Date</label><input id="exp-date" type="date"></div>
+      </div>
+      <div style="margin-top:1rem;display:flex;gap:.5rem;justify-content:flex-end">
+        <button class="btn btn-ghost" onclick="closeModal('modal-add-expense')">Cancel</button>
+        <button class="btn btn-primary" onclick="saveExpense()">Save</button>
+      </div>
+    </div>
+  </div>
+</div>
+<div id="page-promos" class="page" style="display:none">
+  <div class="page-head">
+    <div style="display:flex;align-items:center;gap:.75rem"><button class="hamburger" onclick="openSidebar()">☰</button><span style="font-size:.95rem;font-weight:600">Promotions</span></div>
+    <button class="btn btn-primary btn-sm" onclick="openAddPromo()">+ Add promo</button>
+  </div>
+  <div class="content">
+    <div class="table-wrap">
+      <table><thead><tr><th>Code</th><th>Discount</th><th>Min order</th><th>Valid</th><th>Status</th></tr></thead>
+      <tbody id="promos-tbody"><tr><td colspan="5" style="text-align:center;padding:2rem;color:var(--muted)">Loading...</td></tr></tbody></table>
+    </div>
+  </div>
+</div>
+<div id="page-branches" class="page" style="display:none">
+  <div class="page-head">
+    <div style="display:flex;align-items:center;gap:.75rem"><button class="hamburger" onclick="openSidebar()">☰</button><span style="font-size:.95rem;font-weight:600">My branches</span></div>
+  </div>
+  <div class="content">
+    <div id="branches-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:1rem"></div>
+  </div>
+</div>
+<div id="page-schedule" class="page" style="display:none">
+  <div class="page-head">
+    <div style="display:flex;align-items:center;gap:.75rem"><button class="hamburger" onclick="openSidebar()">☰</button><span style="font-size:.95rem;font-weight:600">Scheduling</span></div>
+  </div>
+  <div class="content"><div style="color:var(--muted);padding:2rem;text-align:center">Scheduling feature coming soon.</div></div>
+</div>
 <div id="page-storefront" class="page" style="display:none"><div class="content"><p style="color:var(--muted)">Storefront customisation — coming soon.</p></div></div>
 
 <div id="page-upgrade" class="page" style="display:none">
@@ -1004,3 +1172,366 @@ if(window.__IS_TENANT && window.__TENANT_ID > 0){
 </script>
 </body>
 </html>
+
+<script>
+/* ═══ TENANT MODULE JS ═══ */
+
+/* ── Helpers ── */
+function closeModal(id){ document.getElementById(id).classList.remove('open'); }
+function openModal(id){ document.getElementById(id).classList.add('open'); }
+function fmtK(n){ return parseInt(n||0).toLocaleString(); }
+function escH(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function today(){ return new Date().toISOString().slice(0,10); }
+
+/* ── Menu functions ── */
+var _allMenuItems = [];
+
+// Override loadMenuItems to also populate filter
+const _origLoadMenu = loadMenuItems;
+async function loadMenuItems(){
+  const d = await api('items');
+  if(!d.ok) return;
+  _allMenuItems = d.items || [];
+
+  // Plan usage
+  const planMax = {free:20,basic:50,pro:200,enterprise:500};
+  const max = planMax[window.__TENANT_PLAN] || 20;
+  const pct = Math.round((_allMenuItems.length/max)*100);
+  const bar = document.getElementById('menu-usage-bar');
+  const lbl = document.getElementById('menu-usage-lbl');
+  if(bar){ bar.style.width=Math.min(pct,100)+'%'; bar.style.background=pct>=100?'#dc2626':pct>=80?'#d97706':'#059669'; }
+  if(lbl) lbl.textContent = `${_allMenuItems.length} / ${max} items (${(window.__TENANT_PLAN||'free').toUpperCase()})`;
+
+  // Badge
+  const badge = document.getElementById('menu-count-badge');
+  if(badge) badge.textContent = _allMenuItems.length;
+
+  // Category filter
+  const cats = [...new Set(_allMenuItems.map(i=>i.category).filter(Boolean))];
+  const cf = document.getElementById('menu-cat-filter');
+  if(cf){ cf.innerHTML='<option value="">All categories</option>'+cats.map(c=>`<option>${c}</option>`).join(''); }
+
+  renderMenuTable(_allMenuItems);
+}
+
+function filterMenu(){
+  const q    = document.getElementById('menu-search')?.value?.toLowerCase()||'';
+  const cat  = document.getElementById('menu-cat-filter')?.value||'';
+  const list = _allMenuItems.filter(i=>{
+    const mq  = !q  || i.name?.toLowerCase().includes(q)||i.category?.toLowerCase().includes(q);
+    const mc  = !cat|| i.category===cat;
+    return mq && mc;
+  });
+  renderMenuTable(list);
+}
+
+function renderMenuTable(items){
+  const tbody = document.getElementById('menu-tbody');
+  if(!tbody) return;
+  if(!items.length){
+    tbody.innerHTML=`<tr><td colspan="6" style="text-align:center;padding:2.5rem;color:var(--muted)">
+      <div style="font-size:2rem;margin-bottom:.5rem">🍽</div>
+      Menu items မရှိသေး — <button class="btn btn-primary btn-sm" onclick="openAddItem()">+ Add first item</button>
+    </td></tr>`; return;
+  }
+  tbody.innerHTML = items.map(it=>`<tr>
+    <td style="font-weight:500">${it.emoji||'🍽'} ${escH(it.name)}</td>
+    <td style="color:var(--muted);font-size:.8rem">${escH(it.category||'—')}</td>
+    <td style="font-weight:600">${fmtK(it.price)} MMK</td>
+    <td style="font-size:.8rem">${it.stock_qty!=null?it.stock_qty+'':'—'}</td>
+    <td><span style="font-size:.72rem;padding:2px 8px;border-radius:99px;background:${it.is_active?'rgba(5,150,105,.1)':'rgba(128,128,128,.1)'};color:${it.is_active?'#065f46':'var(--muted)'}">${it.is_active?'Active':'Off'}</span></td>
+    <td style="display:flex;gap:.35rem">
+      <button class="btn btn-ghost btn-sm" onclick="openEditItem(${it.id})">Edit</button>
+      <button class="btn btn-ghost btn-sm" onclick="toggleItemStatus(${it.id},${it.is_active})">${it.is_active?'Disable':'Enable'}</button>
+    </td>
+  </tr>`).join('');
+}
+
+function openAddItem(){
+  document.getElementById('menu-modal-title').textContent = '+ Add menu item';
+  document.getElementById('item-edit-id').value = '';
+  ['item-name','item-emoji','item-category','item-price','item-desc'].forEach(id=>{
+    const el=document.getElementById(id); if(el) el.value='';
+  });
+  document.getElementById('item-stock').value = '100';
+  document.getElementById('item-active').checked = true;
+  openModal('modal-menu-item');
+}
+
+function openEditItem(id){
+  const it = _allMenuItems.find(i=>i.id==id); if(!it) return;
+  document.getElementById('menu-modal-title').textContent = 'Edit item';
+  document.getElementById('item-edit-id').value = id;
+  document.getElementById('item-name').value     = it.name||'';
+  document.getElementById('item-emoji').value    = it.emoji||'';
+  document.getElementById('item-category').value = it.category||'';
+  document.getElementById('item-price').value    = it.price||'';
+  document.getElementById('item-desc').value     = it.description||'';
+  document.getElementById('item-stock').value    = it.stock_qty||0;
+  document.getElementById('item-active').checked = !!it.is_active;
+  openModal('modal-menu-item');
+}
+
+async function saveMenuItem(){
+  const id       = document.getElementById('item-edit-id').value;
+  const name     = document.getElementById('item-name').value.trim();
+  const price    = parseInt(document.getElementById('item-price').value)||0;
+  const category = document.getElementById('item-category').value.trim();
+  if(!name||!price||!category){ toast('Name, price, category လိုအပ်သည်','err'); return; }
+
+  const payload = {
+    name, price, category,
+    emoji:       document.getElementById('item-emoji').value.trim()||'🍽',
+    description: document.getElementById('item-desc').value.trim(),
+    stock_qty:   parseInt(document.getElementById('item-stock').value)||0,
+    is_active:   document.getElementById('item-active').checked?1:0,
+    branch_id:   window._currentBranch||0,
+  };
+  if(id) payload.id = parseInt(id);
+
+  const action = id ? 'edit_item' : 'add_item';
+  const d = await fetch(`menu_api.php?action=${action}&tenant_id=${window.__TENANT_ID}`,{
+    method:'POST', headers:{'Content-Type':'application/json'}, credentials:'include',
+    body: JSON.stringify(payload)
+  }).then(r=>r.json()).catch(()=>({ok:false,msg:'Network error'}));
+
+  if(d.ok){
+    toast(id?'✅ Item updated':'✅ Item added','ok');
+    closeModal('modal-menu-item');
+    await loadMenuItems();
+  } else {
+    toast(d.msg||'Error','err');
+  }
+}
+
+async function toggleItemStatus(id, current){
+  const d = await fetch(`menu_api.php?action=toggle_item&tenant_id=${window.__TENANT_ID}`,{
+    method:'POST', headers:{'Content-Type':'application/json'}, credentials:'include',
+    body: JSON.stringify({id, is_active: current?0:1})
+  }).then(r=>r.json()).catch(()=>({ok:false}));
+  if(d.ok) await loadMenuItems();
+  else toast('Error','err');
+}
+
+/* ── Tables ── */
+async function loadTables(){
+  const bid = window._currentBranch || (await api('branches').then(d=>d.branches?.[0]?.id||0));
+  const d = await fetch(`table_api.php?action=list&tenant_id=${window.__TENANT_ID}&branch_id=${bid}`,{credentials:'include'}).then(r=>r.json());
+  const grid = document.getElementById('tables-grid');
+  if(!grid) return;
+
+  // Update KDS link
+  const kdsLink = document.getElementById('kds-link');
+  if(kdsLink) kdsLink.href = `kds.html?branch=${bid}&tenant=${window.__TENANT_ID}`;
+
+  if(!d.ok||!d.tables?.length){
+    grid.innerHTML=`<div style="grid-column:1/-1;text-align:center;padding:2.5rem;color:var(--muted)">
+      <div style="font-size:2rem;margin-bottom:.5rem">🪑</div>Tables မရှိသေး
+    </div>`; return;
+  }
+  const statusColors = {available:'#059669',occupied:'#dc2626',reserved:'#d97706'};
+  const statusEmoji  = {available:'🟢',occupied:'🔴',reserved:'🟡'};
+  grid.innerHTML = d.tables.map(t=>`
+    <div style="background:var(--card);border:0.5px solid ${statusColors[t.status]||'var(--border)'};border-radius:var(--radius);padding:1.1rem;text-align:center;cursor:pointer;transition:all .15s"
+         onclick="viewTable(${t.id},'${t.status}')">
+      <div style="font-size:1.8rem;margin-bottom:.3rem">🪑</div>
+      <div style="font-weight:600;font-size:.9rem">${escH(t.label||t.table_code)}</div>
+      <div style="font-size:.72rem;color:var(--muted);margin:.2rem 0">${t.seats} seats</div>
+      <div style="font-size:.78rem;font-weight:500;color:${statusColors[t.status]||'var(--muted)'}">${statusEmoji[t.status]||''} ${t.status||'available'}</div>
+    </div>`).join('');
+}
+
+function openAddTable(){
+  ['add-table-code','add-table-label'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  document.getElementById('add-table-seats').value='4';
+  openModal('modal-add-table');
+}
+
+async function saveNewTable(){
+  const code  = document.getElementById('add-table-code').value.trim();
+  const label = document.getElementById('add-table-label').value.trim();
+  const seats = parseInt(document.getElementById('add-table-seats').value)||4;
+  if(!code||!label){ toast('Code and label required','err'); return; }
+  const bid = window._currentBranch||0;
+  const d = await fetch(`table_api.php?action=add&tenant_id=${window.__TENANT_ID}`,{
+    method:'POST', headers:{'Content-Type':'application/json'}, credentials:'include',
+    body: JSON.stringify({table_code:code, label, seats, branch_id:bid})
+  }).then(r=>r.json()).catch(()=>({ok:false}));
+  if(d.ok){ toast('✅ Table added','ok'); closeModal('modal-add-table'); await loadTables(); }
+  else toast(d.msg||'Error','err');
+}
+
+function viewTable(id, status){ toast(`Table #${id} — ${status}`); }
+
+/* ── Stock ── */
+var _stockItems = [];
+async function stockLoad(){
+  const bid = window._currentBranch||0;
+  const d = await fetch(`stock_api.php?action=overview&tenant_id=${window.__TENANT_ID}&branch_id=${bid}`,{credentials:'include'}).then(r=>r.json());
+  if(!d.ok) return;
+  _stockItems = d.items || [];
+
+  // Summary
+  const lowItems = _stockItems.filter(i=>i.stock_qty<=5);
+  const sumEl = document.getElementById('stock-summary');
+  if(sumEl) sumEl.innerHTML = `
+    <div class="stat-card"><div class="stat-val">${_stockItems.length}</div><div class="stat-lbl">Total items</div></div>
+    <div class="stat-card" style="${lowItems.length?'border-color:#dc2626':''}" onclick="filterStockLow()">
+      <div class="stat-val" style="color:${lowItems.length?'#dc2626':'inherit'}">${lowItems.length}</div>
+      <div class="stat-lbl">Low stock (≤5)</div>
+    </div>`;
+
+  renderStock(_stockItems);
+}
+
+function renderStock(items){
+  const tbody = document.getElementById('stock-tbody');
+  if(!tbody) return;
+  if(!items.length){ tbody.innerHTML='<tr><td colspan="5" style="text-align:center;padding:2rem;color:var(--muted)">No items</td></tr>'; return; }
+  tbody.innerHTML = items.map(it=>`<tr>
+    <td style="font-weight:500">${escH(it.name)}</td>
+    <td style="color:var(--muted);font-size:.8rem">${escH(it.category||'—')}</td>
+    <td style="font-weight:600;color:${it.stock_qty<=5?'#dc2626':it.stock_qty<=15?'#d97706':'inherit'}">${it.stock_qty}</td>
+    <td><span style="font-size:.72rem;padding:2px 7px;border-radius:99px;background:${it.stock_qty<=5?'rgba(220,38,38,.1)':it.stock_qty<=15?'rgba(217,119,6,.1)':'rgba(5,150,105,.1)'};color:${it.stock_qty<=5?'#dc2626':it.stock_qty<=15?'#d97706':'#065f46'}">${it.stock_qty<=5?'⚠️ Low':it.stock_qty<=15?'Medium':'OK'}</span></td>
+    <td><button class="btn btn-ghost btn-sm" onclick="openStockAdj(${it.id},'${escH(it.name)}')">Adjust</button></td>
+  </tr>`).join('');
+}
+
+function filterStock(){ const q=document.getElementById('stock-search')?.value?.toLowerCase()||''; renderStock(_stockItems.filter(i=>!q||i.name?.toLowerCase().includes(q))); }
+function filterStockLow(){ renderStock(_stockItems.filter(i=>i.stock_qty<=5)); }
+
+function openStockAdj(id, name){
+  document.getElementById('adj-item-id').value = id;
+  document.getElementById('adj-title').textContent = `Adjust: ${name}`;
+  document.getElementById('adj-qty').value = '';
+  document.getElementById('adj-reason').value = '';
+  openModal('modal-stock-adj');
+}
+
+async function submitStockAdj(){
+  const id  = document.getElementById('adj-item-id').value;
+  const qty = parseInt(document.getElementById('adj-qty').value)||0;
+  const rsn = document.getElementById('adj-reason').value.trim();
+  if(!qty){ toast('Qty required','err'); return; }
+  const bid = window._currentBranch||0;
+  const d = await fetch(`stock_api.php?action=adjust&tenant_id=${window.__TENANT_ID}`,{
+    method:'POST', headers:{'Content-Type':'application/json'}, credentials:'include',
+    body: JSON.stringify({item_id:id, change_qty:qty, reason:rsn, branch_id:bid})
+  }).then(r=>r.json()).catch(()=>({ok:false}));
+  if(d.ok){ toast('✅ Stock adjusted','ok'); closeModal('modal-stock-adj'); await stockLoad(); }
+  else toast(d.msg||'Error','err');
+}
+
+/* ── Delivery ── */
+async function delLoad(){
+  const d = await fetch(`delivery_api.php?action=active&tenant_id=${window.__TENANT_ID}`,{credentials:'include'}).then(r=>r.json());
+  const tbody = document.getElementById('delivery-tbody');
+  if(!tbody) return;
+  const orders = d.orders || d.deliveries || [];
+  if(!orders.length){ tbody.innerHTML='<tr><td colspan="6" style="text-align:center;padding:2rem;color:var(--muted)">No active deliveries</td></tr>'; return; }
+  tbody.innerHTML = orders.map(o=>`<tr>
+    <td style="font-weight:500">#${o.id}</td>
+    <td>${escH(o.customer_name||'—')}</td>
+    <td style="font-size:.8rem;color:var(--muted)">${escH(o.delivery_address||'—').slice(0,30)}</td>
+    <td style="font-weight:600">${fmtK(o.total_amount)} MMK</td>
+    <td><span style="font-size:.72rem;padding:2px 7px;border-radius:99px;background:rgba(128,128,128,.1)">${o.status}</span></td>
+    <td><button class="btn btn-ghost btn-sm" onclick="toast('Update status')">Update</button></td>
+  </tr>`).join('');
+}
+
+/* ── Reservations ── */
+async function resLoad(){
+  const d = await fetch(`reservation_api.php?action=list&tenant_id=${window.__TENANT_ID}&branch_id=${window._currentBranch||0}`,{credentials:'include'}).then(r=>r.json());
+  const tbody = document.getElementById('reserve-tbody');
+  if(!tbody) return;
+  const list = d.reservations || [];
+  if(!list.length){ tbody.innerHTML='<tr><td colspan="6" style="text-align:center;padding:2rem;color:var(--muted)">Reservations မရှိသေး</td></tr>'; return; }
+  tbody.innerHTML = list.map(r=>`<tr>
+    <td style="font-weight:500">${escH(r.customer_name||'—')}</td>
+    <td>${escH(r.customer_phone||'—')}</td>
+    <td style="font-size:.8rem">${r.reservation_date||''} ${r.reservation_time||''}</td>
+    <td>${r.party_size||1} ဦး</td>
+    <td>${r.table_id||'—'}</td>
+    <td><span style="font-size:.72rem;padding:2px 7px;border-radius:99px;background:rgba(128,128,128,.1)">${r.status||'pending'}</span></td>
+  </tr>`).join('');
+}
+
+function openAddReserve(){ toast('Reservation form — coming soon'); }
+
+/* ── Expenses ── */
+async function expLoad(){
+  const d = await fetch(`expense_api.php?action=list&tenant_id=${window.__TENANT_ID}`,{credentials:'include'}).then(r=>r.json());
+  const tbody = document.getElementById('expense-tbody');
+  if(!tbody) return;
+  const list = d.expenses || [];
+  const total = list.reduce((s,e)=>s+(parseFloat(e.amount)||0),0);
+  const sumEl = document.getElementById('expense-summary');
+  if(sumEl) sumEl.innerHTML=`<div class="stat-card"><div class="stat-val">${fmtK(total)}</div><div class="stat-lbl">Total expenses (MMK)</div></div><div class="stat-card"><div class="stat-val">${list.length}</div><div class="stat-lbl">Transactions</div></div>`;
+  if(!list.length){ tbody.innerHTML='<tr><td colspan="4" style="text-align:center;padding:2rem;color:var(--muted)">Expenses မရှိသေး</td></tr>'; return; }
+  tbody.innerHTML = list.map(e=>`<tr>
+    <td style="color:var(--muted);font-size:.8rem">${e.expense_date?.slice(0,10)||'—'}</td>
+    <td style="font-size:.8rem">${escH(e.category||'—')}</td>
+    <td>${escH(e.description||'—')}</td>
+    <td style="font-weight:600">${fmtK(e.amount)} MMK</td>
+  </tr>`).join('');
+}
+
+function openAddExpense(){
+  document.getElementById('exp-date').value = today();
+  openModal('modal-add-expense');
+}
+
+async function saveExpense(){
+  const amt  = parseFloat(document.getElementById('exp-amount').value)||0;
+  const desc = document.getElementById('exp-desc').value.trim();
+  const cat  = document.getElementById('exp-cat').value;
+  const date = document.getElementById('exp-date').value;
+  if(!amt||!desc){ toast('Amount and description required','err'); return; }
+  const d = await fetch(`expense_api.php?action=add&tenant_id=${window.__TENANT_ID}`,{
+    method:'POST', headers:{'Content-Type':'application/json'}, credentials:'include',
+    body: JSON.stringify({amount:amt, category:cat, description:desc, expense_date:date, branch_id:window._currentBranch||0})
+  }).then(r=>r.json()).catch(()=>({ok:false}));
+  if(d.ok){ toast('✅ Expense saved','ok'); closeModal('modal-add-expense'); await expLoad(); }
+  else toast(d.msg||'Error','err');
+}
+
+/* ── Branches ── */
+async function branchLoad(){
+  const d = await api('branches');
+  const grid = document.getElementById('branches-grid');
+  if(!grid) return;
+  if(!d.ok||!d.branches?.length){ grid.innerHTML='<div style="color:var(--muted);padding:2rem">No branches</div>'; return; }
+  grid.innerHTML = d.branches.map(b=>`
+    <div style="background:var(--card);border:0.5px solid var(--border);border-radius:var(--radius);padding:1.2rem">
+      <div style="font-size:1.3rem;margin-bottom:.5rem">🏢</div>
+      <div style="font-weight:600;margin-bottom:.25rem">${escH(b.name)}</div>
+      <div style="font-size:.8rem;color:var(--muted)">${escH(b.address||'')}</div>
+      <div style="font-size:.78rem;color:var(--muted);margin-top:.25rem">${escH(b.phone||'')} ${b.open_time?'· '+b.open_time+'-'+b.close_time:''}</div>
+      <div style="margin-top:.75rem;display:flex;gap:.35rem">
+        <a href="kds.html?branch=${b.id}&tenant=${window.__TENANT_ID}" target="_blank" class="btn btn-ghost btn-sm">👨‍🍳 KDS</a>
+        <a href="index.html?t=${window.__TENANT_SLUG||'demo'}&branch=${b.id}" target="_blank" class="btn btn-ghost btn-sm">🛒 Order</a>
+      </div>
+    </div>`).join('');
+}
+
+/* ── Promos ── */
+async function promoLoad(){
+  const d = await fetch(`promo_api.php?action=list&tenant_id=${window.__TENANT_ID}`,{credentials:'include'}).then(r=>r.json());
+  const tbody = document.getElementById('promos-tbody');
+  if(!tbody) return;
+  const list = d.promos || [];
+  if(!list.length){ tbody.innerHTML='<tr><td colspan="5" style="text-align:center;padding:2rem;color:var(--muted)">Promotions မရှိသေး</td></tr>'; return; }
+  tbody.innerHTML = list.map(p=>`<tr>
+    <td style="font-weight:600;font-family:monospace">${escH(p.code)}</td>
+    <td>${p.discount_pct||p.discount_flat? (p.discount_pct?p.discount_pct+'%':fmtK(p.discount_flat)+' MMK'):'—'}</td>
+    <td>${fmtK(p.min_order_amt)} MMK</td>
+    <td style="font-size:.78rem;color:var(--muted)">${p.valid_from?.slice(0,10)||''} ~ ${p.valid_to?.slice(0,10)||''}</td>
+    <td><span style="font-size:.72rem;padding:2px 7px;border-radius:99px;background:${p.is_active?'rgba(5,150,105,.1)':'rgba(128,128,128,.1)'};color:${p.is_active?'#065f46':'var(--muted)'}">${p.is_active?'Active':'Off'}</span></td>
+  </tr>`).join('');
+}
+
+function openAddPromo(){ toast('Promo form — coming soon'); }
+
+/* ── Tenant slug for index.html links ── */
+window.__TENANT_SLUG = '<?= $_SESSION["tenant_slug"] ?? "demo" ?>';
+</script>
