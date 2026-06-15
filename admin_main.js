@@ -208,7 +208,7 @@ function showPage(page) {
     toast('⚠ Upgrade to access this feature');
     page = 'dashboard';
   }
-  ['dashboard','menu','orders','tables','settings','crm','shift','stock','reserve','branches','delivery','stocklog','staff','promos','expenses','schedule','storefront','saas','upgrade'].forEach(p => {
+  ['dashboard','tenants','revenue','upgrades','plans','landing','demo','announce','saas','settings','menu','orders','tables','crm','shift','stock','reserve','branches','delivery','stocklog','staff','promos','expenses','schedule','storefront','upgrade'].forEach(p => {
     const pageEl = document.getElementById('page-'+p);
     const navEl  = document.getElementById('nav-'+p);
     if(pageEl) pageEl.style.display = p===page ? '' : 'none';
@@ -242,6 +242,14 @@ function showPage(page) {
   if (page==='saas')      { loadSaas(); }       { saasLoad(); }
   if (page==='upgrade')   { loadUpgrade(); }
   if (page==='settings')  { loadSettings(); }
+  if (page==='tenants')   { loadTenants(); }
+  if (page==='revenue')   { loadRevenue(); }
+  if (page==='upgrades')  { loadUpgradeRequests(); }
+  if (page==='plans')     { loadPlans(); }
+  if (page==='landing')   { loadLandingPage(); }
+  if (page==='demo')      { loadDemoInfo(); }
+  if (page==='announce')  { loadAnnouncement(); }
+  if (page==='dashboard') { loadPlatformDashboard(); }
   // Close sidebar on mobile after nav
   closeSidebar();
   // Scroll to top
@@ -2289,4 +2297,311 @@ function previewKpayQR(input) {
     toast('✅ QR image loaded — Save Settings ကို နှိပ်ပါ');
   };
   reader.readAsDataURL(file);
+}
+
+/* ═══════════════════════════════════════
+   PLATFORM ADMIN FUNCTIONS
+═══════════════════════════════════════ */
+
+/* ── Platform Dashboard ── */
+async function loadPlatformDashboard() {
+  const date = document.getElementById('dash-date');
+  if(date) date.textContent = new Date().toLocaleDateString('en-GB',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
+
+  const [tenants, upgReqs] = await Promise.all([
+    fetch('tenant_api.php?action=list',{credentials:'include'}).then(r=>r.json()).catch(()=>({ok:false})),
+    fetch('tenant_api.php?action=upgrade_requests',{credentials:'include'}).then(r=>r.json()).catch(()=>({ok:false})),
+  ]);
+
+  if(tenants.ok) {
+    const list = tenants.tenants || [];
+    const active = list.filter(t=>t.is_active==1);
+    const now = new Date();
+    const expiring = list.filter(t=>{
+      if(!t.plan_expires) return false;
+      const d = Math.ceil((new Date(t.plan_expires)-now)/86400000);
+      return d>=0 && d<=7;
+    });
+
+    // MRR calc
+    const planPrices = {free:0,basic:50000,pro:150000,enterprise:300000};
+    const mrr = active.reduce((sum,t)=>sum+(planPrices[t.plan]||0),0);
+
+    const sv = (id,v) => { const el=document.getElementById(id); if(el) el.textContent=v; };
+    sv('p-total-tenants', list.length);
+    sv('p-active-tenants', active.length);
+    sv('p-mrr', (mrr/1000).toFixed(0)+'K');
+    sv('p-expiring', expiring.length);
+
+    // Badge
+    const badge = document.getElementById('tenant-count-badge');
+    if(badge) badge.textContent = list.length;
+
+    // Plan distribution chart
+    const planDist = {free:0,basic:0,pro:0,enterprise:0};
+    list.forEach(t=>planDist[t.plan]=(planDist[t.plan]||0)+1);
+    const distEl = document.getElementById('plan-dist-chart');
+    if(distEl) {
+      const planColors = {free:'#6b7280',basic:'#3b82f6',pro:'#10b981',enterprise:'#8b5cf6'};
+      const total = list.length || 1;
+      distEl.innerHTML = Object.entries(planDist).map(([plan,count])=>`
+        <div style="margin-bottom:.6rem">
+          <div style="display:flex;justify-content:space-between;font-size:.78rem;margin-bottom:3px">
+            <span style="font-weight:500;text-transform:capitalize">${plan}</span>
+            <span style="color:var(--muted)">${count} tenants</span>
+          </div>
+          <div style="height:6px;background:var(--border);border-radius:99px;overflow:hidden">
+            <div style="height:100%;width:${Math.round(count/total*100)}%;background:${planColors[plan]};border-radius:99px;transition:width .4s"></div>
+          </div>
+        </div>`).join('');
+    }
+
+    // Recent tenants
+    const tbody = document.getElementById('recent-tenants-body');
+    if(tbody) {
+      const planColors={free:'#6b7280',basic:'#3b82f6',pro:'#10b981',enterprise:'#8b5cf6'};
+      tbody.innerHTML = list.slice(-8).reverse().map(t=>`<tr>
+        <td style="font-weight:500">${t.name}</td>
+        <td><span style="font-size:.7rem;padding:1px 7px;border-radius:99px;background:${planColors[t.plan]||'#888'}22;color:${planColors[t.plan]||'#888'};font-weight:600">${(t.plan||'').toUpperCase()}</span></td>
+        <td><span style="font-size:.7rem;color:${t.is_active?'#059669':'#dc2626'}">${t.is_active?'Active':'Suspended'}</span></td>
+      </tr>`).join('');
+    }
+
+    // Expiring alert
+    if(expiring.length > 0) {
+      const alert = document.getElementById('upgrade-reqs-alert');
+      if(alert) {
+        alert.style.display='';
+        alert.querySelector('div[id="upgrade-reqs-list"]').innerHTML = expiring.map(t=>`
+          <div style="font-size:.82rem;padding:3px 0">• ${t.name} — expires ${t.plan_expires}</div>`).join('');
+      }
+    }
+  }
+
+  // Upgrade requests count
+  if(upgReqs.ok) {
+    const pending = (upgReqs.requests||[]).filter(r=>r.status==='pending');
+    const sv = (id,v) => { const el=document.getElementById(id); if(el) el.textContent=v; };
+    sv('p-upgrade-reqs', pending.length);
+    const badge = document.getElementById('upgrade-req-badge');
+    if(badge) { badge.textContent = pending.length; badge.style.display = pending.length ? '' : 'none'; }
+  }
+}
+
+/* ── Tenants ── */
+var _allTenants = [];
+async function loadTenants() {
+  const d = await fetch('tenant_api.php?action=list',{credentials:'include'}).then(r=>r.json()).catch(()=>({ok:false}));
+  if(!d.ok) return;
+  _allTenants = d.tenants || [];
+  renderTenants(_allTenants);
+}
+
+function renderTenants(list) {
+  const tbody = document.getElementById('tenants-tbody');
+  if(!tbody) return;
+  const planColors={free:'#6b7280',basic:'#3b82f6',pro:'#10b981',enterprise:'#8b5cf6'};
+  if(!list.length){ tbody.innerHTML='<tr><td colspan="7" style="text-align:center;padding:2rem;color:var(--muted)">No tenants</td></tr>'; return; }
+  tbody.innerHTML = list.map(t=>{
+    const expires = t.plan_expires ? t.plan_expires.slice(0,10) : '—';
+    const diff = t.plan_expires ? Math.ceil((new Date(t.plan_expires)-new Date())/86400000) : null;
+    const expColor = diff!==null && diff<=7 ? '#dc2626' : 'var(--muted)';
+    return `<tr>
+      <td style="color:var(--muted);font-size:.78rem">${t.id}</td>
+      <td style="font-weight:500">${t.name}<div style="font-size:.72rem;color:var(--muted)">${t.owner_email||''}</div></td>
+      <td style="font-size:.78rem;color:var(--muted)">${t.owner_email||'—'}</td>
+      <td><span style="font-size:.7rem;padding:2px 8px;border-radius:99px;background:${planColors[t.plan]||'#888'}22;color:${planColors[t.plan]||'#888'};font-weight:600">${(t.plan||'').toUpperCase()}</span></td>
+      <td style="font-size:.78rem;color:${expColor}">${expires}</td>
+      <td><span style="font-size:.72rem;color:${t.is_active?'#059669':'#dc2626'}">${t.is_active?'✓ Active':'✗ Off'}</span></td>
+      <td>
+        <button class="btn btn-ghost btn-sm" onclick="toggleTenant(${t.id},${t.is_active})">${t.is_active?'Disable':'Enable'}</button>
+        <button class="btn btn-ghost btn-sm" onclick="setTenantExpiry(${t.id},'${t.name}')">📅</button>
+      </td>
+    </tr>`;
+  }).join('');
+  const badge = document.getElementById('tenant-count-badge');
+  if(badge) badge.textContent = list.length;
+}
+
+function filterTenants() {
+  const q = document.getElementById('tenant-search')?.value?.toLowerCase()||'';
+  const plan = document.getElementById('tenant-plan-filter')?.value||'';
+  const filtered = _allTenants.filter(t=>{
+    const matchQ = !q || t.name?.toLowerCase().includes(q) || t.owner_email?.toLowerCase().includes(q);
+    const matchP = !plan || t.plan===plan;
+    return matchQ && matchP;
+  });
+  renderTenants(filtered);
+}
+
+async function setTenantExpiry(tid, name) {
+  const d = prompt(`${name} — Set plan expiry date (YYYY-MM-DD):`);
+  if(!d) return;
+  const r = await fetch('tenant_api.php?action=set_expires',{
+    method:'POST', headers:{'Content-Type':'application/json'}, credentials:'include',
+    body: JSON.stringify({tenant_id:tid, plan_expires:d})
+  }).then(r=>r.json());
+  if(r.ok){ toast('✅ Expiry updated'); loadTenants(); }
+  else toast(r.msg||'Error','err');
+}
+
+/* ── Revenue ── */
+async function loadRevenue() {
+  const d = await fetch('tenant_api.php?action=list',{credentials:'include'}).then(r=>r.json()).catch(()=>({ok:false}));
+  if(!d.ok) return;
+  const list = d.tenants||[];
+  const planPrices={free:0,basic:50000,pro:150000,enterprise:300000};
+  const planColors={free:'#6b7280',basic:'#3b82f6',pro:'#10b981',enterprise:'#8b5cf6'};
+  const counts={free:0,basic:0,pro:0,enterprise:0};
+  list.filter(t=>t.is_active).forEach(t=>counts[t.plan]=(counts[t.plan]||0)+1);
+  const mrr = Object.entries(counts).reduce((s,[p,c])=>s+(planPrices[p]||0)*c,0);
+
+  const sv=(id,v)=>{const el=document.getElementById(id);if(el)el.textContent=v;};
+  sv('rev-mrr',(mrr).toLocaleString()+' MMK');
+  sv('rev-free', counts.free);
+  sv('rev-basic', counts.basic);
+  sv('rev-pro', counts.pro);
+  sv('rev-enterprise', counts.enterprise);
+
+  const chart = document.getElementById('revenue-chart');
+  if(chart) {
+    const max = Math.max(...Object.values(counts))||1;
+    chart.innerHTML = `<div style="display:flex;align-items:flex-end;gap:1rem;height:100%;padding:.5rem 0">` +
+      Object.entries(counts).map(([plan,count])=>`
+        <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:6px">
+          <div style="font-size:.78rem;font-weight:600">${((planPrices[plan]||0)*count/1000).toFixed(0)}K</div>
+          <div style="width:100%;background:${planColors[plan]};border-radius:6px 6px 0 0;height:${Math.round(count/max*140)}px;transition:height .4s;min-height:8px"></div>
+          <div style="font-size:.72rem;color:var(--muted);text-transform:capitalize">${plan}<br>${count}</div>
+        </div>`).join('') + `</div>`;
+  }
+}
+
+/* ── Upgrade Requests ── */
+async function loadUpgradeRequests() {
+  const d = await fetch('tenant_api.php?action=upgrade_requests',{credentials:'include'}).then(r=>r.json()).catch(()=>({ok:false}));
+  const tbody = document.getElementById('upgrades-tbody');
+  if(!tbody) return;
+  if(!d.ok||!d.requests?.length){
+    tbody.innerHTML='<tr><td colspan="6" style="text-align:center;padding:2rem;color:var(--muted)">No upgrade requests</td></tr>'; return;
+  }
+  const planColors={free:'#6b7280',basic:'#3b82f6',pro:'#10b981',enterprise:'#8b5cf6'};
+  tbody.innerHTML = d.requests.map(r=>`<tr>
+    <td style="font-weight:500">${r.tenant_name||'#'+r.tenant_id}</td>
+    <td><span style="font-size:.72rem;padding:2px 7px;border-radius:99px;background:${planColors[r.current_plan]||'#888'}22;color:${planColors[r.current_plan]||'#888'}">${(r.current_plan||'').toUpperCase()}</span></td>
+    <td><span style="font-size:.72rem;padding:2px 7px;border-radius:99px;background:${planColors[r.requested_plan]||'#888'}22;color:${planColors[r.requested_plan]||'#888'}">${(r.requested_plan||'').toUpperCase()}</span></td>
+    <td style="font-size:.78rem;color:var(--muted)">${r.note||'—'}</td>
+    <td style="font-size:.78rem;color:var(--muted)">${r.created_at?.slice(0,10)||'—'}</td>
+    <td>
+      ${r.status==='pending' ? `
+        <button class="btn btn-primary btn-sm" onclick="approveUpgrade(${r.id},${r.tenant_id},'${r.requested_plan}')">✓ Approve</button>
+        <button class="btn btn-ghost btn-sm" onclick="rejectUpgrade(${r.id})">✗ Reject</button>
+      ` : `<span style="font-size:.75rem;color:var(--muted)">${r.status}</span>`}
+    </td>
+  </tr>`).join('');
+}
+
+async function approveUpgrade(reqId, tenantId, plan) {
+  if(!confirm(`Approve upgrade to ${plan.toUpperCase()}?`)) return;
+  const r = await fetch('tenant_api.php?action=approve_upgrade',{
+    method:'POST', headers:{'Content-Type':'application/json'}, credentials:'include',
+    body: JSON.stringify({request_id:reqId, tenant_id:tenantId, plan})
+  }).then(r=>r.json());
+  if(r.ok){ toast('✅ Upgrade approved'); loadUpgradeRequests(); }
+  else toast(r.msg||'Error','err');
+}
+
+async function rejectUpgrade(reqId) {
+  if(!confirm('Reject this upgrade request?')) return;
+  const r = await fetch('tenant_api.php?action=reject_upgrade',{
+    method:'POST', headers:{'Content-Type':'application/json'}, credentials:'include',
+    body: JSON.stringify({request_id:reqId})
+  }).then(r=>r.json());
+  if(r.ok){ toast('Rejected'); loadUpgradeRequests(); }
+  else toast(r.msg||'Error','err');
+}
+
+/* ── Plans ── */
+async function loadPlans() {
+  const d = await fetch('tenant_api.php?action=plans',{credentials:'include'}).then(r=>r.json()).catch(()=>({ok:false}));
+  const grid = document.getElementById('plans-grid');
+  if(!grid||!d.ok) return;
+  const planColors={free:'#6b7280',basic:'#3b82f6',pro:'#10b981',enterprise:'#8b5cf6'};
+  const planEmoji={free:'🆓',basic:'⭐',pro:'🚀',enterprise:'🏢'};
+  grid.innerHTML = d.plans.map(p=>`
+    <div style="background:var(--card);border:0.5px solid var(--border);border-radius:var(--radius);padding:1.2rem">
+      <div style="font-size:1.3rem">${planEmoji[p.code]||'📦'}</div>
+      <div style="font-weight:600;margin:.4rem 0">${p.name}</div>
+      <div style="font-size:1rem;font-weight:600;color:${planColors[p.code]||'#888'}">${parseInt(p.price_mmk||0).toLocaleString()} MMK</div>
+      <div style="font-size:.78rem;color:var(--muted);margin-top:.4rem">
+        ${p.max_branches} branches · ${p.max_staff} staff · ${p.max_menu_items} items
+      </div>
+    </div>`).join('');
+}
+
+/* ── Landing Page CMS ── */
+async function loadLandingPage() {
+  // Load from site_settings table (tenant_id=0 or global)
+  const d = await fetch('admin.php?api=get_settings',{credentials:'include'}).then(r=>r.json()).catch(()=>({ok:false}));
+  if(!d.ok||!d.settings) return;
+  const s = d.settings;
+  const set=(id,v)=>{const el=document.getElementById(id);if(el)el.value=v||'';};
+  set('lp-title1', s.hero_title_line1);
+  set('lp-title2', s.hero_title_line2);
+  set('lp-subtitle', s.hero_subtitle);
+  set('lp-emoji', s.store_emoji||s.hero_emoji);
+  set('lp-ann-text', s.announcement_text);
+  const annOn = document.getElementById('lp-ann-on');
+  if(annOn) annOn.checked = s.announcement_on=='1';
+}
+
+async function saveLandingPage() {
+  const g=(id)=>document.getElementById(id)?.value?.trim()||'';
+  const payload = {
+    hero_title_line1: g('lp-title1'),
+    hero_title_line2: g('lp-title2'),
+    hero_subtitle:    g('lp-subtitle'),
+    hero_emoji:       g('lp-emoji'),
+    announcement_text:g('lp-ann-text'),
+    announcement_on:  document.getElementById('lp-ann-on')?.checked?'1':'0',
+  };
+  const r = await fetch('admin.php?api=save_settings',{
+    method:'POST', headers:{'Content-Type':'application/json'}, credentials:'include',
+    body: JSON.stringify(payload)
+  }).then(r=>r.json());
+  if(r.ok) toast('✅ Landing page saved');
+  else toast(r.msg||'Error','err');
+}
+
+/* ── Demo Control ── */
+async function loadDemoInfo() {
+  const d = await fetch('tenant_api.php?action=list',{credentials:'include'}).then(r=>r.json()).catch(()=>({ok:false}));
+  const el = document.getElementById('demo-tenant-info');
+  if(!el||!d.ok) return;
+  const demo = (d.tenants||[]).find(t=>t.slug==='demo'||t.id==1);
+  if(!demo){ el.textContent='Demo tenant (slug=demo) မရှိသေး'; return; }
+  el.innerHTML=`
+    <div style="line-height:2">
+      Name: <strong>${demo.name}</strong><br>
+      Plan: <strong>${demo.plan?.toUpperCase()}</strong><br>
+      Status: <strong style="color:${demo.is_active?'#059669':'#dc2626'}">${demo.is_active?'Active':'Suspended'}</strong><br>
+      ID: ${demo.id}
+    </div>`;
+}
+
+async function resetDemoData() {
+  if(!confirm('Demo tenant data ကို reset လုပ်မလား? (test orders, data clear ဖြစ်မည်)')) return;
+  toast('🔄 Reset feature coming soon');
+}
+
+/* ── Announcement save ── */
+async function saveAnnouncement() {
+  const msg = document.getElementById('ann-message')?.value?.trim()||'';
+  const type = document.getElementById('ann-type')?.value||'info';
+  const active = document.getElementById('ann-active')?.checked||false;
+  const r = await fetch('admin.php?api=save_settings',{
+    method:'POST', headers:{'Content-Type':'application/json'}, credentials:'include',
+    body: JSON.stringify({announcement_text:msg, announcement_on:active?'1':'0'})
+  }).then(r=>r.json());
+  if(r.ok) toast('✅ Announcement saved');
+  else toast(r.msg||'Error','err');
 }
