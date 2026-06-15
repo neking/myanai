@@ -452,6 +452,9 @@ td{padding:.65rem .9rem;color:var(--ink)}
         <span class="nav-icon">⬆</span> Plan upgrade
         <span class="nav-badge plan-badge" id="nav-plan-badge"></span>
       </div>
+      <div class="nav-item" id="nav-backup" onclick="showPage('backup')">
+        <span class="nav-icon">💾</span> My data backup
+      </div>
       <div class="nav-item" id="nav-storefront" onclick="showPage('storefront')">
         <span class="nav-icon">🎨</span> Storefront
       </div>
@@ -733,7 +736,88 @@ td{padding:.65rem .9rem;color:var(--ink)}
   </div>
   <div class="content"><div style="color:var(--muted);padding:2rem;text-align:center">Scheduling feature coming soon.</div></div>
 </div>
-<div id="page-storefront" class="page" style="display:none"><div class="content"><p style="color:var(--muted)">Storefront customisation — coming soon.</p></div></div>
+<div id="page-backup" class="page" style="display:none">
+  <div class="content">
+    <div style="max-width:600px">
+      <!-- Info card -->
+      <div class="table-wrap" style="padding:1.3rem;margin-bottom:1rem">
+        <div style="font-weight:600;font-size:.9rem;margin-bottom:1rem">💾 Data Backup</div>
+        <div id="backup-counts" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:.75rem;margin-bottom:1.2rem">
+          <div style="color:var(--muted);font-size:.83rem">Loading...</div>
+        </div>
+        <div style="font-size:.82rem;color:var(--muted);margin-bottom:1.2rem;line-height:1.7">
+          သင့် business data အကုန်လုံးကို JSON file အဖြစ် download လုပ်ပါ။<br>
+          Menu items · Orders · Staff · Tables · CRM · Expenses
+        </div>
+        <button class="btn btn-primary" onclick="downloadBackup()" id="backup-download-btn">
+          ⬇️ Download my data backup
+        </button>
+        <div id="backup-status" style="margin-top:.75rem;font-size:.82rem;color:var(--muted)"></div>
+      </div>
+      <!-- Instructions -->
+      <div class="table-wrap" style="padding:1.3rem">
+        <div style="font-weight:600;font-size:.88rem;margin-bottom:.75rem">📋 Backup includes</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:.4rem;font-size:.82rem;color:var(--muted)">
+          <div>✓ All menu items</div>
+          <div>✓ Orders history (500 recent)</div>
+          <div>✓ Staff accounts</div>
+          <div>✓ Table settings</div>
+          <div>✓ Branch info</div>
+          <div>✓ CRM customers</div>
+          <div>✓ Expenses log</div>
+          <div>✓ Order items detail</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="page-storefront" class="page" style="display:none">
+  <div class="content">
+    <div style="max-width:700px;display:flex;flex-direction:column;gap:1rem">
+      <div class="table-wrap" style="padding:1.3rem">
+        <div style="font-weight:600;font-size:.9rem;margin-bottom:1rem">🏪 Business info</div>
+        <div style="display:grid;gap:.75rem">
+          <div class="field"><label>Business name</label><input id="sf-name" placeholder="Demo Restaurant"></div>
+          <div class="field"><label>Tagline</label><input id="sf-tagline" placeholder="Authentic flavors"></div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:.75rem">
+            <div class="field"><label>Phone</label><input id="sf-phone" placeholder="09xxxxxxxxx"></div>
+            <div class="field"><label>Address</label><input id="sf-address" placeholder="Yangon"></div>
+          </div>
+        </div>
+      </div>
+      <div class="table-wrap" style="padding:1.3rem">
+        <div style="font-weight:600;font-size:.9rem;margin-bottom:1rem">🎨 Appearance</div>
+        <div style="display:grid;grid-template-columns:auto 1fr 1fr;gap:.75rem;align-items:end">
+          <div class="field"><label>Brand emoji</label><input id="sf-emoji" placeholder="🍜" style="font-size:1.4rem;width:60px;text-align:center"></div>
+          <div class="field"><label>Primary color</label>
+            <div style="display:flex;gap:.5rem">
+              <input type="color" id="sf-color" value="#e84c2b" style="width:44px;height:36px;border-radius:8px;border:0.5px solid var(--border)">
+              <input id="sf-color-hex" placeholder="#e84c2b" oninput="document.getElementById('sf-color').value=this.value">
+            </div>
+          </div>
+          <div class="field"><label>Currency</label>
+            <select id="sf-currency" style="width:100%;padding:.5rem .7rem;border:0.5px solid var(--border);border-radius:8px;background:var(--warm);color:var(--ink)">
+              <option value="MMK">MMK (Kyat)</option><option value="USD">USD</option>
+            </select>
+          </div>
+        </div>
+      </div>
+      <div class="table-wrap" style="padding:1.3rem">
+        <div style="font-weight:600;font-size:.9rem;margin-bottom:.75rem">🔗 Customer ordering URL</div>
+        <div style="display:flex;align-items:center;gap:.75rem">
+          <code id="sf-order-url" style="flex:1;background:var(--warm);padding:.4rem .7rem;border-radius:8px;font-size:.82rem;border:0.5px solid var(--border)">Loading...</code>
+          <button class="btn btn-ghost btn-sm" onclick="copyOrderUrl()">Copy</button>
+          <a id="sf-order-link" href="#" target="_blank" class="btn btn-ghost btn-sm">Open →</a>
+        </div>
+      </div>
+      <div style="display:flex;gap:.75rem">
+        <button class="btn btn-primary" onclick="saveStorefront()">💾 Save</button>
+        <a id="sf-preview-btn" href="#" target="_blank" class="btn btn-ghost">👁 Preview</a>
+      </div>
+    </div>
+  </div>
+</div>
 
 <div id="page-upgrade" class="page" style="display:none">
   <div class="content">
@@ -846,7 +930,7 @@ async function tenantApi(action, body=null){
 /* ── showPage ── */
 const ALL_PAGES = ['dashboard','menu','staff','crm','stocklog','promos','branches',
   'orders','tables','reserve','stock','shift','delivery','expenses',
-  'upgrade','storefront','settings','schedule'];
+  'upgrade','backup','storefront','settings','schedule'];
 
 function showPage(page){
   // Hide all pages
@@ -867,7 +951,7 @@ function showPage(page){
     stocklog:'Stock log',promos:'Promotions',branches:'My branches',orders:'Orders',
     tables:'Tables',reserve:'Reservations',stock:'Stock',shift:'Shifts',
     delivery:'Delivery',expenses:'Expenses',upgrade:'Plan upgrade',
-    storefront:'Storefront',settings:'Settings',schedule:'Scheduling'};
+    storefront:'Storefront',settings:'Settings',schedule:'Scheduling',backup:'My data backup',storefront:'Storefront'};
   const tb=document.getElementById('topbar-title');
   if(tb) tb.textContent=titles[page]||page;
 
@@ -901,6 +985,8 @@ function showPage(page){
   if(page==='upgrade')    loadUpgradePage();
   if(page==='settings')   loadTenantSettings();
   if(page==='schedule')   if(typeof schedLoad==='function') schedLoad();
+  if(page==='backup')     loadBackupPage();
+  if(page==='storefront') loadStorefront();
 
   closeSidebar();
 }
@@ -1600,6 +1686,100 @@ function exitImpersonate(){
   fetch('admin.php?api=logout',{method:'POST',credentials:'include'}).then(()=>{
     window.location.href='admin.php';
   });
+}
+
+/* ── Backup ── */
+async function loadBackupPage(){
+  const d = await fetch(`backup_api.php?action=info&tenant_id=${window.__TENANT_ID}`,{credentials:'include'}).then(r=>r.json()).catch(()=>({ok:false}));
+  const el = document.getElementById('backup-counts');
+  if(!el) return;
+  if(!d.ok){ el.innerHTML='<div style="color:var(--muted)">Loading...</div>'; return; }
+  const icons = {branches:'🏢',menu_items:'🍜',staff:'👥',tables:'🪑',orders:'🧾',crm_customers:'❤️',expenses:'💰'};
+  el.innerHTML = Object.entries(d.counts).filter(([k])=>k!=='total').map(([k,v])=>`
+    <div style="background:var(--card);border:0.5px solid var(--border);border-radius:10px;padding:.7rem .9rem;text-align:center">
+      <div style="font-size:1.2rem">${icons[k]||'📦'}</div>
+      <div style="font-size:1.1rem;font-weight:600;margin:.2rem 0">${v}</div>
+      <div style="font-size:.72rem;color:var(--muted)">${k.replace('_',' ')}</div>
+    </div>`).join('') +
+    `<div style="background:var(--accent);color:var(--warm);border-radius:10px;padding:.7rem .9rem;text-align:center">
+      <div style="font-size:1.2rem">📦</div>
+      <div style="font-size:1.1rem;font-weight:600;margin:.2rem 0">${d.counts.total}</div>
+      <div style="font-size:.72rem;opacity:.8">total records</div>
+    </div>`;
+}
+
+async function downloadBackup(){
+  const btn = document.getElementById('backup-download-btn');
+  const status = document.getElementById('backup-status');
+  if(btn){ btn.disabled=true; btn.textContent='⏳ Preparing backup...'; }
+  try {
+    const res = await fetch(`backup_api.php?action=export&tenant_id=${window.__TENANT_ID}`,{credentials:'include'});
+    if(!res.ok) throw new Error('Export failed');
+    const blob = await res.blob();
+    const fname = res.headers.get('Content-Disposition')?.match(/filename="([^"]+)"/)?.[1] || `backup-${Date.now()}.json`;
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href=url; a.download=fname; document.body.appendChild(a); a.click();
+    document.body.removeChild(a); URL.revokeObjectURL(url);
+    const records = res.headers.get('X-Backup-Records') || '?';
+    if(status) status.textContent = `✅ Downloaded — ${records} records in backup`;
+    toast('✅ Backup downloaded','ok');
+  } catch(e) {
+    if(status) status.textContent = '❌ Backup failed: '+e.message;
+    toast('Backup failed','err');
+  } finally {
+    if(btn){ btn.disabled=false; btn.textContent='⬇️ Download my data backup'; }
+  }
+}
+
+/* ── Storefront ── */
+async function loadStorefront(){
+  // Set order URL
+  const slug = window.__TENANT_SLUG || 'demo';
+  const url = location.origin + '/index.html?t=' + slug;
+  const urlEl = document.getElementById('sf-order-url');
+  const linkEl = document.getElementById('sf-order-link');
+  const previewBtn = document.getElementById('sf-preview-btn');
+  if(urlEl) urlEl.textContent = url;
+  if(linkEl) linkEl.href = url;
+  if(previewBtn) previewBtn.href = url;
+
+  // Load existing settings from tenant settings JSON
+  const d = await fetch(`tenant.php?api=get_payment_settings`,{credentials:'include'}).then(r=>r.json()).catch(()=>({ok:false}));
+  if(d.ok && d.settings){
+    const s = d.settings;
+    const set=(id,v)=>{const el=document.getElementById(id);if(el&&v)el.value=v;};
+    set('sf-name',    s.store_name);
+    set('sf-tagline', s.store_tagline);
+    set('sf-phone',   s.store_phone);
+    set('sf-address', s.store_address);
+    set('sf-emoji',   s.store_emoji);
+    set('sf-color',   s.brand_color||'#e84c2b');
+    set('sf-color-hex', s.brand_color||'#e84c2b');
+  }
+}
+
+function copyOrderUrl(){
+  const url = document.getElementById('sf-order-url')?.textContent;
+  if(url) navigator.clipboard.writeText(url).then(()=>toast('✅ URL copied','ok'));
+}
+
+async function saveStorefront(){
+  const g=(id)=>document.getElementById(id)?.value?.trim()||'';
+  const payload = {
+    store_name:    g('sf-name'),
+    store_tagline: g('sf-tagline'),
+    store_phone:   g('sf-phone'),
+    store_address: g('sf-address'),
+    store_emoji:   g('sf-emoji')||'🍜',
+    brand_color:   document.getElementById('sf-color')?.value||'#e84c2b',
+  };
+  const d = await fetch('tenant.php?api=save_payment_settings',{
+    method:'POST', headers:{'Content-Type':'application/json'}, credentials:'include',
+    body: JSON.stringify(payload)
+  }).then(r=>r.json()).catch(()=>({ok:false}));
+  if(d.ok) toast('✅ Storefront saved','ok');
+  else toast(d.msg||'Error','err');
 }
 </script>
 </body>
