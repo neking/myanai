@@ -1,0 +1,12 @@
+User-agent: *
+Allow: /landing-page.html
+Allow: /signup.html
+Allow: /index.html
+Disallow: /admin.php
+Disallow: /tenant.php
+Disallow: /db_connect.php
+Disallow: /backup_api.php
+Disallow: /demo_seed.php
+Disallow: /webhook.php
+Disallow: /migration_backup_*/
+Sitemap: https://myanai.net/sitemap.xml
