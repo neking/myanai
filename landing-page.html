@@ -148,6 +148,23 @@ footer{padding:3rem 5vw;border-top:0.5px solid var(--border);max-width:1200px;ma
   #products-grid{grid-template-columns:1fr}
   #pricing-grid{grid-template-columns:1fr}
 }
+
+/* ── LIGHT SECTIONS ── */
+.light-section{background:#F8FAFC;color:#0F172A}
+.light-section .section-h2{color:#0F172A}
+.light-section .section-eye{color:#2563EB;font-weight:700}
+.light-section .section-sub{color:#475569}
+.benefit-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:1rem;margin-bottom:2.5rem;margin-top:1.5rem}
+.benefit-card{background:#fff;border:1px solid #E2E8F0;border-radius:16px;padding:1.4rem;display:flex;flex-direction:column;gap:.6rem;box-shadow:0 1px 4px rgba(0,0,0,.05);transition:box-shadow .2s}
+.benefit-card:hover{box-shadow:0 4px 12px rgba(37,99,235,.1)}
+.benefit-icon{font-size:1.8rem}
+.benefit-title{font-size:.95rem;font-weight:700;color:#0F172A}
+.benefit-desc{font-size:.83rem;color:#475569;line-height:1.7}
+.trust-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(165px,1fr));gap:.85rem}
+.trust-card{background:#fff;border:1px solid #E2E8F0;border-radius:12px;padding:1.1rem;text-align:center;box-shadow:0 1px 3px rgba(0,0,0,.04)}
+.trust-icon{font-size:1.6rem;margin-bottom:.4rem}
+.trust-title{font-size:.82rem;font-weight:700;color:#0F172A;margin-bottom:.25rem}
+.trust-desc{font-size:.74rem;color:#64748B;line-height:1.55}
 </style>
 <link rel="manifest" href="/manifest.json">
 </head>
@@ -231,12 +248,35 @@ footer{padding:3rem 5vw;border-top:0.5px solid var(--border);max-width:1200px;ma
 </div>
 
 <!-- PRODUCTS -->
-<section class="products-section" id="products">
+<section class="products-section light-section" id="products" style="padding:80px 5vw">
   <div class="reveal">
-    <p class="section-eye">Our products</p>
-    <h2 class="section-h2" id="products-heading">AI-powered apps for <br><em style="font-style:normal;color:var(--gold)">Myanmar businesses</em></h2>
-    <p class="section-sub" id="products-sub">Restaurant ဖြစ်ဖြစ်၊ retail ဖြစ်ဖြစ် — သင့် business type အတွက် tool ရှိတယ်</p>
+    <p class="section-eye">ထုတ်ကုန်များနှင့် အကျိုးကျေးဇူးများ</p>
+    <h2 class="section-h2" id="products-heading">သင့်ဆိုင်ကို ပိုမိုလွယ်ကူ<br><em style="font-style:normal;color:#2563EB">စီမံနိုင်မယ့် နည်းလမ်းများ</em></h2>
+    <p class="section-sub" id="products-sub">စားသောက်ဆိုင်၊ လက်လီဆိုင်၊ ဝန်ဆောင်မှုလုပ်ငန်း — မည်သည့် business မဆို ၅ မိနစ်အတွင်း စတင်နိုင်</p>
   </div>
+  <!-- Benefits grid -->
+  <div class="benefit-grid">
+    <div class="benefit-card"><div class="benefit-icon">🧮</div><div class="benefit-title">စာရင်းဇယား အလိုအလျောက် တွက်ချက်</div><div class="benefit-desc">ကိုယ်တိုင် တွက်ချက်ရန် မလိုဘဲ ဝင်ငွေ၊ ကုန်ကျစရိတ်နှင့် အမြတ်ကို System က ဖော်ပြပေးသည်</div></div>
+    <div class="benefit-card"><div class="benefit-icon">📶</div><div class="benefit-title">Internet မပါဘဲ ဆက်သုံးနိုင်</div><div class="benefit-desc">အင်တာနက် ပြတ်သွားလည်း ဆိုင်ပိတ်ရန် မလို — Order ခံ၍ ငွေကောက်ခံနိုင်သည်</div></div>
+    <div class="benefit-card"><div class="benefit-icon">💳</div><div class="benefit-title">KBZPay · Wave Money ချိတ်ဆက်</div><div class="benefit-desc">မြန်မာ ငွေပေးချေစနစ် အားလုံး တစ်နေရာတည်းမှ လက်ခံ မှတ်တမ်းတင်နိုင်</div></div>
+    <div class="benefit-card"><div class="benefit-icon">📱</div><div class="benefit-title">ဖုန်းဖြင့် Real-time ကြည့်ရှု</div><div class="benefit-desc">ဆိုင်မှ မနေဘဲ မည်သည့်နေရာမဆို ဝင်ငွေနှင့် အခြေအနေ စစ်ဆေးနိုင်</div></div>
+    <div class="benefit-card"><div class="benefit-icon">📊</div><div class="benefit-title">နေ့စဉ် Report အလိုအလျောက်</div><div class="benefit-desc">ဝင်ငွေ၊ အရောင်းကောင်းသောပစ္စည်း၊ ဝန်ထမ်းစွမ်းဆောင်ရည် ပုံနှိပ်ရန်အသင့် ထုတ်</div></div>
+    <div class="benefit-card"><div class="benefit-icon">👥</div><div class="benefit-title">ဝန်ထမ်းစီမံခန့်ခွဲမှု</div><div class="benefit-desc">ဝန်ထမ်းတစ်ဦးချင်း ရောင်းချမှုနှင့် အချိန်ဆင်းမှတ်တမ်း System က ထောက်လှမ်းပေး</div></div>
+  </div>
+
+  <!-- Trust signals -->
+  <div style="background:#fff;border:1px solid #E2E8F0;border-radius:16px;padding:1.8rem;margin-bottom:2.5rem">
+    <h3 style="font-size:1rem;font-weight:700;color:#0F172A;text-align:center;margin-bottom:1.2rem">🤝 ဘာကြောင့် MyanAi ကို ယုံကြည်ကြသလဲ</h3>
+    <div class="trust-grid">
+      <div class="trust-card"><div class="trust-icon">🇲🇲</div><div class="trust-title">မြန်မာများ ဖန်တီး</div><div class="trust-desc">မြန်မာ့စီးပွားရေး နားလည်သောသူများ ကိုယ်တိုင်</div></div>
+      <div class="trust-card"><div class="trust-icon">📞</div><div class="trust-title">မြန်မာဘာသာ Support</div><div class="trust-desc">အချိန်မရွေး ဖုန်းဆက် မေးနိုင်</div></div>
+      <div class="trust-card"><div class="trust-icon">🎓</div><div class="trust-title">အစအဆုံး သင်ပေး</div><div class="trust-desc">Video + ဆရာ တကယ်သင်ပေး</div></div>
+      <div class="trust-card"><div class="trust-icon">🔒</div><div class="trust-title">Data လုံခြုံ</div><div class="trust-desc">သင့်ဆိုင် data လုံခြုံစိတ်ချ</div></div>
+      <div class="trust-card"><div class="trust-icon">💰</div><div class="trust-title">၁၄ ရက် အခမဲ့</div><div class="trust-desc">Credit card မလိုဘဲ စမ်းသုံးနိုင်</div></div>
+      <div class="trust-card"><div class="trust-icon">⭐</div><div class="trust-title">ဆိုင် ၁၄+ ယုံကြည်</div><div class="trust-desc">မြန်မာတစ်နိုင်ငံလုံး လက်ရှိသုံးနေ</div></div>
+    </div>
+  </div>
+
   <div id="products-grid" class="reveal" style="transition-delay:.1s">
     <!-- Loaded dynamically -->
     <a class="product-card" href="tenant.php">
@@ -261,7 +301,7 @@ footer{padding:3rem 5vw;border-top:0.5px solid var(--border);max-width:1200px;ma
 </section>
 
 <!-- PRICING -->
-<section class="pricing-section" id="pricing">
+<section class="pricing-section light-section" id="pricing" style="padding:80px 5vw">
   <div class="reveal" style="text-align:center;margin-bottom:1rem">
     <p class="section-eye">Pricing</p>
     <h2 class="section-h2">မြန်မာဆိုင်တွေ <em style="font-style:normal;color:var(--gold)">နိုင်နိုင်နင်းနင်း</em> ဝင်နိုင်တဲ့ plan</h2>
