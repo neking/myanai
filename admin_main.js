@@ -1966,6 +1966,7 @@ async function loadSaas() {
   saasRender(window._saasTenants);
 }
 
+function escH(s){ return String(s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }
 function saasRender(list){
   const planPrices = {free:0,basic:50000,pro:150000,enterprise:300000};
   const planColors = {free:'#6b7280',basic:'#3b82f6',pro:'#10b981',enterprise:'#8b5cf6'};
@@ -2021,7 +2022,7 @@ function saasRender(list){
       </td>
       <td style="color:var(--muted);font-size:.78rem;font-weight:500">${t.id}</td>
       <td>
-        <div style="font-weight:500;font-size:.88rem">${escH(t.name)}</div>
+        <div style="font-weight:500;font-size:.88rem">${(t.name||"").replace(/&/g,"&amp;").replace(/</g,"&lt;")}</div>
         <div style="font-size:.72rem;color:var(--muted)">${t.owner_email||''}</div>
         <div style="font-size:.7rem;color:var(--muted)">${t.owner_phone||''}</div>
       </td>
@@ -2050,8 +2051,8 @@ function saasRender(list){
       <td>
         <div style="display:flex;gap:.3rem;flex-wrap:wrap">
           <button class="btn btn-ghost btn-sm" onclick="openEditTenant(${t.id})" title="Edit">✏️</button>
-          <button class="btn btn-ghost btn-sm" onclick="impersonateAsTenant(${t.id},'${escH(t.name)}')" title="View as tenant">👤</button>
-          <button class="btn btn-ghost btn-sm" onclick="downloadTenantBackup(${t.id},'${escH(t.name)}')" title="Download backup">💾</button>
+          <button class="btn btn-ghost btn-sm" onclick="impersonateAsTenant(${t.id},'${(t.name||"").replace(/&/g,"&amp;").replace(/</g,"&lt;")}')" title="View as tenant">👤</button>
+          <button class="btn btn-ghost btn-sm" onclick="downloadTenantBackup(${t.id},'${(t.name||"").replace(/&/g,"&amp;").replace(/</g,"&lt;")}')" title="Download backup">💾</button>
           <button class="btn btn-ghost btn-sm" onclick="toggleTenant(${t.id},${t.is_active})"
             style="color:${t.is_active?'#dc2626':'#059669'}" title="${t.is_active?'Suspend':'Activate'}">
             ${t.is_active?'⊘':'✓'}
