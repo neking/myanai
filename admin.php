@@ -904,6 +904,34 @@ if (isset($_GET['api'])) { // GET+POST both handled
         exit;
     }
 
+    /* ── CHANGE ADMIN PASSWORD ── */
+    if ($_GET['api'] === 'change_password') {
+        $b       = json_decode(file_get_contents('php://input'), true) ?? [];
+        $current = trim($b['current_password'] ?? '');
+        $new     = trim($b['new_password'] ?? '');
+        if (!$current || !$new || strlen($new) < 8) {
+            echo json_encode(['ok'=>false,'msg'=>'Invalid input']); exit;
+        }
+        // Verify current password
+        if ($current !== 'GGttgg123!' && !password_verify($current, '$2y$12$admin_hash_placeholder')) {
+            // Check against hardcoded or DB stored password
+            $storedRow = $pdo->query("SELECT setting_value FROM site_settings WHERE setting_key='admin_password_hash'")->fetchColumn();
+            if ($storedRow) {
+                if (!password_verify($current, $storedRow)) {
+                    echo json_encode(['ok'=>false,'msg'=>'Current password incorrect']); exit;
+                }
+            } elseif ($current !== 'GGttgg123!') {
+                echo json_encode(['ok'=>false,'msg'=>'Current password incorrect']); exit;
+            }
+        }
+        // Save new password hash
+        $hash = password_hash($new, PASSWORD_BCRYPT);
+        $pdo->prepare("INSERT INTO site_settings (setting_key,setting_value) VALUES ('admin_password_hash',?) ON DUPLICATE KEY UPDATE setting_value=?")
+            ->execute([$hash,$hash]);
+        echo json_encode(['ok'=>true,'msg'=>'Password changed']);
+        exit;
+    }
+
     /* ── GET SITE SETTINGS (landing page CMS) ── */
     if ($_GET['api'] === 'get_settings') {
         $rows = db()->query("SELECT setting_key,setting_value FROM site_settings")->fetchAll();
@@ -2044,8 +2072,20 @@ function toggleTheme(){
 
     <button class="btn btn-primary" onclick="savePaymentSettings()" style="min-width:140px">💾 Save Settings</button>
     <div id="settings-saved-msg" style="display:none;margin-top:.75rem;color:#059669;font-size:.85rem">✅ Settings saved successfully!</div>
+  
+    <!-- Password Change -->
+    <div class="table-wrap" style="padding:1.2rem;max-width:480px;margin-top:1rem">
+      <div style="font-weight:600;font-size:.9rem;margin-bottom:1rem">🔐 Change Admin Password</div>
+      <div style="display:grid;gap:.75rem">
+        <div class="field"><label>Current password</label><input type="password" id="pwd-current" placeholder="Current password"></div>
+        <div class="field"><label>New password</label><input type="password" id="pwd-new" placeholder="New password (min 8 chars)"></div>
+        <div class="field"><label>Confirm new password</label><input type="password" id="pwd-confirm" placeholder="Confirm new password"></div>
+      </div>
+      <button class="btn btn-primary" style="margin-top:1rem" onclick="changeAdminPassword()">🔐 Change password</button>
+    </div>
   </div>
 </div>
+
 
 
 
