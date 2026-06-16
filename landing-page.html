@@ -152,19 +152,23 @@ footer{padding:3rem 5vw;border-top:0.5px solid var(--border);max-width:1200px;ma
 /* ── LIGHT SECTIONS ── */
 .light-section{background:#F8FAFC;color:#0F172A}
 .light-section .section-h2{color:#0F172A}
-.light-section .section-eye{color:#2563EB;font-weight:700}
+.light-section .section-eye{color:#2563EB;font-weight:700;letter-spacing:.08em}
 .light-section .section-sub{color:#475569}
 .benefit-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:1rem;margin-bottom:2.5rem;margin-top:1.5rem}
 .benefit-card{background:#fff;border:1px solid #E2E8F0;border-radius:16px;padding:1.4rem;display:flex;flex-direction:column;gap:.6rem;box-shadow:0 1px 4px rgba(0,0,0,.05);transition:box-shadow .2s}
-.benefit-card:hover{box-shadow:0 4px 12px rgba(37,99,235,.1)}
+.benefit-card:hover{box-shadow:0 4px 12px rgba(16,185,129,.15);border-color:#10B981}
 .benefit-icon{font-size:1.8rem}
-.benefit-title{font-size:.95rem;font-weight:700;color:#0F172A}
+.benefit-title{font-size:.95rem;font-weight:700;color:#0F172A;line-height:1.4}
 .benefit-desc{font-size:.83rem;color:#475569;line-height:1.7}
 .trust-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(165px,1fr));gap:.85rem}
 .trust-card{background:#fff;border:1px solid #E2E8F0;border-radius:12px;padding:1.1rem;text-align:center;box-shadow:0 1px 3px rgba(0,0,0,.04)}
 .trust-icon{font-size:1.6rem;margin-bottom:.4rem}
 .trust-title{font-size:.82rem;font-weight:700;color:#0F172A;margin-bottom:.25rem}
 .trust-desc{font-size:.74rem;color:#64748B;line-height:1.55}
+.btn-emerald{background:#10B981;color:#fff;padding:.75rem 1.75rem;border-radius:99px;font-weight:700;font-size:.95rem;text-decoration:none;display:inline-flex;align-items:center;gap:.5rem;transition:all .2s;box-shadow:0 2px 8px rgba(16,185,129,.3)}
+.btn-emerald:hover{background:#059669;transform:translateY(-1px);box-shadow:0 4px 16px rgba(16,185,129,.4)}
+.btn-blue{background:#2563EB;color:#fff;padding:.75rem 1.75rem;border-radius:99px;font-weight:700;font-size:.95rem;text-decoration:none;display:inline-flex;align-items:center;gap:.5rem;transition:all .2s;box-shadow:0 2px 8px rgba(37,99,235,.3)}
+.btn-blue:hover{background:#1d4ed8;transform:translateY(-1px)}
 </style>
 <link rel="manifest" href="/manifest.json">
 </head>
@@ -275,6 +279,11 @@ footer{padding:3rem 5vw;border-top:0.5px solid var(--border);max-width:1200px;ma
       <div class="trust-card"><div class="trust-icon">💰</div><div class="trust-title">၁၄ ရက် အခမဲ့</div><div class="trust-desc">Credit card မလိုဘဲ စမ်းသုံးနိုင်</div></div>
       <div class="trust-card"><div class="trust-icon">⭐</div><div class="trust-title">ဆိုင် ၁၄+ ယုံကြည်</div><div class="trust-desc">မြန်မာတစ်နိုင်ငံလုံး လက်ရှိသုံးနေ</div></div>
     </div>
+    <!-- CTA in trust section -->
+    <div style="text-align:center;margin-top:1.5rem;display:flex;gap:1rem;justify-content:center;flex-wrap:wrap">
+      <a class="btn-emerald" href="signup.html">🚀 ၁၄ ရက် အခမဲ့ စမ်းသုံးမည်</a>
+      <a class="btn-blue" href="tenant.php">👁️ Demo ကြည့်ရှုရန်</a>
+    </div>
   </div>
 
   <div id="products-grid" class="reveal" style="transition-delay:.1s">
@@ -331,7 +340,7 @@ footer{padding:3rem 5vw;border-top:0.5px solid var(--border);max-width:1200px;ma
 </section>
 
 <!-- CONTACT -->
-<section style="padding:80px 5vw;border-top:0.5px solid var(--border)" id="contact">
+<section style="padding:80px 5vw;background:#F8FAFC;border-top:0.5px solid #E2E8F0" id="contact">
   <div style="max-width:1200px;margin:0 auto">
     <div class="reveal" style="text-align:center;margin-bottom:3rem">
       <p class="section-eye">Contact</p>
