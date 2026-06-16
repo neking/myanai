@@ -254,6 +254,41 @@ if ($action === 'resolve' && $_SERVER['REQUEST_METHOD'] === 'GET') {
     ok(['tenant_id'=>(int)$t['id'], 'name'=>$t['name'], 'plan'=>$t['plan'], 'business_type'=>$t['business_type'] ?? 'restaurant', 'branch_id'=>(int)($t['branch_id'] ?? 1), 'branch_code'=>$t['branch_code'] ?? 'MAIN']);
 }
 
+/* ── UPDATE TENANT (super-admin) ── */
+if ($action === 'update_tenant') {
+    requireSuperAdmin();
+    $b = json_decode(file_get_contents('php://input'), true) ?? [];
+    $tid     = (int)($b['tenant_id'] ?? 0);
+    $name    = trim($b['name'] ?? '');
+    $plan    = trim($b['plan'] ?? '');
+    $expires = trim($b['plan_expires'] ?? '');
+    $active  = isset($b['is_active']) ? (int)$b['is_active'] : 1;
+
+    if(!$tid) fail('tenant_id required');
+    $validPlans = ['free','basic','pro','enterprise'];
+    if($plan && !in_array($plan,$validPlans)) fail('Invalid plan');
+
+    $planLimits = ['free'=>[1,3,20],'basic'=>[1,5,50],'pro'=>[3,15,200],'enterprise'=>[10,50,500]];
+    $limits = $planLimits[$plan] ?? null;
+
+    $sets = ['is_active=?'];
+    $params = [$active];
+    if($name){ $sets[]='name=?'; $params[]=$name; }
+    if($plan && $limits){
+        $sets[]='plan=?'; $params[]=$plan;
+        $sets[]='max_branches=?'; $params[]=$limits[0];
+        $sets[]='max_staff=?'; $params[]=$limits[1];
+        $sets[]='max_menu_items=?'; $params[]=$limits[2];
+    }
+    if($expires){ $sets[]='plan_expires=?'; $params[]=$expires; }
+    elseif(array_key_exists('plan_expires',$b) && $expires===''){
+        $sets[]='plan_expires=NULL';
+    }
+    $params[] = $tid;
+    $pdo->prepare("UPDATE tenants SET ".implode(',',$sets)." WHERE id=?")->execute($params);
+    ok(['message'=>'Tenant updated']);
+}
+
 /* ── GET UPGRADE REQUESTS (super-admin) ── */
 if ($action === 'upgrade_requests') {
     requireSuperAdmin();
