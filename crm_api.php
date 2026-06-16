@@ -41,7 +41,10 @@ function fail(string $msg, int $code = 400): never {
 }
 function requireAdmin(): void {
     if (session_status() === PHP_SESSION_NONE) session_start();
-    if (empty($_SESSION['admin'])) fail('Unauthorized', 401);
+    // Accept both super-admin and tenant sessions
+    $isAdmin  = !empty($_SESSION['admin']);
+    $isTenant = !empty($_SESSION['tenant_admin']);
+    if (!$isAdmin && !$isTenant) fail('Unauthorized', 401);
 }
 function cleanPhone(string $p): string {
     return trim(preg_replace('/\s+/', '', $p));
