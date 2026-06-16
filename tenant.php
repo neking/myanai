@@ -417,74 +417,74 @@ td{padding:.65rem .9rem;color:var(--ink)}
     <div id="trial-banner" style="font-size:.75rem;padding:.5rem .9rem;background:rgba(220,38,38,.08);color:#dc2626;border-bottom:0.5px solid rgba(220,38,38,.15)"></div>
 
     <nav>
-      <div class="nav-sect">My Business</div>
+      <div class="nav-sect">ကျွန်ုပ်လုပ်ငန်း</div>
       <div class="nav-item active" id="nav-dashboard" onclick="showPage('dashboard')">
-        <span class="nav-icon">📊</span> Dashboard
+        <span class="nav-icon">📊</span> ပင်မစာမျက်နှာ
       </div>
       <div class="nav-item" id="nav-menu" onclick="showPage('menu')">
-        <span class="nav-icon">🍜</span> Menu items
+        <span class="nav-icon">🍜</span> မီနူးစာရင်း
         <span class="nav-badge" id="menu-count-badge"></span>
       </div>
       <div class="nav-item" id="nav-staff" onclick="showPage('staff')">
-        <span class="nav-icon">👥</span> Staff
+        <span class="nav-icon">👥</span> ဝန်ထမ်းများ
       </div>
       <div class="nav-item" id="nav-crm" onclick="showPage('crm')">
-        <span class="nav-icon">❤️</span> CRM / Loyalty
+        <span class="nav-icon">❤️</span> သောက်သုံးသူ
       </div>
       <div class="nav-item" id="nav-stocklog" onclick="showPage('stocklog')">
-        <span class="nav-icon">📋</span> Stock log
+        <span class="nav-icon">📋</span> ကုန်ပစ္စည်းမှတ်တမ်း
       </div>
       <div class="nav-item" id="nav-promos" onclick="showPage('promos')">
-        <span class="nav-icon">🎁</span> Promotions
+        <span class="nav-icon">🎁</span> ပရိုမိုး
       </div>
       <div class="nav-item" id="nav-branches" onclick="showPage('branches')">
-        <span class="nav-icon">🏢</span> My branches
+        <span class="nav-icon">🏢</span> ဆိုင်ခွဲများ
       </div>
 
-      <div class="nav-sect">Branch ops</div>
+      <div class="nav-sect">ဆိုင်ငယ်လုပ်ငန်း</div>
       <div style="padding:.3rem .6rem .4rem">
         <select id="branch-select" onchange="switchBranch(this.value)" style="width:100%;font-size:.78rem;padding:.35rem .5rem;border:0.5px solid var(--border);border-radius:7px;background:var(--warm);color:var(--ink)">
           <option value="0">All branches</option>
         </select>
       </div>
       <div class="nav-item" id="nav-orders" onclick="showPage('orders')">
-        <span class="nav-icon">🧾</span> Orders
+        <span class="nav-icon">🧾</span> မှာယူမှုများ
       </div>
       <div class="nav-item" id="nav-tables" onclick="showPage('tables')">
-        <span class="nav-icon">🪑</span> Tables
+        <span class="nav-icon">🪑</span> စားပွဲများ
       </div>
       <div class="nav-item" id="nav-reserve" onclick="showPage('reserve')">
-        <span class="nav-icon">📅</span> Reservations
+        <span class="nav-icon">📅</span> ကြိုတင်ဘွတ်ကင်
       </div>
       <div class="nav-item" id="nav-stock" onclick="showPage('stock')">
-        <span class="nav-icon">📦</span> Stock
+        <span class="nav-icon">📦</span> ကုန်တိုက်
       </div>
       <div class="nav-item" id="nav-shift" onclick="showPage('shift')">
-        <span class="nav-icon">⏰</span> Shifts
+        <span class="nav-icon">⏰</span> ဝင်ရောက်ချိန်
       </div>
       <div class="nav-item" id="nav-delivery" onclick="showPage('delivery')">
-        <span class="nav-icon">🛵</span> Delivery
+        <span class="nav-icon">🛵</span> ပို့ဆောင်ရေး
       </div>
       <div class="nav-item" id="nav-expenses" onclick="showPage('expenses')">
-        <span class="nav-icon">💰</span> Expenses
+        <span class="nav-icon">💰</span> ကုန်ကျစရိတ်
       </div>
 
-      <div class="nav-sect">Admin</div>
+      <div class="nav-sect">စီမံခန့်ခွဲမှု</div>
       <div class="nav-item" id="nav-upgrade" onclick="showPage('upgrade')">
-        <span class="nav-icon">⬆</span> Plan upgrade
+        <span class="nav-icon">⬆</span> Plan အဆင့်မြှင့်
         <span class="nav-badge plan-badge" id="nav-plan-badge"></span>
       </div>
       <div class="nav-item" id="nav-backup" onclick="showPage('backup')">
-        <span class="nav-icon">💾</span> My data backup
+        <span class="nav-icon">💾</span> Data Backup
       </div>
       <div class="nav-item" id="nav-storefront" onclick="showPage('storefront')">
-        <span class="nav-icon">🎨</span> Storefront
+        <span class="nav-icon">🎨</span> ဆိုင်ဝင်ပေါက်
       </div>
       <div class="nav-item" id="nav-settings" onclick="showPage('settings')">
-        <span class="nav-icon">⚙️</span> Settings
+        <span class="nav-icon">⚙️</span> ဆက်တင်
       </div>
       <div class="nav-item" id="nav-schedule" onclick="showPage('schedule')">
-        <span class="nav-icon">📅</span> Scheduling
+        <span class="nav-icon">📅</span> အချိန်ဇယား
       </div>
     </nav>
 
@@ -548,7 +548,7 @@ td{padding:.65rem .9rem;color:var(--ink)}
     </div>
     <div class="table-wrap">
       <div class="table-toolbar" style="padding:.6rem 1rem;border-bottom:0.5px solid var(--border);display:flex;gap:.5rem;flex-wrap:wrap">
-        <input id="menu-search" placeholder="Search..." oninput="filterMenu()" style="padding:.4rem .7rem;border:0.5px solid var(--border);border-radius:8px;background:var(--warm);color:var(--ink);font-size:.82rem;width:180px">
+        <input id="menu-search" placeholder="ရှာဖွေပါ..." oninput="filterMenu()" style="padding:.4rem .7rem;border:0.5px solid var(--border);border-radius:8px;background:var(--warm);color:var(--ink);font-size:.82rem;width:180px">
         <select id="menu-cat-filter" onchange="filterMenu()" style="padding:.4rem .7rem;border:0.5px solid var(--border);border-radius:8px;background:var(--warm);color:var(--ink);font-size:.82rem">
           <option value="">All categories</option>
         </select>
