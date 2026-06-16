@@ -2010,55 +2010,55 @@ function saasRender(list){
     const expDays     = exp ? Math.ceil((new Date(exp)-now)/86400000) : null;
     const expColor    = expDays!==null && expDays<=7 ? '#dc2626' : expDays!==null && expDays<=30 ? '#d97706' : 'var(--muted)';
     const revenue     = parseInt(t.total_revenue||0);
-    return \`<tr data-id="\${t.id}" data-idx="\${idx}">
+    return `<tr data-id="${t.id}" data-idx="${idx}">
       <td style="text-align:center;padding:.3rem .5rem">
         <div style="display:flex;flex-direction:column;gap:1px">
-          <button onclick="saasMoveRow(\${t.id},-1)" title="Move up"
+          <button onclick="saasMoveRow(${t.id},-1)" title="Move up"
             style="background:none;border:0.5px solid var(--border);border-radius:4px;cursor:pointer;color:var(--muted);font-size:.7rem;padding:1px 4px;line-height:1">▲</button>
-          <button onclick="saasMoveRow(\${t.id},1)" title="Move down"
+          <button onclick="saasMoveRow(${t.id},1)" title="Move down"
             style="background:none;border:0.5px solid var(--border);border-radius:4px;cursor:pointer;color:var(--muted);font-size:.7rem;padding:1px 4px;line-height:1">▼</button>
         </div>
       </td>
-      <td style="color:var(--muted);font-size:.78rem;font-weight:500">\${t.id}</td>
+      <td style="color:var(--muted);font-size:.78rem;font-weight:500">${t.id}</td>
       <td>
-        <div style="font-weight:500;font-size:.88rem">\${escH(t.name)}</div>
-        <div style="font-size:.72rem;color:var(--muted)">\${t.owner_email||''}</div>
-        <div style="font-size:.7rem;color:var(--muted)">\${t.owner_phone||''}</div>
+        <div style="font-weight:500;font-size:.88rem">${escH(t.name)}</div>
+        <div style="font-size:.72rem;color:var(--muted)">${t.owner_email||''}</div>
+        <div style="font-size:.7rem;color:var(--muted)">${t.owner_phone||''}</div>
       </td>
       <td>
-        <div style="font-family:monospace;font-size:.78rem;color:var(--accent)">\${t.slug||'—'}</div>
+        <div style="font-family:monospace;font-size:.78rem;color:var(--accent)">${t.slug||'—'}</div>
         <div style="display:flex;gap:.3rem;margin-top:.3rem">
-          <a href="\${orderingUrl}" target="_blank"
+          <a href="${orderingUrl}" target="_blank"
             style="font-size:.68rem;padding:1px 6px;border-radius:4px;background:rgba(99,102,241,.1);color:var(--accent);text-decoration:none">🛒 Order</a>
-          <a href="\${adminUrl}" target="_blank"
+          <a href="${adminUrl}" target="_blank"
             style="font-size:.68rem;padding:1px 6px;border-radius:4px;background:rgba(99,102,241,.1);color:var(--accent);text-decoration:none">👤 Admin</a>
         </div>
       </td>
       <td>
-        <span style="font-size:.72rem;padding:2px 8px;border-radius:99px;background:\${planColors[t.plan]||'#888'}22;color:\${planColors[t.plan]||'#888'};font-weight:600">
-          \${(t.plan||'').toUpperCase()}
+        <span style="font-size:.72rem;padding:2px 8px;border-radius:99px;background:${planColors[t.plan]||'#888'}22;color:${planColors[t.plan]||'#888'};font-weight:600">
+          ${(t.plan||'').toUpperCase()}
         </span>
       </td>
-      <td style="font-size:.82rem;text-align:right">\${parseInt(t.total_orders||0).toLocaleString()}</td>
-      <td style="font-size:.82rem;text-align:right;font-weight:\${revenue>0?'600':'400'}">\${revenue>0?(revenue/1000).toFixed(0)+'K':'—'}</td>
-      <td style="font-size:.78rem;color:\${expColor}">\${exp||'—'}\${expDays!==null?'<div style="font-size:.68rem">'+expDays+'d</div>':''}</td>
+      <td style="font-size:.82rem;text-align:right">${parseInt(t.total_orders||0).toLocaleString()}</td>
+      <td style="font-size:.82rem;text-align:right;font-weight:${revenue>0?'600':'400'}">${revenue>0?(revenue/1000).toFixed(0)+'K':'—'}</td>
+      <td style="font-size:.78rem;color:${expColor}">${exp||'—'}${expDays!==null?'<div style="font-size:.68rem">'+expDays+'d</div>':''}</td>
       <td>
-        <span style="font-size:.72rem;padding:2px 7px;border-radius:99px;background:\${t.is_active?'rgba(5,150,105,.1)':'rgba(220,38,38,.1)'};color:\${t.is_active?'#059669':'#dc2626'}">
-          \${t.is_active?'✓ Active':'✗ Off'}
+        <span style="font-size:.72rem;padding:2px 7px;border-radius:99px;background:${t.is_active?'rgba(5,150,105,.1)':'rgba(220,38,38,.1)'};color:${t.is_active?'#059669':'#dc2626'}">
+          ${t.is_active?'✓ Active':'✗ Off'}
         </span>
       </td>
       <td>
         <div style="display:flex;gap:.3rem;flex-wrap:wrap">
-          <button class="btn btn-ghost btn-sm" onclick="openEditTenant(\${t.id})" title="Edit">✏️</button>
-          <button class="btn btn-ghost btn-sm" onclick="impersonateAsTenant(\${t.id},'\${escH(t.name)}')" title="View as tenant">👤</button>
-          <button class="btn btn-ghost btn-sm" onclick="downloadTenantBackup(\${t.id},'\${escH(t.name)}')" title="Download backup">💾</button>
-          <button class="btn btn-ghost btn-sm" onclick="toggleTenant(\${t.id},\${t.is_active})"
-            style="color:\${t.is_active?'#dc2626':'#059669'}" title="\${t.is_active?'Suspend':'Activate'}">
-            \${t.is_active?'⊘':'✓'}
+          <button class="btn btn-ghost btn-sm" onclick="openEditTenant(${t.id})" title="Edit">✏️</button>
+          <button class="btn btn-ghost btn-sm" onclick="impersonateAsTenant(${t.id},'${escH(t.name)}')" title="View as tenant">👤</button>
+          <button class="btn btn-ghost btn-sm" onclick="downloadTenantBackup(${t.id},'${escH(t.name)}')" title="Download backup">💾</button>
+          <button class="btn btn-ghost btn-sm" onclick="toggleTenant(${t.id},${t.is_active})"
+            style="color:${t.is_active?'#dc2626':'#059669'}" title="${t.is_active?'Suspend':'Activate'}">
+            ${t.is_active?'⊘':'✓'}
           </button>
         </div>
       </td>
-    </tr>\`;
+    </tr>`;
   }).join('');
 
   const countEl = document.getElementById('saas-filter-count');
