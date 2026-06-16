@@ -1621,6 +1621,34 @@ async function doLogin() {
       </div>
     </div>
   <!-- Additional platform pages -->
+<!-- ═══ SAAS DASHBOARD ═══ -->
+<div id="page-saas" style="display:none">
+  <div class="page-head">
+    <div style="display:flex;align-items:center;gap:.5rem">
+      <button class="hamburger" onclick="openSidebar()">☰</button>
+      <div class="page-title">🌐 SaaS Dashboard</div>
+    </div>
+  </div>
+  <div class="content">
+    <!-- Top stats -->
+    <div class="stats-grid" style="margin-bottom:1rem">
+      <div class="stat-card"><div class="stat-val" id="saas-total">—</div><div class="stat-lbl">Total tenants</div></div>
+      <div class="stat-card"><div class="stat-val" id="saas-pro">—</div><div class="stat-lbl">Pro + Enterprise</div></div>
+      <div class="stat-card"><div class="stat-val" id="saas-mrr">—</div><div class="stat-lbl">MRR (MMK)</div></div>
+      <div class="stat-card"><div class="stat-val" id="saas-expiring">—</div><div class="stat-lbl">Expiring (7d)</div></div>
+    </div>
+
+    <!-- Tenant table -->
+    <div class="table-wrap">
+      <div style="padding:.6rem 1rem;font-size:.82rem;font-weight:600;border-bottom:0.5px solid var(--border)">All tenants</div>
+      <table>
+        <thead><tr><th>#</th><th>Business</th><th>Plan</th><th>Expires</th><th>Status</th><th>Actions</th></tr></thead>
+        <tbody id="saas-tbody"><tr><td colspan="6" style="text-align:center;padding:2rem;color:var(--muted)">Loading...</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
 <div id="page-settings" style="display:none">
   <div class="page-head">
     <div style="display:flex;align-items:center;gap:.5rem">
