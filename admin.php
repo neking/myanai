@@ -1620,7 +1620,6 @@ async function doLogin() {
         </div>
       </div>
     </div>
-  </div>
   <!-- Additional platform pages -->
 <div id="page-settings" style="display:none">
   <div class="page-head">
@@ -2228,7 +2227,6 @@ document.addEventListener('DOMContentLoaded', function() {
   </div>
 </div>
 </div>
-
 
 
 <!-- ── ADD / EDIT MODAL ── -->
