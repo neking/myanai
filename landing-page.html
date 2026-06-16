@@ -22,13 +22,16 @@
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{
-  --bg:#09090b;--bg2:#111116;--bg3:#18181f;
-  --card:#1c1c24;--border:#2a2a38;--border2:#363648;
-  --gold:#a78bfa;--gold-dim:#4c1d95;--gold-glow:#c4b5fd;
-  --accent:#6366f1;--accent2:#818cf8;
-  --text:#f8fafc;--text-mid:#94a3b8;--text-dim:#475569;
+  /* ── Light palette (warm, professional, readable) ── */
+  --bg:#FAFAF8;--bg2:#F1F5F9;--bg3:#E2E8F0;
+  --card:#FFFFFF;--border:#E2E8F0;--border2:#CBD5E1;
+  --gold:#2563EB;--gold-dim:#DBEAFE;--gold-glow:#93C5FD;
+  --accent:#10B981;--accent2:#059669;
+  --text:#0F172A;--text-mid:#475569;--text-dim:#94A3B8;
   --radius:14px;--radius-sm:8px;
-  --glow:0 0 40px rgba(99,102,241,.15);
+  --glow:0 0 40px rgba(16,185,129,.12);
+  /* Hero keeps dark */
+  --hero-bg:#09090b;--hero-text:#f8fafc;
 }
 html{scroll-behavior:smooth}
 body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);line-height:1.6;overflow-x:hidden}
@@ -43,7 +46,7 @@ nav{position:fixed;top:0;left:0;right:0;z-index:100;padding:1rem 5vw;display:fle
 .nav-logo-text{font-size:1rem;font-weight:700;letter-spacing:-.4px;color:var(--text)}
 .nav-logo-text span{color:var(--gold)}
 .nav-links{display:flex;gap:1.5rem;margin-left:auto}
-.nav-links a{color:var(--text-mid);text-decoration:none;font-size:.88rem;transition:color .15s}
+.nav-links a{color:#94a3b8;text-decoration:none;font-size:.88rem;transition:color .15s}
 .nav-links a:hover{color:var(--text)}
 .nav-cta{background:var(--accent);color:#fff;padding:.45rem 1.1rem;border-radius:8px;text-decoration:none;font-size:.85rem;font-weight:600;transition:opacity .15s}
 .nav-cta:hover{opacity:.85}
@@ -51,11 +54,11 @@ nav{position:fixed;top:0;left:0;right:0;z-index:100;padding:1rem 5vw;display:fle
 /* ── HERO ── */
 .hero{min-height:100vh;padding:90px 5vw 60px;display:grid;grid-template-columns:1fr 1fr;gap:60px;align-items:center;position:relative;overflow:hidden;max-width:1200px;margin:0 auto}
 .hero::before{content:'';position:absolute;top:20%;left:30%;width:600px;height:600px;background:radial-gradient(circle,rgba(99,102,241,.12) 0%,transparent 70%);pointer-events:none}
-.hero-label{display:inline-flex;align-items:center;gap:.5rem;font-size:.78rem;font-weight:600;color:var(--accent2);background:rgba(99,102,241,.1);border:0.5px solid rgba(99,102,241,.2);padding:.3rem .75rem;border-radius:99px;margin-bottom:1.5rem;text-transform:uppercase;letter-spacing:.06em}
-.hero-h1{font-size:clamp(2.2rem,5vw,3.8rem);font-weight:700;letter-spacing:-.03em;line-height:1.1;margin-bottom:1.2rem}
+.hero-label{color:#a78bfa;display:inline-flex;align-items:center;gap:.5rem;font-size:.78rem;font-weight:600;color:var(--accent2);background:rgba(99,102,241,.1);border:0.5px solid rgba(99,102,241,.2);padding:.3rem .75rem;border-radius:99px;margin-bottom:1.5rem;text-transform:uppercase;letter-spacing:.06em}
+.hero-h1{font-size:clamp(2.2rem,5vw,3.8rem);font-weight:700;letter-spacing:-.03em;line-height:1.1;margin-bottom:1.2rem;color:#f8fafc}
 .hero-h1 em{font-style:normal;color:var(--gold)}
-.hero-sub{font-size:1rem;color:var(--text-mid);line-height:1.7;margin-bottom:.75rem;max-width:480px}
-.hero-desc{font-size:.88rem;color:var(--text-dim);line-height:1.7;margin-bottom:2rem;max-width:480px}
+.hero-sub{font-size:1rem;color:#94a3b8;line-height:1.7;margin-bottom:.75rem;max-width:480px}
+.hero-desc{font-size:.88rem;color:#64748b;line-height:1.7;margin-bottom:2rem;max-width:480px}
 .hero-btns{display:flex;gap:.75rem;flex-wrap:wrap}
 .btn-primary{background:var(--accent);color:#fff;padding:.7rem 1.5rem;border-radius:10px;text-decoration:none;font-weight:600;font-size:.9rem;transition:all .15s;display:inline-flex;align-items:center;gap:.4rem}
 .btn-primary:hover{background:var(--accent2);transform:translateY(-1px)}
@@ -193,7 +196,7 @@ footer{padding:3rem 5vw;border-top:0.5px solid var(--border);max-width:1200px;ma
 </nav>
 
 <!-- HERO -->
-<section class="hero" style="margin-top:0;padding-top:120px">
+<section class="hero" style="margin-top:0;padding-top:120px;background:#09090b;color:#f8fafc">
   <div class="hero-left reveal">
     <div class="hero-label" id="hero-label">🇲🇲 မြန်မာနိုင်ငံသားများ ဖန်တီးထားသော AI နည်းပညာ</div>
     <h1 class="hero-h1" id="hero-h1">
@@ -322,7 +325,7 @@ footer{padding:3rem 5vw;border-top:0.5px solid var(--border);max-width:1200px;ma
 </section>
 
 <!-- DEMO SECTION -->
-<section class="demo-section" id="demo">
+<section class="demo-section" id="demo" style="background:#0F172A">
   <div class="demo-box reveal">
     <h2 class="demo-h2" id="demo-heading">Live Demo ကြည့်ပါ</h2>
     <p class="demo-sub" id="demo-sub">Sign up မလုပ်ဘဲ features အကုန် စမ်းနိုင်သည်</p>
@@ -354,7 +357,7 @@ footer{padding:3rem 5vw;border-top:0.5px solid var(--border);max-width:1200px;ma
 </section>
 
 <!-- FOOTER -->
-<footer id="page-footer">
+<footer id="page-footer" style="background:#0F172A;color:#94a3b8">
   <div class="foot-copy" id="foot-copy">© 2026 MyanAi · Made in Myanmar 🇲🇲</div>
   <div class="foot-links">
     <a href="signup.html">Sign up</a>
