@@ -1621,406 +1621,7 @@ async function doLogin() {
       </div>
     </div>
   </div>
-</div>
-
-
-
-<!-- ── ADD / EDIT MODAL ── -->
-<div class="modal-bg" id="item-modal">
-  <div class="modal">
-    <div class="modal-head">
-      <h3 id="modal-title">Add Menu Item</h3>
-      <button class="x-btn" onclick="closeModal()">✕</button>
-    </div>
-    <div class="modal-body">
-      <input type="hidden" id="f-id">
-      <div class="form-grid">
-        <div class="form-group">
-          <label>Emoji</label>
-          <input type="text" id="f-emoji" placeholder="🍜" maxlength="4" style="font-size:1.4rem;text-align:center">
-        </div>
-        <div class="form-group">
-          <label>Category</label>
-          <select id="f-cat">
-            <option>Noodles</option><option>Rice</option><option>Starters</option>
-            <option>Soups</option><option>Desserts</option><option>Drinks</option>
-          </select>
-        </div>
-        <div class="form-group full-width">
-          <label>Item Name *</label>
-          <input type="text" id="f-name" placeholder="e.g. Mohinga">
-        </div>
-        <div class="form-group full-width">
-          <label>Description</label>
-          <textarea id="f-desc" placeholder="Short description…"></textarea>
-        </div>
-        <div class="form-group">
-          <label>Price (USD $) *</label>
-          <input type="number" id="f-price" placeholder="4500" min="0">
-        </div>
-        <div class="form-group">
-          <label>Stock Qty *</label>
-          <input type="number" id="f-stock" placeholder="20" min="0">
-        </div>
-        <div class="form-group full-width" id="active-row" style="display:none">
-          <label style="display:flex;align-items:center;gap:.6rem;cursor:pointer">
-            <input type="checkbox" id="f-active" style="width:16px;height:16px">
-            Show on menu (Active)
-          </label>
-        </div>
-        <div class="form-group" id="station-row">
-          <label>Kitchen Station</label>
-          <select id="f-station">
-            <option value="kitchen">🍳 Kitchen</option>
-            <option value="counter">🥤 Counter</option>
-            <option value="bar">🍹 Bar</option>
-            <option value="all">📋 All Stations</option>
-          </select>
-        </div>
-        <div class="form-group full-width" id="img-upload-row" style="display:none">
-          <label>ဓာတ်ပုံ (optional)</label>
-          <div style="display:flex;align-items:center;gap:.8rem;flex-wrap:wrap">
-            <img id="img-current-preview" class="img-current" src="" alt="" style="display:none">
-            <div style="flex:1">
-              <div class="img-upload-area" onclick="document.getElementById('img-file-input').click()">
-                <input type="file" id="img-file-input" accept="image/*" onchange="previewImg(this)">
-                <div id="img-upload-label">📷 ဓာတ်ပုံရွေးချယ်ရန် နှိပ်ပါ<br><small style="color:var(--muted)">JPG/PNG/GIF/WEBP — Max 2MB</small></div>
-                <img id="img-new-preview" class="img-preview" src="" alt="" style="display:none">
-              </div>
-              <div style="display:flex;gap:.5rem;margin-top:.5rem">
-                <button type="button" class="btn btn-ghost btn-sm" onclick="uploadImg()" id="img-upload-btn" style="display:none">↑ Upload</button>
-                <button type="button" class="btn btn-danger btn-sm" onclick="removeImg()" id="img-remove-btn" style="display:none">✕ Remove</button>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-    <div class="modal-foot" style="justify-content:space-between">
-      <div style="display:flex;gap:.5rem">
-        <button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
-        <button class="btn btn-ghost" id="modifier-btn" onclick="openModifierModal()" style="display:none">⚙️ Modifiers</button>
-      </div>
-      <button class="btn btn-primary" id="modal-save-btn" onclick="saveItem()">Save Item</button>
-    </div>
-  </div>
-</div>
-
-<!-- ── MODIFIER SECTION (shown below item modal when editing) ── -->
-<div class="modal-bg" id="modifier-modal">
-  <div class="modal" style="max-width:680px">
-    <div class="modal-head">
-      <h3>⚙️ Modifiers — <span id="mod-item-name"></span></h3>
-      <button class="x-btn" onclick="closeModifierModal()">✕</button>
-    </div>
-    <div class="modal-body">
-      <p style="font-size:.82rem;color:var(--muted);margin-bottom:1rem">
-        Modifier group တွေ ထည့်ပြီး customer မှာတဲ့အချိန် ရွေးချယ်နိုင်အောင် လုပ်ပေးပါ။
-      </p>
-      <div id="modifier-groups-list"></div>
-      <button class="btn btn-ghost" style="width:100%;margin-top:.8rem" onclick="openAddGroupForm()">
-        + Add Modifier Group
-      </button>
-
-      <!-- Add/Edit Group Form -->
-      <div id="group-form" style="display:none;margin-top:1rem;padding:1rem;background:var(--surface);border-radius:10px;border:1px solid var(--border)">
-        <input type="hidden" id="gf-id">
-        <div class="form-grid">
-          <div class="form-group">
-            <label>Group Name *</label>
-            <input type="text" id="gf-name" placeholder="e.g. Size, Ice Level">
-          </div>
-          <div class="form-group">
-            <label>Type</label>
-            <select id="gf-type">
-              <option value="single">Single Select (တစ်ခုပဲရွေး)</option>
-              <option value="multi">Multi Select (တစ်ခုထက်ပိုရွေး)</option>
-              <option value="text">Free Text (မှတ်ချက်)</option>
-            </select>
-          </div>
-          <div class="form-group">
-            <label style="display:flex;align-items:center;gap:.5rem;cursor:pointer">
-              <input type="checkbox" id="gf-required" style="width:16px;height:16px">
-              Required (မဖြစ်မနေ ရွေးရမည်)
-            </label>
-          </div>
-        </div>
-        <div style="display:flex;gap:.5rem;margin-top:.5rem">
-          <button class="btn btn-primary btn-sm" onclick="saveModifierGroup()">Save Group</button>
-          <button class="btn btn-ghost btn-sm" onclick="cancelGroupForm()">Cancel</button>
-        </div>
-      </div>
-    </div>
-    <div class="modal-foot">
-      <button class="btn btn-primary" onclick="closeModifierModal()">Done</button>
-    </div>
-  </div>
-</div>
-
-<!-- ── OPTION FORM MODAL ── -->
-<div class="modal-bg" id="option-modal">
-  <div class="modal" style="max-width:420px">
-    <div class="modal-head">
-      <h3 id="opt-modal-title">Add Option</h3>
-      <button class="x-btn" onclick="closeOptionModal()">✕</button>
-    </div>
-    <div class="modal-body">
-      <input type="hidden" id="of-id">
-      <input type="hidden" id="of-group-id">
-      <div class="form-group">
-        <label>Option Label *</label>
-        <input type="text" id="of-label" placeholder="e.g. Large, No Ice, Extra Egg">
-      </div>
-      <div class="form-group">
-        <label>Extra Price (ကျပ်) — 0 = free</label>
-        <input type="number" id="of-price" placeholder="0" min="0" value="0">
-      </div>
-      <div class="form-group">
-        <label style="display:flex;align-items:center;gap:.5rem;cursor:pointer">
-          <input type="checkbox" id="of-default" style="width:16px;height:16px">
-          Default selection
-        </label>
-      </div>
-    </div>
-    <div class="modal-foot">
-      <button class="btn btn-ghost" onclick="closeOptionModal()">Cancel</button>
-      <button class="btn btn-primary" onclick="saveModifierOption()">Save</button>
-    </div>
-  </div>
-</div>
-<div class="modal-bg" id="batch-modal">
-  <div class="modal" style="max-width:720px">
-    <div class="modal-head">
-      <h3>📥 Batch Upload Menu Items</h3>
-      <button class="x-btn" onclick="closeBatchModal()">✕</button>
-    </div>
-    <div class="modal-body" id="batch-modal-body">
-
-      <!-- Step 1: Upload -->
-      <div id="batch-step1">
-        <div style="background:var(--warm);border-radius:10px;padding:1rem;margin-bottom:1rem;font-size:.85rem;line-height:1.8;border:1px solid var(--border)">
-          <strong>CSV format (ပထမ row = header) —</strong><br>
-          <code style="font-size:.8rem">name, category, price, stock, emoji, description</code><br>
-          <span style="color:var(--muted)">Category (English): Noodles / Rice / Starters / Soups / Desserts / Drinks</span><br>
-          <span style="color:var(--muted)">Myanmar aliases: ခေါက်ဆွဲ=Noodles · ထမင်း=Rice · ဟင်းချို=Soups · အချိုရည်=Drinks</span><br>
-          <span style="color:var(--muted)">Price: dollar cents မဟုတ်ဘဲ display value (e.g. 4.50)</span>
-        </div>
-
-        <!-- Drop zone -->
-        <div id="batch-dropzone"
-          style="border:2px dashed var(--border);border-radius:12px;padding:2.5rem;text-align:center;cursor:pointer;transition:border-color .2s;background:var(--warm)"
-          onclick="document.getElementById('batch-file').click()"
-          ondragover="event.preventDefault();this.style.borderColor='var(--ink)'"
-          ondragleave="this.style.borderColor='var(--border)'"
-          ondrop="event.preventDefault();this.style.borderColor='var(--border)';handleBatchFile(event.dataTransfer.files[0])">
-          <div style="font-size:2.5rem;margin-bottom:.5rem">📂</div>
-          <div style="font-weight:600;margin-bottom:.3rem">CSV ဖိုင် ဒီနေရာတွင် ချထားပါ</div>
-          <div style="font-size:.82rem;color:var(--muted)">သို့မဟုတ် နှိပ်ပြီး ရွေးပါ (.csv only)</div>
-          <input type="file" id="batch-file" accept=".csv,.txt" style="display:none"
-            onchange="handleBatchFile(this.files[0])">
-        </div>
-
-        <div style="margin-top:.8rem;text-align:center">
-          <button class="btn btn-ghost btn-sm" onclick="downloadTemplate()">⬇ CSV Template ဒေါင်းလုဒ်</button>
-        </div>
-      </div>
-
-      <!-- Step 2: Preview -->
-      <div id="batch-step2" style="display:none">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.8rem;flex-wrap:wrap;gap:.5rem">
-          <div id="batch-summary" style="font-size:.88rem"></div>
-          <button class="btn btn-ghost btn-sm" onclick="resetBatch()">↺ ပြန်ရွေး</button>
-        </div>
-
-        <!-- Errors -->
-        <div id="batch-errors" style="display:none;background:#fee2e2;border:1px solid #fca5a5;border-radius:8px;padding:.8rem 1rem;margin-bottom:.8rem;font-size:.82rem;color:#991b1b;max-height:100px;overflow-y:auto"></div>
-
-        <!-- Preview table -->
-        <div style="overflow-x:auto;max-height:320px;overflow-y:auto;border-radius:8px;border:1px solid var(--border)">
-          <table style="width:100%;border-collapse:collapse;font-size:.82rem">
-            <thead style="position:sticky;top:0;background:var(--warm);z-index:1">
-              <tr>
-                <th style="padding:.5rem .8rem;text-align:left;font-size:.72rem;text-transform:uppercase;color:var(--muted)">Row</th>
-                <th style="padding:.5rem .8rem;text-align:left">Name</th>
-                <th style="padding:.5rem .8rem;text-align:left">Category</th>
-                <th style="padding:.5rem .8rem;text-align:right">Price</th>
-                <th style="padding:.5rem .8rem;text-align:right">Stock</th>
-                <th style="padding:.5rem .8rem;text-align:center">Emoji</th>
-                <th style="padding:.5rem .8rem;text-align:left">Description</th>
-              </tr>
-            </thead>
-            <tbody id="batch-preview-body"></tbody>
-          </table>
-        </div>
-      </div>
-
-    </div>
-    <div class="modal-foot" id="batch-modal-foot">
-      <button class="btn btn-ghost" onclick="closeBatchModal()">Cancel</button>
-    </div>
-  </div>
-</div>
-
-<!-- ── RESTOCK MODAL ── -->
-<div class="modal-bg" id="restock-modal">
-  <div class="modal" style="max-width:360px">
-    <div class="modal-head">
-      <h3>↑ Restock</h3>
-      <button class="x-btn" onclick="closeRestock()">✕</button>
-    </div>
-    <div class="modal-body">
-      <div style="font-size:.9rem;color:var(--muted);margin-bottom:.8rem" id="restock-name"></div>
-      <div style="font-size:.85rem;margin-bottom:.8rem">Current stock: <strong id="restock-current"></strong></div>
-      <div class="form-group">
-        <label>Add Qty</label>
-        <input type="number" id="restock-qty" placeholder="e.g. 50" min="1" style="font-size:1rem">
-      </div>
-      <div style="display:flex;gap:.5rem;flex-wrap:wrap">
-        <button class="btn btn-ghost btn-sm" onclick="setRestock(10)">+10</button>
-        <button class="btn btn-ghost btn-sm" onclick="setRestock(20)">+20</button>
-        <button class="btn btn-ghost btn-sm" onclick="setRestock(50)">+50</button>
-        <button class="btn btn-ghost btn-sm" onclick="setRestock(100)">+100</button>
-      </div>
-    </div>
-    <div class="modal-foot">
-      <button class="btn btn-ghost" onclick="closeRestock()">Cancel</button>
-      <button class="btn btn-success" onclick="doRestock()">✓ Add Stock</button>
-    </div>
-  </div>
-</div>
-
-<?php endif; ?>
-<!-- DELETE ORDER MODAL -->
-<div class="modal-bg" id="del-order-modal">
-  <div class="modal" style="max-width:440px">
-    <div class="modal-head" style="background:#991b1b">
-      <h3>🗑 Delete Order</h3>
-      <button class="x-btn" onclick="closeDelOrder()">✕</button>
-    </div>
-    <div class="modal-body">
-      <div style="font-size:.9rem;margin-bottom:1rem">
-        Order <strong id="del-order-ref"></strong> ကို ဖျက်မည်။
-        <span style="color:var(--muted);font-size:.82rem">Record ကိုတော့ archive ထားမည်။</span>
-      </div>
-      <div style="font-size:.82rem;font-weight:600;margin-bottom:.5rem;color:var(--muted);text-transform:uppercase;letter-spacing:.05em">Reason ရွေးပါ</div>
-      <div class="reason-grid" id="reason-grid"></div>
-      <div class="form-group" style="margin-top:.5rem">
-        <label>Remark (ထပ်ဖြည့်ရန်)</label>
-        <textarea id="del-remark" placeholder="ပိုရှင်းလင်းသော အကြောင်းပြချက်…" style="min-height:60px"></textarea>
-      </div>
-    </div>
-    <div class="modal-foot">
-      <button class="btn btn-ghost" onclick="closeDelOrder()">Cancel</button>
-      <button class="btn btn-danger" onclick="confirmDelOrder()">🗑 Delete</button>
-    </div>
-  </div>
-</div>
-
-<!-- DELETED ORDERS LOG MODAL -->
-<div class="modal-bg" id="deleted-log-modal">
-  <div class="modal" style="max-width:700px">
-    <div class="modal-head">
-      <h3>📁 Deleted Orders Archive</h3>
-      <button class="x-btn" onclick="document.getElementById('deleted-log-modal').classList.remove('open')">✕</button>
-    </div>
-    <div class="modal-body" style="padding:.8rem">
-      <div style="overflow-x:auto">
-        <table>
-          <thead><tr>
-            <th>Order</th><th>Customer</th><th>Total</th>
-            <th>Reason</th><th>Deleted At</th>
-          </tr></thead>
-          <tbody id="deleted-log-body">
-            <tr><td colspan="5" style="text-align:center;padding:2rem;color:var(--muted)">Loading…</td></tr>
-          </tbody>
-        </table>
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- MOBILE BOTTOM NAV -->
-<div class="mobile-nav" id="mobile-nav">
-  <div class="mobile-nav-inner">
-    <button class="mnav-btn active" id="mnav-dashboard" onclick="showPage('dashboard')">
-      <span class="mnav-icon">📊</span>Dashboard
-    </button>
-    <button class="mnav-btn" id="mnav-menu" onclick="showPage('menu')">
-      <span class="mnav-icon">🍜</span>Menu
-    </button>
-    <button class="mnav-btn" id="mnav-orders" onclick="showPage('orders')">
-      <span class="mnav-icon">📋</span>Orders
-    </button>
-    <button class="mnav-btn" id="mnav-tables" onclick="showPage('tables')">
-      <span class="mnav-icon">🍽️</span>Tables
-    </button>
-    <button class="mnav-btn" id="mnav-reserve" onclick="showPage('reserve')">
-      <span class="mnav-icon">📅</span>Reserve
-    </button>
-    <button class="mnav-btn" id="mnav-stock" onclick="showPage('stock')">
-      <span class="mnav-icon">📦</span>Stock
-    </button>
-    <button class="mnav-btn" id="mnav-crm" onclick="showPage('crm')">
-      <span class="mnav-icon">👥</span>CRM
-    </button>
-    <button class="mnav-btn" id="mnav-shift" onclick="showPage('shift')">
-      <span class="mnav-icon">🕐</span>Shifts
-    </button>
-    <button class="mnav-btn" id="mnav-delivery" onclick="showPage('delivery')">
-      <span class="mnav-icon">🛵</span>Delivery
-    </button>
-    <button class="mnav-btn" id="mnav-branches" onclick="showPage('branches')">
-      <span class="mnav-icon">🏢</span>Branches
-    </button>
-    <button class="mnav-btn" id="mnav-settings" onclick="showPage('settings')">
-      <span class="mnav-icon">⚙️</span>Settings
-    </button>
-    <button class="mnav-btn" onclick="doLogout()">
-      <span class="mnav-icon">↩</span>Logout
-    </button>
-  </div>
-</div>
-
-<div class="toast" id="toast"></div>
-
-<script>
-// Set CSRF token for admin_main.js
-window.__CSRF_TOKEN    = '<?= $csrfToken ?>';
-window.__TENANT_ID     = <?= json_encode($_SESS_TENANT_ID) ?>;
-window.__TENANT_NAME   = <?= json_encode($_SESS_TENANT_NAME) ?>;
-window.__TENANT_PLAN   = <?= json_encode($_SESS_TENANT_PLAN) ?>;
-window.__PLAN_EXPIRES  = <?= json_encode($_SESS_PLAN_EXPIRES) ?>;
-window.__IS_TENANT     = <?= json_encode($_IS_TENANT) ?>;
-window.__USER_ROLE     = <?= json_encode($_SESSION['admin']['role'] ?? 'superadmin') ?>;
-// Auto-set branch context for tenant login
-if(window.__TENANT_ID > 0 && window.__IS_TENANT) {
-  window._currentTenant = window.__TENANT_ID;
-}
-
-/* ── Theme Toggle: Warm Sand (light) / Midnight Black (dark) ── */
-(function initTheme(){
-  const saved = localStorage.getItem('myanai_theme');
-  const prefersDark = window.matchMedia('(prefers-color-scheme:dark)').matches;
-  const theme = saved || (prefersDark ? 'dark' : 'light');
-  document.documentElement.setAttribute('data-theme', theme);
-  const btn = document.getElementById('theme-toggle-btn');
-  if(btn) btn.textContent = theme==='dark' ? '🌙' : '☀️';
-})();
-
-function toggleTheme(){
-  const cur = document.documentElement.getAttribute('data-theme') || 'light';
-  const next = cur === 'dark' ? 'light' : 'dark';
-  document.documentElement.setAttribute('data-theme', next);
-  localStorage.setItem('myanai_theme', next);
-  const btn = document.getElementById('theme-toggle-btn');
-  if(btn) btn.textContent = next === 'dark' ? '🌙' : '☀️';
-}
-</script>
-<!-- ── UPGRADE PAGE ── -->
-
-
-
-
+  <!-- Additional platform pages -->
 <div id="page-settings" style="display:none">
   <div class="page-head">
     <div style="display:flex;align-items:center;gap:.5rem">
@@ -2626,6 +2227,406 @@ document.addEventListener('DOMContentLoaded', function() {
     </div>
   </div>
 </div>
+</div>
+
+
+
+<!-- ── ADD / EDIT MODAL ── -->
+<div class="modal-bg" id="item-modal">
+  <div class="modal">
+    <div class="modal-head">
+      <h3 id="modal-title">Add Menu Item</h3>
+      <button class="x-btn" onclick="closeModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="f-id">
+      <div class="form-grid">
+        <div class="form-group">
+          <label>Emoji</label>
+          <input type="text" id="f-emoji" placeholder="🍜" maxlength="4" style="font-size:1.4rem;text-align:center">
+        </div>
+        <div class="form-group">
+          <label>Category</label>
+          <select id="f-cat">
+            <option>Noodles</option><option>Rice</option><option>Starters</option>
+            <option>Soups</option><option>Desserts</option><option>Drinks</option>
+          </select>
+        </div>
+        <div class="form-group full-width">
+          <label>Item Name *</label>
+          <input type="text" id="f-name" placeholder="e.g. Mohinga">
+        </div>
+        <div class="form-group full-width">
+          <label>Description</label>
+          <textarea id="f-desc" placeholder="Short description…"></textarea>
+        </div>
+        <div class="form-group">
+          <label>Price (USD $) *</label>
+          <input type="number" id="f-price" placeholder="4500" min="0">
+        </div>
+        <div class="form-group">
+          <label>Stock Qty *</label>
+          <input type="number" id="f-stock" placeholder="20" min="0">
+        </div>
+        <div class="form-group full-width" id="active-row" style="display:none">
+          <label style="display:flex;align-items:center;gap:.6rem;cursor:pointer">
+            <input type="checkbox" id="f-active" style="width:16px;height:16px">
+            Show on menu (Active)
+          </label>
+        </div>
+        <div class="form-group" id="station-row">
+          <label>Kitchen Station</label>
+          <select id="f-station">
+            <option value="kitchen">🍳 Kitchen</option>
+            <option value="counter">🥤 Counter</option>
+            <option value="bar">🍹 Bar</option>
+            <option value="all">📋 All Stations</option>
+          </select>
+        </div>
+        <div class="form-group full-width" id="img-upload-row" style="display:none">
+          <label>ဓာတ်ပုံ (optional)</label>
+          <div style="display:flex;align-items:center;gap:.8rem;flex-wrap:wrap">
+            <img id="img-current-preview" class="img-current" src="" alt="" style="display:none">
+            <div style="flex:1">
+              <div class="img-upload-area" onclick="document.getElementById('img-file-input').click()">
+                <input type="file" id="img-file-input" accept="image/*" onchange="previewImg(this)">
+                <div id="img-upload-label">📷 ဓာတ်ပုံရွေးချယ်ရန် နှိပ်ပါ<br><small style="color:var(--muted)">JPG/PNG/GIF/WEBP — Max 2MB</small></div>
+                <img id="img-new-preview" class="img-preview" src="" alt="" style="display:none">
+              </div>
+              <div style="display:flex;gap:.5rem;margin-top:.5rem">
+                <button type="button" class="btn btn-ghost btn-sm" onclick="uploadImg()" id="img-upload-btn" style="display:none">↑ Upload</button>
+                <button type="button" class="btn btn-danger btn-sm" onclick="removeImg()" id="img-remove-btn" style="display:none">✕ Remove</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="modal-foot" style="justify-content:space-between">
+      <div style="display:flex;gap:.5rem">
+        <button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
+        <button class="btn btn-ghost" id="modifier-btn" onclick="openModifierModal()" style="display:none">⚙️ Modifiers</button>
+      </div>
+      <button class="btn btn-primary" id="modal-save-btn" onclick="saveItem()">Save Item</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── MODIFIER SECTION (shown below item modal when editing) ── -->
+<div class="modal-bg" id="modifier-modal">
+  <div class="modal" style="max-width:680px">
+    <div class="modal-head">
+      <h3>⚙️ Modifiers — <span id="mod-item-name"></span></h3>
+      <button class="x-btn" onclick="closeModifierModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <p style="font-size:.82rem;color:var(--muted);margin-bottom:1rem">
+        Modifier group တွေ ထည့်ပြီး customer မှာတဲ့အချိန် ရွေးချယ်နိုင်အောင် လုပ်ပေးပါ။
+      </p>
+      <div id="modifier-groups-list"></div>
+      <button class="btn btn-ghost" style="width:100%;margin-top:.8rem" onclick="openAddGroupForm()">
+        + Add Modifier Group
+      </button>
+
+      <!-- Add/Edit Group Form -->
+      <div id="group-form" style="display:none;margin-top:1rem;padding:1rem;background:var(--surface);border-radius:10px;border:1px solid var(--border)">
+        <input type="hidden" id="gf-id">
+        <div class="form-grid">
+          <div class="form-group">
+            <label>Group Name *</label>
+            <input type="text" id="gf-name" placeholder="e.g. Size, Ice Level">
+          </div>
+          <div class="form-group">
+            <label>Type</label>
+            <select id="gf-type">
+              <option value="single">Single Select (တစ်ခုပဲရွေး)</option>
+              <option value="multi">Multi Select (တစ်ခုထက်ပိုရွေး)</option>
+              <option value="text">Free Text (မှတ်ချက်)</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label style="display:flex;align-items:center;gap:.5rem;cursor:pointer">
+              <input type="checkbox" id="gf-required" style="width:16px;height:16px">
+              Required (မဖြစ်မနေ ရွေးရမည်)
+            </label>
+          </div>
+        </div>
+        <div style="display:flex;gap:.5rem;margin-top:.5rem">
+          <button class="btn btn-primary btn-sm" onclick="saveModifierGroup()">Save Group</button>
+          <button class="btn btn-ghost btn-sm" onclick="cancelGroupForm()">Cancel</button>
+        </div>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-primary" onclick="closeModifierModal()">Done</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── OPTION FORM MODAL ── -->
+<div class="modal-bg" id="option-modal">
+  <div class="modal" style="max-width:420px">
+    <div class="modal-head">
+      <h3 id="opt-modal-title">Add Option</h3>
+      <button class="x-btn" onclick="closeOptionModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="of-id">
+      <input type="hidden" id="of-group-id">
+      <div class="form-group">
+        <label>Option Label *</label>
+        <input type="text" id="of-label" placeholder="e.g. Large, No Ice, Extra Egg">
+      </div>
+      <div class="form-group">
+        <label>Extra Price (ကျပ်) — 0 = free</label>
+        <input type="number" id="of-price" placeholder="0" min="0" value="0">
+      </div>
+      <div class="form-group">
+        <label style="display:flex;align-items:center;gap:.5rem;cursor:pointer">
+          <input type="checkbox" id="of-default" style="width:16px;height:16px">
+          Default selection
+        </label>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" onclick="closeOptionModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="saveModifierOption()">Save</button>
+    </div>
+  </div>
+</div>
+<div class="modal-bg" id="batch-modal">
+  <div class="modal" style="max-width:720px">
+    <div class="modal-head">
+      <h3>📥 Batch Upload Menu Items</h3>
+      <button class="x-btn" onclick="closeBatchModal()">✕</button>
+    </div>
+    <div class="modal-body" id="batch-modal-body">
+
+      <!-- Step 1: Upload -->
+      <div id="batch-step1">
+        <div style="background:var(--warm);border-radius:10px;padding:1rem;margin-bottom:1rem;font-size:.85rem;line-height:1.8;border:1px solid var(--border)">
+          <strong>CSV format (ပထမ row = header) —</strong><br>
+          <code style="font-size:.8rem">name, category, price, stock, emoji, description</code><br>
+          <span style="color:var(--muted)">Category (English): Noodles / Rice / Starters / Soups / Desserts / Drinks</span><br>
+          <span style="color:var(--muted)">Myanmar aliases: ခေါက်ဆွဲ=Noodles · ထမင်း=Rice · ဟင်းချို=Soups · အချိုရည်=Drinks</span><br>
+          <span style="color:var(--muted)">Price: dollar cents မဟုတ်ဘဲ display value (e.g. 4.50)</span>
+        </div>
+
+        <!-- Drop zone -->
+        <div id="batch-dropzone"
+          style="border:2px dashed var(--border);border-radius:12px;padding:2.5rem;text-align:center;cursor:pointer;transition:border-color .2s;background:var(--warm)"
+          onclick="document.getElementById('batch-file').click()"
+          ondragover="event.preventDefault();this.style.borderColor='var(--ink)'"
+          ondragleave="this.style.borderColor='var(--border)'"
+          ondrop="event.preventDefault();this.style.borderColor='var(--border)';handleBatchFile(event.dataTransfer.files[0])">
+          <div style="font-size:2.5rem;margin-bottom:.5rem">📂</div>
+          <div style="font-weight:600;margin-bottom:.3rem">CSV ဖိုင် ဒီနေရာတွင် ချထားပါ</div>
+          <div style="font-size:.82rem;color:var(--muted)">သို့မဟုတ် နှိပ်ပြီး ရွေးပါ (.csv only)</div>
+          <input type="file" id="batch-file" accept=".csv,.txt" style="display:none"
+            onchange="handleBatchFile(this.files[0])">
+        </div>
+
+        <div style="margin-top:.8rem;text-align:center">
+          <button class="btn btn-ghost btn-sm" onclick="downloadTemplate()">⬇ CSV Template ဒေါင်းလုဒ်</button>
+        </div>
+      </div>
+
+      <!-- Step 2: Preview -->
+      <div id="batch-step2" style="display:none">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.8rem;flex-wrap:wrap;gap:.5rem">
+          <div id="batch-summary" style="font-size:.88rem"></div>
+          <button class="btn btn-ghost btn-sm" onclick="resetBatch()">↺ ပြန်ရွေး</button>
+        </div>
+
+        <!-- Errors -->
+        <div id="batch-errors" style="display:none;background:#fee2e2;border:1px solid #fca5a5;border-radius:8px;padding:.8rem 1rem;margin-bottom:.8rem;font-size:.82rem;color:#991b1b;max-height:100px;overflow-y:auto"></div>
+
+        <!-- Preview table -->
+        <div style="overflow-x:auto;max-height:320px;overflow-y:auto;border-radius:8px;border:1px solid var(--border)">
+          <table style="width:100%;border-collapse:collapse;font-size:.82rem">
+            <thead style="position:sticky;top:0;background:var(--warm);z-index:1">
+              <tr>
+                <th style="padding:.5rem .8rem;text-align:left;font-size:.72rem;text-transform:uppercase;color:var(--muted)">Row</th>
+                <th style="padding:.5rem .8rem;text-align:left">Name</th>
+                <th style="padding:.5rem .8rem;text-align:left">Category</th>
+                <th style="padding:.5rem .8rem;text-align:right">Price</th>
+                <th style="padding:.5rem .8rem;text-align:right">Stock</th>
+                <th style="padding:.5rem .8rem;text-align:center">Emoji</th>
+                <th style="padding:.5rem .8rem;text-align:left">Description</th>
+              </tr>
+            </thead>
+            <tbody id="batch-preview-body"></tbody>
+          </table>
+        </div>
+      </div>
+
+    </div>
+    <div class="modal-foot" id="batch-modal-foot">
+      <button class="btn btn-ghost" onclick="closeBatchModal()">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── RESTOCK MODAL ── -->
+<div class="modal-bg" id="restock-modal">
+  <div class="modal" style="max-width:360px">
+    <div class="modal-head">
+      <h3>↑ Restock</h3>
+      <button class="x-btn" onclick="closeRestock()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div style="font-size:.9rem;color:var(--muted);margin-bottom:.8rem" id="restock-name"></div>
+      <div style="font-size:.85rem;margin-bottom:.8rem">Current stock: <strong id="restock-current"></strong></div>
+      <div class="form-group">
+        <label>Add Qty</label>
+        <input type="number" id="restock-qty" placeholder="e.g. 50" min="1" style="font-size:1rem">
+      </div>
+      <div style="display:flex;gap:.5rem;flex-wrap:wrap">
+        <button class="btn btn-ghost btn-sm" onclick="setRestock(10)">+10</button>
+        <button class="btn btn-ghost btn-sm" onclick="setRestock(20)">+20</button>
+        <button class="btn btn-ghost btn-sm" onclick="setRestock(50)">+50</button>
+        <button class="btn btn-ghost btn-sm" onclick="setRestock(100)">+100</button>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" onclick="closeRestock()">Cancel</button>
+      <button class="btn btn-success" onclick="doRestock()">✓ Add Stock</button>
+    </div>
+  </div>
+</div>
+
+<?php endif; ?>
+<!-- DELETE ORDER MODAL -->
+<div class="modal-bg" id="del-order-modal">
+  <div class="modal" style="max-width:440px">
+    <div class="modal-head" style="background:#991b1b">
+      <h3>🗑 Delete Order</h3>
+      <button class="x-btn" onclick="closeDelOrder()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div style="font-size:.9rem;margin-bottom:1rem">
+        Order <strong id="del-order-ref"></strong> ကို ဖျက်မည်။
+        <span style="color:var(--muted);font-size:.82rem">Record ကိုတော့ archive ထားမည်။</span>
+      </div>
+      <div style="font-size:.82rem;font-weight:600;margin-bottom:.5rem;color:var(--muted);text-transform:uppercase;letter-spacing:.05em">Reason ရွေးပါ</div>
+      <div class="reason-grid" id="reason-grid"></div>
+      <div class="form-group" style="margin-top:.5rem">
+        <label>Remark (ထပ်ဖြည့်ရန်)</label>
+        <textarea id="del-remark" placeholder="ပိုရှင်းလင်းသော အကြောင်းပြချက်…" style="min-height:60px"></textarea>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" onclick="closeDelOrder()">Cancel</button>
+      <button class="btn btn-danger" onclick="confirmDelOrder()">🗑 Delete</button>
+    </div>
+  </div>
+</div>
+
+<!-- DELETED ORDERS LOG MODAL -->
+<div class="modal-bg" id="deleted-log-modal">
+  <div class="modal" style="max-width:700px">
+    <div class="modal-head">
+      <h3>📁 Deleted Orders Archive</h3>
+      <button class="x-btn" onclick="document.getElementById('deleted-log-modal').classList.remove('open')">✕</button>
+    </div>
+    <div class="modal-body" style="padding:.8rem">
+      <div style="overflow-x:auto">
+        <table>
+          <thead><tr>
+            <th>Order</th><th>Customer</th><th>Total</th>
+            <th>Reason</th><th>Deleted At</th>
+          </tr></thead>
+          <tbody id="deleted-log-body">
+            <tr><td colspan="5" style="text-align:center;padding:2rem;color:var(--muted)">Loading…</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MOBILE BOTTOM NAV -->
+<div class="mobile-nav" id="mobile-nav">
+  <div class="mobile-nav-inner">
+    <button class="mnav-btn active" id="mnav-dashboard" onclick="showPage('dashboard')">
+      <span class="mnav-icon">📊</span>Dashboard
+    </button>
+    <button class="mnav-btn" id="mnav-menu" onclick="showPage('menu')">
+      <span class="mnav-icon">🍜</span>Menu
+    </button>
+    <button class="mnav-btn" id="mnav-orders" onclick="showPage('orders')">
+      <span class="mnav-icon">📋</span>Orders
+    </button>
+    <button class="mnav-btn" id="mnav-tables" onclick="showPage('tables')">
+      <span class="mnav-icon">🍽️</span>Tables
+    </button>
+    <button class="mnav-btn" id="mnav-reserve" onclick="showPage('reserve')">
+      <span class="mnav-icon">📅</span>Reserve
+    </button>
+    <button class="mnav-btn" id="mnav-stock" onclick="showPage('stock')">
+      <span class="mnav-icon">📦</span>Stock
+    </button>
+    <button class="mnav-btn" id="mnav-crm" onclick="showPage('crm')">
+      <span class="mnav-icon">👥</span>CRM
+    </button>
+    <button class="mnav-btn" id="mnav-shift" onclick="showPage('shift')">
+      <span class="mnav-icon">🕐</span>Shifts
+    </button>
+    <button class="mnav-btn" id="mnav-delivery" onclick="showPage('delivery')">
+      <span class="mnav-icon">🛵</span>Delivery
+    </button>
+    <button class="mnav-btn" id="mnav-branches" onclick="showPage('branches')">
+      <span class="mnav-icon">🏢</span>Branches
+    </button>
+    <button class="mnav-btn" id="mnav-settings" onclick="showPage('settings')">
+      <span class="mnav-icon">⚙️</span>Settings
+    </button>
+    <button class="mnav-btn" onclick="doLogout()">
+      <span class="mnav-icon">↩</span>Logout
+    </button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// Set CSRF token for admin_main.js
+window.__CSRF_TOKEN    = '<?= $csrfToken ?>';
+window.__TENANT_ID     = <?= json_encode($_SESS_TENANT_ID) ?>;
+window.__TENANT_NAME   = <?= json_encode($_SESS_TENANT_NAME) ?>;
+window.__TENANT_PLAN   = <?= json_encode($_SESS_TENANT_PLAN) ?>;
+window.__PLAN_EXPIRES  = <?= json_encode($_SESS_PLAN_EXPIRES) ?>;
+window.__IS_TENANT     = <?= json_encode($_IS_TENANT) ?>;
+window.__USER_ROLE     = <?= json_encode($_SESSION['admin']['role'] ?? 'superadmin') ?>;
+// Auto-set branch context for tenant login
+if(window.__TENANT_ID > 0 && window.__IS_TENANT) {
+  window._currentTenant = window.__TENANT_ID;
+}
+
+/* ── Theme Toggle: Warm Sand (light) / Midnight Black (dark) ── */
+(function initTheme(){
+  const saved = localStorage.getItem('myanai_theme');
+  const prefersDark = window.matchMedia('(prefers-color-scheme:dark)').matches;
+  const theme = saved || (prefersDark ? 'dark' : 'light');
+  document.documentElement.setAttribute('data-theme', theme);
+  const btn = document.getElementById('theme-toggle-btn');
+  if(btn) btn.textContent = theme==='dark' ? '🌙' : '☀️';
+})();
+
+function toggleTheme(){
+  const cur = document.documentElement.getAttribute('data-theme') || 'light';
+  const next = cur === 'dark' ? 'light' : 'dark';
+  document.documentElement.setAttribute('data-theme', next);
+  localStorage.setItem('myanai_theme', next);
+  const btn = document.getElementById('theme-toggle-btn');
+  if(btn) btn.textContent = next === 'dark' ? '🌙' : '☀️';
+}
+</script>
+<!-- ── UPGRADE PAGE ── -->
+
+
+
+
 
 </body>
 </html>
