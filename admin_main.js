@@ -1962,47 +1962,208 @@ async function loadSaas() {
   if(window.__IS_TENANT) { toast('Super-admin only'); return; }
   const d = await fetch('tenant_api.php?action=list',{credentials:'include'}).then(r=>r.json()).catch(()=>({ok:false}));
   if(!d.ok) return;
-  const tenants = d.tenants || [];
+  window._saasTenants = (d.tenants || []).sort((a,b)=>a.id-b.id);
+  saasRender(window._saasTenants);
+}
+
+function saasRender(list){
+  const planPrices = {free:0,basic:50000,pro:150000,enterprise:300000};
+  const planColors = {free:'#6b7280',basic:'#3b82f6',pro:'#10b981',enterprise:'#8b5cf6'};
+  const now        = new Date();
 
   // Stats
-  const planPrices = {free:0,basic:50000,pro:150000,enterprise:300000};
-  const active     = tenants.filter(t=>t.is_active);
-  const proCount   = active.filter(t=>['pro','enterprise'].includes(t.plan)).length;
-  const mrr        = active.reduce((s,t)=>s+(planPrices[t.plan]||0),0);
-  const now        = new Date();
-  const expiring   = tenants.filter(t=>{
+  const active   = list.filter(t=>t.is_active);
+  const proCount = active.filter(t=>['pro','enterprise'].includes(t.plan)).length;
+  const mrr      = active.reduce((s,t)=>s+(planPrices[t.plan]||0),0);
+  const totalOrders  = list.reduce((s,t)=>s+(parseInt(t.total_orders)||0),0);
+  const expiring = list.filter(t=>{
     if(!t.plan_expires) return false;
-    const d2 = Math.ceil((new Date(t.plan_expires)-now)/86400000);
-    return d2>=0 && d2<=7;
+    const diff = Math.ceil((new Date(t.plan_expires)-now)/86400000);
+    return diff>=0 && diff<=7;
   });
 
-  const sv = (id,v)=>{const el=document.getElementById(id);if(el)el.textContent=v;};
-  sv('saas-total',    tenants.length);
-  sv('saas-pro',      proCount);
-  sv('saas-mrr',      (mrr/1000).toFixed(0)+'K');
-  sv('saas-expiring', expiring.length);
+  const sv=(id,v)=>{const el=document.getElementById(id);if(el)el.textContent=v;};
+  sv('saas-total',   list.length);
+  sv('saas-active',  active.length);
+  sv('saas-pro',     proCount);
+  sv('saas-mrr',     (mrr/1000).toFixed(0)+'K');
+  sv('saas-orders',  totalOrders.toLocaleString());
+  sv('saas-expiring',expiring.length);
 
-  // Also update old IDs if they exist
-  sv('sc-tenants', tenants.length);
-  sv('sc-pro',     proCount);
+  // Also update dashboard stats
+  sv('p-total-tenants', list.length);
+  sv('p-active-tenants', active.length);
 
-  // Tenant table — sort by id ascending
-  tenants.sort((a,b)=>a.id-b.id);
+  // Render table
   const tbody = document.getElementById('saas-tbody');
-  if(tbody){
-    const planColors={free:'#6b7280',basic:'#3b82f6',pro:'#10b981',enterprise:'#8b5cf6'};
-    tbody.innerHTML = tenants.map(t=>`<tr>
-      <td style="color:var(--muted);font-size:.78rem">${t.id}</td>
-      <td style="font-weight:500">${t.name}<div style="font-size:.72rem;color:var(--muted)">${t.owner_email||''}</div></td>
-      <td><span style="font-size:.7rem;padding:2px 8px;border-radius:99px;background:${planColors[t.plan]||'#888'}22;color:${planColors[t.plan]||'#888'};font-weight:600">${(t.plan||'').toUpperCase()}</span></td>
-      <td style="font-size:.78rem;color:var(--muted)">${t.plan_expires?.slice(0,10)||'—'}</td>
-      <td><span style="font-size:.72rem;color:${t.is_active?'#059669':'#dc2626'}">${t.is_active?'✓ Active':'✗ Off'}</span></td>
-      <td>
-        <button class="btn btn-ghost btn-sm" onclick="impersonateAsTenant(${t.id},'${t.name}')">👤 View</button>
-        <button class="btn btn-ghost btn-sm" onclick="downloadTenantBackup(${t.id},'${t.name}')">💾</button>
-      </td>
-    </tr>`).join('');
+  if(!tbody) return;
+
+  if(!list.length){
+    tbody.innerHTML='<tr><td colspan="10" style="text-align:center;padding:2rem;color:var(--muted)">No tenants found</td></tr>';
+    return;
   }
+
+  tbody.innerHTML = list.map((t,idx)=>{
+    const orderingUrl = location.origin + '/index.html?t=' + (t.slug||t.id);
+    const adminUrl    = location.origin + '/tenant.php';
+    const exp         = t.plan_expires?.slice(0,10);
+    const expDays     = exp ? Math.ceil((new Date(exp)-now)/86400000) : null;
+    const expColor    = expDays!==null && expDays<=7 ? '#dc2626' : expDays!==null && expDays<=30 ? '#d97706' : 'var(--muted)';
+    const revenue     = parseInt(t.total_revenue||0);
+    return \`<tr data-id="\${t.id}" data-idx="\${idx}">
+      <td style="text-align:center;padding:.3rem .5rem">
+        <div style="display:flex;flex-direction:column;gap:1px">
+          <button onclick="saasMoveRow(\${t.id},-1)" title="Move up"
+            style="background:none;border:0.5px solid var(--border);border-radius:4px;cursor:pointer;color:var(--muted);font-size:.7rem;padding:1px 4px;line-height:1">▲</button>
+          <button onclick="saasMoveRow(\${t.id},1)" title="Move down"
+            style="background:none;border:0.5px solid var(--border);border-radius:4px;cursor:pointer;color:var(--muted);font-size:.7rem;padding:1px 4px;line-height:1">▼</button>
+        </div>
+      </td>
+      <td style="color:var(--muted);font-size:.78rem;font-weight:500">\${t.id}</td>
+      <td>
+        <div style="font-weight:500;font-size:.88rem">\${escH(t.name)}</div>
+        <div style="font-size:.72rem;color:var(--muted)">\${t.owner_email||''}</div>
+        <div style="font-size:.7rem;color:var(--muted)">\${t.owner_phone||''}</div>
+      </td>
+      <td>
+        <div style="font-family:monospace;font-size:.78rem;color:var(--accent)">\${t.slug||'—'}</div>
+        <div style="display:flex;gap:.3rem;margin-top:.3rem">
+          <a href="\${orderingUrl}" target="_blank"
+            style="font-size:.68rem;padding:1px 6px;border-radius:4px;background:rgba(99,102,241,.1);color:var(--accent);text-decoration:none">🛒 Order</a>
+          <a href="\${adminUrl}" target="_blank"
+            style="font-size:.68rem;padding:1px 6px;border-radius:4px;background:rgba(99,102,241,.1);color:var(--accent);text-decoration:none">👤 Admin</a>
+        </div>
+      </td>
+      <td>
+        <span style="font-size:.72rem;padding:2px 8px;border-radius:99px;background:\${planColors[t.plan]||'#888'}22;color:\${planColors[t.plan]||'#888'};font-weight:600">
+          \${(t.plan||'').toUpperCase()}
+        </span>
+      </td>
+      <td style="font-size:.82rem;text-align:right">\${parseInt(t.total_orders||0).toLocaleString()}</td>
+      <td style="font-size:.82rem;text-align:right;font-weight:\${revenue>0?'600':'400'}">\${revenue>0?(revenue/1000).toFixed(0)+'K':'—'}</td>
+      <td style="font-size:.78rem;color:\${expColor}">\${exp||'—'}\${expDays!==null?'<div style="font-size:.68rem">'+expDays+'d</div>':''}</td>
+      <td>
+        <span style="font-size:.72rem;padding:2px 7px;border-radius:99px;background:\${t.is_active?'rgba(5,150,105,.1)':'rgba(220,38,38,.1)'};color:\${t.is_active?'#059669':'#dc2626'}">
+          \${t.is_active?'✓ Active':'✗ Off'}
+        </span>
+      </td>
+      <td>
+        <div style="display:flex;gap:.3rem;flex-wrap:wrap">
+          <button class="btn btn-ghost btn-sm" onclick="openEditTenant(\${t.id})" title="Edit">✏️</button>
+          <button class="btn btn-ghost btn-sm" onclick="impersonateAsTenant(\${t.id},'\${escH(t.name)}')" title="View as tenant">👤</button>
+          <button class="btn btn-ghost btn-sm" onclick="downloadTenantBackup(\${t.id},'\${escH(t.name)}')" title="Download backup">💾</button>
+          <button class="btn btn-ghost btn-sm" onclick="toggleTenant(\${t.id},\${t.is_active})"
+            style="color:\${t.is_active?'#dc2626':'#059669'}" title="\${t.is_active?'Suspend':'Activate'}">
+            \${t.is_active?'⊘':'✓'}
+          </button>
+        </div>
+      </td>
+    </tr>\`;
+  }).join('');
+
+  const countEl = document.getElementById('saas-filter-count');
+  if(countEl) countEl.textContent = list.length + ' tenants';
+}
+
+function saasFilter(){
+  const q      = document.getElementById('saas-search')?.value?.toLowerCase()||'';
+  const plan   = document.getElementById('saas-plan-filter')?.value||'';
+  const status = document.getElementById('saas-status-filter')?.value;
+  const sort   = document.getElementById('saas-sort')?.value||'id_asc';
+
+  let list = [...(window._saasTenants||[])];
+
+  // Filter
+  if(q)      list = list.filter(t=> (t.name||'').toLowerCase().includes(q)||(t.owner_email||'').toLowerCase().includes(q)||(t.slug||'').toLowerCase().includes(q));
+  if(plan)   list = list.filter(t=> t.plan===plan);
+  if(status!==''&&status!==undefined) list = list.filter(t=> String(t.is_active)===status);
+
+  // Sort
+  const sortFns = {
+    id_asc:      (a,b)=>a.id-b.id,
+    id_desc:     (a,b)=>b.id-a.id,
+    name_asc:    (a,b)=>(a.name||'').localeCompare(b.name||''),
+    orders_desc: (a,b)=>(parseInt(b.total_orders)||0)-(parseInt(a.total_orders)||0),
+    revenue_desc:(a,b)=>(parseInt(b.total_revenue)||0)-(parseInt(a.total_revenue)||0),
+    created_desc:(a,b)=>new Date(b.created_at||0)-new Date(a.created_at||0),
+  };
+  list.sort(sortFns[sort]||sortFns.id_asc);
+
+  saasRender(list);
+}
+
+function saasFilterExpiring(){
+  document.getElementById('saas-sort').value='id_asc';
+  const now=new Date();
+  const exp = (window._saasTenants||[]).filter(t=>{
+    if(!t.plan_expires) return false;
+    const d=Math.ceil((new Date(t.plan_expires)-now)/86400000);
+    return d>=0&&d<=7;
+  });
+  saasRender(exp);
+  toast(exp.length+' expiring tenants');
+}
+
+function saasMoveRow(id, dir){
+  if(!window._saasTenants) return;
+  const idx = window._saasTenants.findIndex(t=>t.id===id);
+  if(idx===-1) return;
+  const newIdx = idx+dir;
+  if(newIdx<0||newIdx>=window._saasTenants.length) return;
+  // Swap
+  [window._saasTenants[idx], window._saasTenants[newIdx]] = [window._saasTenants[newIdx], window._saasTenants[idx]];
+  saasRender(window._saasTenants);
+}
+
+function openEditTenant(id){
+  const t = (window._saasTenants||[]).find(t=>t.id===id);
+  if(!t) return;
+  document.getElementById('edit-tenant-id').value    = id;
+  document.getElementById('edit-tenant-title').textContent = 'Edit: '+t.name;
+  document.getElementById('edit-tenant-name').value  = t.name||'';
+  document.getElementById('edit-tenant-plan').value  = t.plan||'free';
+  document.getElementById('edit-tenant-expires').value = t.plan_expires?.slice(0,10)||'';
+  document.getElementById('edit-tenant-active').checked = !!t.is_active;
+  openModal('modal-edit-tenant');
+}
+
+async function saveTenantEdit(){
+  const id      = parseInt(document.getElementById('edit-tenant-id').value);
+  const name    = document.getElementById('edit-tenant-name').value.trim();
+  const plan    = document.getElementById('edit-tenant-plan').value;
+  const expires = document.getElementById('edit-tenant-expires').value;
+  const active  = document.getElementById('edit-tenant-active').checked ? 1 : 0;
+
+  const d = await fetch('tenant_api.php?action=update_tenant',{
+    method:'POST', headers:{'Content-Type':'application/json'}, credentials:'include',
+    body: JSON.stringify({tenant_id:id, name, plan, plan_expires:expires, is_active:active})
+  }).then(r=>r.json()).catch(()=>({ok:false}));
+
+  if(d.ok){
+    toast('✅ Tenant updated','ok');
+    closeModal('modal-edit-tenant');
+    await loadSaas();
+  } else {
+    toast(d.msg||'Error','err');
+  }
+}
+
+function saasExportCSV(){
+  const list = window._saasTenants||[];
+  if(!list.length){ toast('No data','err'); return; }
+  const headers = ['ID','Name','Email','Phone','Slug','Plan','Expires','Active','Orders','Revenue','Created'];
+  const rows = list.map(t=>[
+    t.id, t.name, t.owner_email, t.owner_phone, t.slug,
+    t.plan, t.plan_expires?.slice(0,10)||'', t.is_active?'Yes':'No',
+    t.total_orders||0, t.total_revenue||0, t.created_at?.slice(0,10)||''
+  ]);
+  const csv = [headers,...rows].map(r=>r.map(v=>'"'+(v||'').toString().replace(/"/g,'""')+'"').join(',')).join('\n');
+  const blob = new Blob([csv],{type:'text/csv;charset=utf-8;'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'myanai-tenants-'+new Date().toISOString().slice(0,10)+'.csv';
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  toast('✅ CSV exported','ok');
 }
 
 async function toggleTenant(tenantId, currentActive) {
