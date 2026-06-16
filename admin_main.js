@@ -1958,54 +1958,50 @@ showPage('dashboard'+branchParams());
 ''
 
 /* ── SaaS Dashboard ── */
-async function loadSaas() {
+async async function loadSaas() {
   if(window.__IS_TENANT) { toast('Super-admin only'); return; }
-  const d = await fetch('tenant_api.php?action=list').then(r=>r.json()).catch(()=>({ok:false}));
+  const d = await fetch('tenant_api.php?action=list',{credentials:'include'}).then(r=>r.json()).catch(()=>({ok:false}));
   if(!d.ok) return;
   const tenants = d.tenants || [];
 
   // Stats
-  const proCount = tenants.filter(t=>['pro','enterprise'].includes(t.plan)).length;
-  const totalRev  = tenants.reduce((s,t)=>(s + (parseFloat(t.total_revenue)||0)), 0);
-  const el = id => document.getElementById(id);
-  if(el('sc-tenants')) el('sc-tenants').textContent = tenants.length;
-  if(el('sc-pro'))     el('sc-pro').textContent = proCount;
-  if(el('sc-revenue')) el('sc-revenue').textContent = 'K ' + Math.round(totalRev/1000) + 'K';
+  const planPrices = {free:0,basic:50000,pro:150000,enterprise:300000};
+  const active     = tenants.filter(t=>t.is_active);
+  const proCount   = active.filter(t=>['pro','enterprise'].includes(t.plan)).length;
+  const mrr        = active.reduce((s,t)=>s+(planPrices[t.plan]||0),0);
+  const now        = new Date();
+  const expiring   = tenants.filter(t=>{
+    if(!t.plan_expires) return false;
+    const d2 = Math.ceil((new Date(t.plan_expires)-now)/86400000);
+    return d2>=0 && d2<=7;
+  });
 
-  // Plan badge colours
-  const planColor = {free:'#888',basic:'#2563eb',pro:'#059669',enterprise:'#7c3aed'};
+  const sv = (id,v)=>{const el=document.getElementById(id);if(el)el.textContent=v;};
+  sv('saas-total',    tenants.length);
+  sv('saas-pro',      proCount);
+  sv('saas-mrr',      (mrr/1000).toFixed(0)+'K');
+  sv('saas-expiring', expiring.length);
 
-  // Table
-  const tbody = el('saas-tenants-body');
-  if(!tbody) return;
-  if(!tenants.length) { tbody.innerHTML = '<tr><td colspan="8" style="padding:2rem;text-align:center;color:var(--muted)">No tenants yet</td></tr>'; return; }
+  // Also update old IDs if they exist
+  sv('sc-tenants', tenants.length);
+  sv('sc-pro',     proCount);
 
-  tbody.innerHTML = tenants.map(t => {
-    const expires   = t.plan_expires ? new Date(t.plan_expires).toLocaleDateString('en-GB') : '—';
-    const expiring  = t.plan_expires && (new Date(t.plan_expires) - Date.now()) < 3*86400000;
-    const rev       = t.total_revenue ? 'K ' + Math.round(t.total_revenue/1000) + 'K' : 'K 0';
-    const planBadge = `<span style="background:${planColor[t.plan]||'#888'};color:#fff;padding:2px 8px;border-radius:99px;font-size:.75rem">${t.plan.toUpperCase()}<\/span>`;
-    const statusBadge = t.is_active
-      ? '<span style="color:#059669;font-weight:600">● Active<\/span>'
-      : '<span style="color:#dc2626">● Inactive<\/span>';
-    return `<tr style="border-bottom:1px solid var(--border)">
-      <td style="padding:.6rem">
-        <strong>${t.name}<\/strong><br>
-        <span style="color:var(--muted);font-size:.78rem">${t.owner_email} · ${t.slug}<\/span>
-      <\/td>
-      <td>${planBadge}<\/td>
-      <td style="text-align:center">${t.total_branches||0}<\/td>
-      <td style="text-align:center">${t.total_orders||0}<\/td>
-      <td>${rev}<\/td>
-      <td style="${expiring?'color:#dc2626;font-weight:600':''}">${expires}<\/td>
-      <td>${statusBadge}<\/td>
+  // Tenant table
+  const tbody = document.getElementById('saas-tbody');
+  if(tbody){
+    const planColors={free:'#6b7280',basic:'#3b82f6',pro:'#10b981',enterprise:'#8b5cf6'};
+    tbody.innerHTML = tenants.map(t=>`<tr>
+      <td style="color:var(--muted);font-size:.78rem">${t.id}</td>
+      <td style="font-weight:500">${t.name}<div style="font-size:.72rem;color:var(--muted)">${t.owner_email||''}</div></td>
+      <td><span style="font-size:.7rem;padding:2px 8px;border-radius:99px;background:${planColors[t.plan]||'#888'}22;color:${planColors[t.plan]||'#888'};font-weight:600">${(t.plan||'').toUpperCase()}</span></td>
+      <td style="font-size:.78rem;color:var(--muted)">${t.plan_expires?.slice(0,10)||'—'}</td>
+      <td><span style="font-size:.72rem;color:${t.is_active?'#059669':'#dc2626'}">${t.is_active?'✓ Active':'✗ Off'}</span></td>
       <td>
-        <button onclick="toggleTenant(${t.id},${t.is_active})" style="font-size:.75rem;padding:3px 8px;border:1px solid var(--border);border-radius:6px;cursor:pointer;background:var(--card)">
-          ${t.is_active ? 'Disable' : 'Enable'}
-        <\/button>
-      <\/td>
-    <\/tr>`;
-  }).join('');
+        <button class="btn btn-ghost btn-sm" onclick="impersonateAsTenant(${t.id},'${t.name}')">👤 View</button>
+        <button class="btn btn-ghost btn-sm" onclick="downloadTenantBackup(${t.id},'${t.name}')">💾</button>
+      </td>
+    </tr>`).join('');
+  }
 }
 
 async function toggleTenant(tenantId, currentActive) {
