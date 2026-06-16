@@ -1958,7 +1958,7 @@ showPage('dashboard'+branchParams());
 ''
 
 /* ── SaaS Dashboard ── */
-async async function loadSaas() {
+async function loadSaas() {
   if(window.__IS_TENANT) { toast('Super-admin only'); return; }
   const d = await fetch('tenant_api.php?action=list',{credentials:'include'}).then(r=>r.json()).catch(()=>({ok:false}));
   if(!d.ok) return;
