@@ -1628,23 +1628,104 @@ async function doLogin() {
       <button class="hamburger" onclick="openSidebar()">☰</button>
       <div class="page-title">🌐 SaaS Dashboard</div>
     </div>
+    <div style="display:flex;gap:.5rem">
+      <button class="btn btn-ghost btn-sm" onclick="saasExportCSV()">⬇️ Export CSV</button>
+      <button class="btn btn-primary btn-sm" onclick="loadSaas()">↻ Refresh</button>
+    </div>
   </div>
   <div class="content">
-    <!-- Top stats -->
+    <!-- Stats row -->
     <div class="stats-grid" style="margin-bottom:1rem">
       <div class="stat-card"><div class="stat-val" id="saas-total">—</div><div class="stat-lbl">Total tenants</div></div>
+      <div class="stat-card"><div class="stat-val" id="saas-active">—</div><div class="stat-lbl">Active</div></div>
       <div class="stat-card"><div class="stat-val" id="saas-pro">—</div><div class="stat-lbl">Pro + Enterprise</div></div>
       <div class="stat-card"><div class="stat-val" id="saas-mrr">—</div><div class="stat-lbl">MRR (MMK)</div></div>
-      <div class="stat-card"><div class="stat-val" id="saas-expiring">—</div><div class="stat-lbl">Expiring (7d)</div></div>
+      <div class="stat-card"><div class="stat-val" id="saas-orders">—</div><div class="stat-lbl">Total orders</div></div>
+      <div class="stat-card"><div class="stat-val" id="saas-expiring" style="cursor:pointer" onclick="saasFilterExpiring()">—</div><div class="stat-lbl">Expiring (7d) ⚠️</div></div>
+    </div>
+
+    <!-- Filters + Search -->
+    <div class="table-wrap" style="padding:.6rem 1rem;margin-bottom:.75rem;display:flex;gap:.5rem;flex-wrap:wrap;align-items:center">
+      <input id="saas-search" placeholder="🔍 Search business, email, slug..." oninput="saasFilter()"
+        style="padding:.4rem .7rem;border:0.5px solid var(--border);border-radius:8px;background:var(--warm);color:var(--ink);font-size:.82rem;width:260px">
+      <select id="saas-plan-filter" onchange="saasFilter()"
+        style="padding:.4rem .7rem;border:0.5px solid var(--border);border-radius:8px;background:var(--warm);color:var(--ink);font-size:.82rem">
+        <option value="">All plans</option>
+        <option value="free">Free</option>
+        <option value="basic">Basic</option>
+        <option value="pro">Pro</option>
+        <option value="enterprise">Enterprise</option>
+      </select>
+      <select id="saas-status-filter" onchange="saasFilter()"
+        style="padding:.4rem .7rem;border:0.5px solid var(--border);border-radius:8px;background:var(--warm);color:var(--ink);font-size:.82rem">
+        <option value="">All status</option>
+        <option value="1">Active</option>
+        <option value="0">Suspended</option>
+      </select>
+      <select id="saas-sort" onchange="saasFilter()"
+        style="padding:.4rem .7rem;border:0.5px solid var(--border);border-radius:8px;background:var(--warm);color:var(--ink);font-size:.82rem">
+        <option value="id_asc">ID ↑</option>
+        <option value="id_desc">ID ↓</option>
+        <option value="name_asc">Name A-Z</option>
+        <option value="orders_desc">Orders ↓</option>
+        <option value="revenue_desc">Revenue ↓</option>
+        <option value="created_desc">Newest</option>
+      </select>
+      <span id="saas-filter-count" style="font-size:.78rem;color:var(--muted);margin-left:auto"></span>
     </div>
 
     <!-- Tenant table -->
-    <div class="table-wrap">
-      <div style="padding:.6rem 1rem;font-size:.82rem;font-weight:600;border-bottom:0.5px solid var(--border)">All tenants</div>
-      <table>
-        <thead><tr><th>#</th><th>Business</th><th>Plan</th><th>Expires</th><th>Status</th><th>Actions</th></tr></thead>
-        <tbody id="saas-tbody"><tr><td colspan="6" style="text-align:center;padding:2rem;color:var(--muted)">Loading...</td></tr></tbody>
+    <div class="table-wrap" style="padding:0;overflow-x:auto">
+      <table id="saas-table">
+        <thead>
+          <tr>
+            <th style="width:40px">↕</th>
+            <th>#</th>
+            <th>Business</th>
+            <th>Slug / Site</th>
+            <th>Plan</th>
+            <th>Orders</th>
+            <th>Revenue</th>
+            <th>Expires</th>
+            <th>Status</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody id="saas-tbody">
+          <tr><td colspan="10" style="text-align:center;padding:2rem;color:var(--muted)">Loading...</td></tr>
+        </tbody>
       </table>
+    </div>
+  </div>
+
+  <!-- Edit Tenant Modal -->
+  <div class="modal-overlay" id="modal-edit-tenant">
+    <div class="modal" style="max-width:480px">
+      <div class="modal-head">
+        <span class="modal-title" id="edit-tenant-title">Edit tenant</span>
+        <button class="modal-close" onclick="closeModal('modal-edit-tenant')">✕</button>
+      </div>
+      <input type="hidden" id="edit-tenant-id">
+      <div style="display:grid;gap:.75rem">
+        <div class="field"><label>Business name</label><input id="edit-tenant-name"></div>
+        <div class="field"><label>Plan</label>
+          <select id="edit-tenant-plan" style="width:100%;padding:.5rem .7rem;border:0.5px solid var(--border);border-radius:8px;background:var(--warm);color:var(--ink)">
+            <option value="free">Free</option>
+            <option value="basic">Basic</option>
+            <option value="pro">Pro</option>
+            <option value="enterprise">Enterprise</option>
+          </select>
+        </div>
+        <div class="field"><label>Plan expires</label><input id="edit-tenant-expires" type="date"></div>
+        <div class="field" style="display:flex;gap:.5rem;align-items:center">
+          <input type="checkbox" id="edit-tenant-active" style="width:18px;height:18px">
+          <label for="edit-tenant-active" style="cursor:pointer">Active</label>
+        </div>
+      </div>
+      <div style="margin-top:1rem;display:flex;gap:.5rem;justify-content:flex-end">
+        <button class="btn btn-ghost" onclick="closeModal('modal-edit-tenant')">Cancel</button>
+        <button class="btn btn-primary" onclick="saveTenantEdit()">💾 Save</button>
+      </div>
     </div>
   </div>
 </div>
