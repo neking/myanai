@@ -2745,3 +2745,28 @@ async function downloadTenantBackup(tid, name){
     toast('Backup failed: '+e.message,'err');
   }
 }
+
+/* ── Change Admin Password ── */
+async function changeAdminPassword(){
+  const current = document.getElementById('pwd-current')?.value?.trim();
+  const newPwd   = document.getElementById('pwd-new')?.value?.trim();
+  const confirm  = document.getElementById('pwd-confirm')?.value?.trim();
+
+  if(!current||!newPwd||!confirm){ toast('All fields required','err'); return; }
+  if(newPwd.length < 8){ toast('Password must be at least 8 characters','err'); return; }
+  if(newPwd !== confirm){ toast('Passwords do not match','err'); return; }
+
+  const d = await fetch('admin.php?api=change_password',{
+    method:'POST', headers:{'Content-Type':'application/json'}, credentials:'include',
+    body: JSON.stringify({current_password:current, new_password:newPwd})
+  }).then(r=>r.json()).catch(()=>({ok:false,msg:'Network error'}));
+
+  if(d.ok){
+    toast('✅ Password changed successfully','ok');
+    ['pwd-current','pwd-new','pwd-confirm'].forEach(id=>{
+      const el=document.getElementById(id); if(el) el.value='';
+    });
+  } else {
+    toast(d.msg||'Error changing password','err');
+  }
+}
