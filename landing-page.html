@@ -52,7 +52,7 @@ nav{position:fixed;top:0;left:0;right:0;z-index:100;padding:1rem 5vw;display:fle
 .nav-cta:hover{opacity:.85}
 
 /* ── HERO ── */
-.hero{min-height:100vh;padding:90px 5vw 60px;display:grid;grid-template-columns:1fr 1fr;gap:60px;align-items:center;position:relative;overflow:hidden;max-width:1200px;margin:0 auto}
+.hero{min-height:100vh;padding:90px 5vw 60px;background:linear-gradient(135deg,#1a1f35 0%,#0f1729 60%,#1e3a5f 100%);display:grid;grid-template-columns:1fr 1fr;gap:60px;align-items:center;position:relative;overflow:hidden;max-width:1200px;margin:0 auto}
 .hero::before{content:'';position:absolute;top:20%;left:30%;width:600px;height:600px;background:radial-gradient(circle,rgba(99,102,241,.12) 0%,transparent 70%);pointer-events:none}
 .hero-label{color:#a78bfa;display:inline-flex;align-items:center;gap:.5rem;font-size:.78rem;font-weight:600;color:var(--accent2);background:rgba(99,102,241,.1);border:0.5px solid rgba(99,102,241,.2);padding:.3rem .75rem;border-radius:99px;margin-bottom:1.5rem;text-transform:uppercase;letter-spacing:.06em}
 .hero-h1{font-size:clamp(2.2rem,5vw,3.8rem);font-weight:700;letter-spacing:-.03em;line-height:1.1;margin-bottom:1.2rem;color:#f8fafc}
@@ -160,13 +160,13 @@ footer{padding:3rem 5vw;border-top:0.5px solid var(--border);max-width:1200px;ma
 .benefit-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:1rem;margin-bottom:2.5rem;margin-top:1.5rem}
 .benefit-card{background:#fff;border:1px solid #E2E8F0;border-radius:16px;padding:1.4rem;display:flex;flex-direction:column;gap:.6rem;box-shadow:0 1px 4px rgba(0,0,0,.05);transition:box-shadow .2s}
 .benefit-card:hover{box-shadow:0 4px 12px rgba(16,185,129,.15);border-color:#10B981}
-.benefit-icon{font-size:1.8rem}
-.benefit-title{font-size:.95rem;font-weight:700;color:#0F172A;line-height:1.4}
+.benefit-icon{font-size:1.8rem;display:inline-block;background:#F0FDF4;padding:.5rem;border-radius:12px;margin-bottom:.25rem}
+.benefit-title{font-size:.95rem;font-weight:700;color:#2563EB;line-height:1.4}
 .benefit-desc{font-size:.83rem;color:#475569;line-height:1.7}
 .trust-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(165px,1fr));gap:.85rem}
 .trust-card{background:#fff;border:1px solid #E2E8F0;border-radius:12px;padding:1.1rem;text-align:center;box-shadow:0 1px 3px rgba(0,0,0,.04)}
-.trust-icon{font-size:1.6rem;margin-bottom:.4rem}
-.trust-title{font-size:.82rem;font-weight:700;color:#0F172A;margin-bottom:.25rem}
+.trust-icon{font-size:1.6rem;margin-bottom:.4rem;display:block}
+.trust-title{font-size:.82rem;font-weight:700;color:#2563EB;margin-bottom:.25rem}
 .trust-desc{font-size:.74rem;color:#64748B;line-height:1.55}
 .btn-emerald{background:#10B981;color:#fff;padding:.75rem 1.75rem;border-radius:99px;font-weight:700;font-size:.95rem;text-decoration:none;display:inline-flex;align-items:center;gap:.5rem;transition:all .2s;box-shadow:0 2px 8px rgba(16,185,129,.3)}
 .btn-emerald:hover{background:#059669;transform:translateY(-1px);box-shadow:0 4px 16px rgba(16,185,129,.4)}
@@ -196,7 +196,7 @@ footer{padding:3rem 5vw;border-top:0.5px solid var(--border);max-width:1200px;ma
 </nav>
 
 <!-- HERO -->
-<section class="hero" style="margin-top:0;padding-top:120px;background:#09090b;color:#f8fafc">
+<section class="hero" style="margin-top:0;padding-top:120px;background:linear-gradient(135deg,#1a1f35 0%,#0f1729 60%,#1e3a5f 100%);color:#f8fafc">
   <div class="hero-left reveal">
     <div class="hero-label" id="hero-label">🇲🇲 မြန်မာနိုင်ငံသားများ ဖန်တီးထားသော AI နည်းပညာ</div>
     <h1 class="hero-h1" id="hero-h1">
@@ -325,7 +325,7 @@ footer{padding:3rem 5vw;border-top:0.5px solid var(--border);max-width:1200px;ma
 </section>
 
 <!-- DEMO SECTION -->
-<section class="demo-section" id="demo" style="background:#0F172A">
+<section class="demo-section" id="demo" style="background:linear-gradient(135deg,#1a1f35 0%,#0f1729 100%)">
   <div class="demo-box reveal">
     <h2 class="demo-h2" id="demo-heading">Live Demo ကြည့်ပါ</h2>
     <p class="demo-sub" id="demo-sub">Sign up မလုပ်ဘဲ features အကုန် စမ်းနိုင်သည်</p>
@@ -357,7 +357,7 @@ footer{padding:3rem 5vw;border-top:0.5px solid var(--border);max-width:1200px;ma
 </section>
 
 <!-- FOOTER -->
-<footer id="page-footer" style="background:#0F172A;color:#94a3b8">
+<footer id="page-footer" style="background:#1a1f35;color:#94a3b8">
   <div class="foot-copy" id="foot-copy">© 2026 MyanAi · Made in Myanmar 🇲🇲</div>
   <div class="foot-links">
     <a href="signup.html">Sign up</a>
