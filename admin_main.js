@@ -1986,7 +1986,8 @@ async function loadSaas() {
   sv('sc-tenants', tenants.length);
   sv('sc-pro',     proCount);
 
-  // Tenant table
+  // Tenant table — sort by id ascending
+  tenants.sort((a,b)=>a.id-b.id);
   const tbody = document.getElementById('saas-tbody');
   if(tbody){
     const planColors={free:'#6b7280',basic:'#3b82f6',pro:'#10b981',enterprise:'#8b5cf6'};
@@ -2409,6 +2410,7 @@ function renderTenants(list) {
   if(!tbody) return;
   const planColors={free:'#6b7280',basic:'#3b82f6',pro:'#10b981',enterprise:'#8b5cf6'};
   if(!list.length){ tbody.innerHTML='<tr><td colspan="7" style="text-align:center;padding:2rem;color:var(--muted)">No tenants</td></tr>'; return; }
+  list.sort((a,b)=>a.id-b.id);
   tbody.innerHTML = list.map(t=>{
     const expires = t.plan_expires ? t.plan_expires.slice(0,10) : '—';
     const diff = t.plan_expires ? Math.ceil((new Date(t.plan_expires)-new Date())/86400000) : null;
