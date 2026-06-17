@@ -2114,13 +2114,15 @@ document.addEventListener('DOMContentLoaded', function() {
 
     <!-- Tab nav -->
     <div style="display:flex;gap:0;border-bottom:0.5px solid var(--border);margin-bottom:1.2rem;overflow-x:auto">
-      <button onclick="lpTab('hero')"    id="lp-tab-hero"    class="lp-tab active">🦸 Hero</button>
-      <button onclick="lpTab('brand')"   id="lp-tab-brand"   class="lp-tab">🎨 Brand</button>
-      <button onclick="lpTab('cta')"     id="lp-tab-cta"     class="lp-tab">🔗 Buttons</button>
-      <button onclick="lpTab('announce')" id="lp-tab-announce" class="lp-tab">📣 Banner</button>
-      <button onclick="lpTab('contact')" id="lp-tab-contact" class="lp-tab">📞 Contact</button>
-      <button onclick="lpTab('demo')"    id="lp-tab-demo"    class="lp-tab">🎭 Demo</button>
-      <button onclick="lpTab('footer')"  id="lp-tab-footer"  class="lp-tab">🔻 Footer</button>
+      <button onclick="lpTab('hero')"       id="lp-tab-hero"       class="lp-tab active">🦸 Hero</button>
+      <button onclick="lpTab('typography')"  id="lp-tab-typography"  class="lp-tab">🔤 Typography</button>
+      <button onclick="lpTab('styling')"     id="lp-tab-styling"     class="lp-tab">🎨 Styling</button>
+      <button onclick="lpTab('brand')"       id="lp-tab-brand"       class="lp-tab">🏷 Brand</button>
+      <button onclick="lpTab('cta')"         id="lp-tab-cta"         class="lp-tab">🔗 Buttons</button>
+      <button onclick="lpTab('announce')"    id="lp-tab-announce"    class="lp-tab">📣 Banner</button>
+      <button onclick="lpTab('contact')"     id="lp-tab-contact"     class="lp-tab">📞 Contact</button>
+      <button onclick="lpTab('demo')"        id="lp-tab-demo"        class="lp-tab">🎭 Demo</button>
+      <button onclick="lpTab('footer')"      id="lp-tab-footer"      class="lp-tab">🔻 Footer</button>
     </div>
 
     <!-- HERO tab -->
@@ -2148,6 +2150,269 @@ document.addEventListener('DOMContentLoaded', function() {
             <label>Label badge text (hero ထဲ pill)</label>
             <input id="lp-label" placeholder="🇲🇲 Myanmar-built · AI-powered">
           </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TYPOGRAPHY tab -->
+    <div id="lp-panel-typography" style="display:none">
+      <div class="table-wrap" style="padding:1.3rem;max-width:750px">
+        <div style="font-weight:600;font-size:.9rem;margin-bottom:1.2rem;color:var(--muted)">🔤 Typography — ဖောင့်နှင့် စာလုံးသတ်မှတ်ချက်</div>
+        <div style="display:grid;gap:1.1rem">
+
+          <!-- MM Font -->
+          <div class="field">
+            <label style="font-weight:600">မြန်မာ ဖောင့် (Myanmar Font)</label>
+            <select id="lp-font-mm" style="padding:.5rem .75rem;border:1px solid var(--border);border-radius:8px;background:var(--warm);color:var(--ink);font-size:.9rem;width:100%">
+              <option value="'Noto Sans Myanmar','Pyidaungsu','Padauk',sans-serif">Noto Sans Myanmar (ကြည်လင်, ခေတ်မီ) ★ Recommended</option>
+              <option value="'Padauk',sans-serif">Padauk (ရိုးရာ, ဖတ်ရလွယ်)</option>
+              <option value="'Pyidaungsu',sans-serif">Pyidaungsu (တရားဝင်, ဦးပိုင်ဆိုင်)</option>
+              <option value="'Myanmar Text',sans-serif">Myanmar Text (Windows built-in)</option>
+            </select>
+            <small style="color:var(--muted);font-size:.75rem">Hero H1, body text, Myanmar UI labels အားလုံးကို apply လုပ်မည်</small>
+          </div>
+
+          <!-- ENG Font -->
+          <div class="field">
+            <label style="font-weight:600">အင်္ဂလိပ် ဖောင့် (English Font)</label>
+            <select id="lp-font-en" style="padding:.5rem .75rem;border:1px solid var(--border);border-radius:8px;background:var(--warm);color:var(--ink);font-size:.9rem;width:100%">
+              <option value="'Inter',sans-serif">Inter (Clean, Modern) ★ Recommended</option>
+              <option value="'DM Sans',sans-serif">DM Sans (Friendly, Rounded)</option>
+              <option value="'Plus Jakarta Sans',sans-serif">Plus Jakarta Sans (Professional)</option>
+              <option value="'Poppins',sans-serif">Poppins (Geometric, Bold)</option>
+              <option value="'IBM Plex Sans',sans-serif">IBM Plex Sans (Corporate)</option>
+            </select>
+            <small style="color:var(--muted);font-size:.75rem">Prices, numbers, English labels တွေအတွက်</small>
+          </div>
+
+          <!-- Font Sizes -->
+          <div style="background:var(--warm);border:1px solid var(--border);border-radius:12px;padding:1rem">
+            <div style="font-weight:600;font-size:.85rem;margin-bottom:.85rem">📐 Font Sizes</div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:.85rem">
+              <div class="field">
+                <label>H1 Hero title size</label>
+                <div style="display:flex;align-items:center;gap:.5rem">
+                  <input type="range" id="lp-h1-size" min="24" max="72" value="40" style="flex:1" oninput="document.getElementById('lp-h1-size-val').textContent=this.value+'px'">
+                  <span id="lp-h1-size-val" style="font-size:.8rem;min-width:36px;color:var(--muted)">40px</span>
+                </div>
+              </div>
+              <div class="field">
+                <label>Subtitle text size</label>
+                <div style="display:flex;align-items:center;gap:.5rem">
+                  <input type="range" id="lp-sub-size" min="12" max="24" value="16" style="flex:1" oninput="document.getElementById('lp-sub-size-val').textContent=this.value+'px'">
+                  <span id="lp-sub-size-val" style="font-size:.8rem;min-width:36px;color:var(--muted)">16px</span>
+                </div>
+              </div>
+              <div class="field">
+                <label>Section heading size</label>
+                <div style="display:flex;align-items:center;gap:.5rem">
+                  <input type="range" id="lp-sec-h2-size" min="18" max="48" value="32" style="flex:1" oninput="document.getElementById('lp-sec-h2-size-val').textContent=this.value+'px'">
+                  <span id="lp-sec-h2-size-val" style="font-size:.8rem;min-width:36px;color:var(--muted)">32px</span>
+                </div>
+              </div>
+              <div class="field">
+                <label>Body text size</label>
+                <div style="display:flex;align-items:center;gap:.5rem">
+                  <input type="range" id="lp-body-size" min="12" max="20" value="15" style="flex:1" oninput="document.getElementById('lp-body-size-val').textContent=this.value+'px'">
+                  <span id="lp-body-size-val" style="font-size:.8rem;min-width:36px;color:var(--muted)">15px</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Alignment -->
+          <div style="background:var(--warm);border:1px solid var(--border);border-radius:12px;padding:1rem">
+            <div style="font-weight:600;font-size:.85rem;margin-bottom:.85rem">↔ Alignment</div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:.85rem">
+              <div class="field">
+                <label>Hero H1 alignment</label>
+                <div style="display:flex;gap:.5rem">
+                  <button onclick="setAlign('lp-h1-align','left',this)" class="align-btn active" data-val="left" style="flex:1;padding:.4rem;border:1px solid var(--border);border-radius:6px;cursor:pointer;background:var(--warm)">⬅ Left</button>
+                  <button onclick="setAlign('lp-h1-align','center',this)" class="align-btn" data-val="center" style="flex:1;padding:.4rem;border:1px solid var(--border);border-radius:6px;cursor:pointer;background:var(--warm)">↔ Center</button>
+                  <button onclick="setAlign('lp-h1-align','right',this)" class="align-btn" data-val="right" style="flex:1;padding:.4rem;border:1px solid var(--border);border-radius:6px;cursor:pointer;background:var(--warm)">⮕ Right</button>
+                  <input type="hidden" id="lp-h1-align" value="left">
+                </div>
+              </div>
+              <div class="field">
+                <label>Section heading alignment</label>
+                <div style="display:flex;gap:.5rem">
+                  <button onclick="setAlign('lp-sec-align','left',this)" class="align-btn" data-val="left" style="flex:1;padding:.4rem;border:1px solid var(--border);border-radius:6px;cursor:pointer;background:var(--warm)">⬅ Left</button>
+                  <button onclick="setAlign('lp-sec-align','center',this)" class="align-btn active" data-val="center" style="flex:1;padding:.4rem;border:1px solid var(--border);border-radius:6px;cursor:pointer;background:var(--warm)">↔ Center</button>
+                  <button onclick="setAlign('lp-sec-align','right',this)" class="align-btn" data-val="right" style="flex:1;padding:.4rem;border:1px solid var(--border);border-radius:6px;cursor:pointer;background:var(--warm)">⮕ Right</button>
+                  <input type="hidden" id="lp-sec-align" value="center">
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Font Weight -->
+          <div class="field">
+            <label style="font-weight:600">H1 Font Weight</label>
+            <div style="display:flex;gap:.5rem;flex-wrap:wrap">
+              <button onclick="setFontWeight('400',this)" class="fw-btn" style="padding:.4rem .85rem;border:1px solid var(--border);border-radius:6px;cursor:pointer;background:var(--warm);font-weight:400">Regular</button>
+              <button onclick="setFontWeight('500',this)" class="fw-btn" style="padding:.4rem .85rem;border:1px solid var(--border);border-radius:6px;cursor:pointer;background:var(--warm);font-weight:500">Medium</button>
+              <button onclick="setFontWeight('600',this)" class="fw-btn" style="padding:.4rem .85rem;border:1px solid var(--border);border-radius:6px;cursor:pointer;background:var(--warm);font-weight:600">Semi-Bold</button>
+              <button onclick="setFontWeight('700',this)" class="fw-btn active" style="padding:.4rem .85rem;border:1px solid var(--border);border-radius:6px;cursor:pointer;background:var(--accent);color:#fff;font-weight:700">Bold ★</button>
+              <button onclick="setFontWeight('800',this)" class="fw-btn" style="padding:.4rem .85rem;border:1px solid var(--border);border-radius:6px;cursor:pointer;background:var(--warm);font-weight:800">Extra Bold</button>
+              <input type="hidden" id="lp-h1-weight" value="700">
+            </div>
+          </div>
+
+          <!-- Preview -->
+          <div style="background:#FFFBF5;border:1px solid var(--border);border-radius:12px;padding:1.25rem">
+            <div style="font-size:.72rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom:.75rem">Live Preview</div>
+            <div id="lp-font-preview" style="font-size:28px;font-weight:700;color:#292524;line-height:1.2;font-family:'Noto Sans Myanmar',sans-serif">မြန်မာ့စီးပွားရေး AI နည်းပညာ</div>
+            <div id="lp-font-preview-en" style="font-size:14px;color:#57534E;margin-top:.5rem;font-family:'Inter',sans-serif">MyanAi — Myanmar AI Platform</div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <!-- STYLING tab -->
+    <div id="lp-panel-styling" style="display:none">
+      <div class="table-wrap" style="padding:1.3rem;max-width:750px">
+        <div style="font-weight:600;font-size:.9rem;margin-bottom:1.2rem;color:var(--muted)">🎨 Styling — အရောင်နှင့် ဒီဇိုင်း</div>
+        <div style="display:grid;gap:1.1rem">
+
+          <!-- Body + Sections -->
+          <div style="background:var(--warm);border:1px solid var(--border);border-radius:12px;padding:1rem">
+            <div style="font-weight:600;font-size:.85rem;margin-bottom:.85rem">🖼 Background Colors</div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:.85rem">
+              <div class="field">
+                <label>Body background</label>
+                <div style="display:flex;gap:.5rem;align-items:center">
+                  <input type="color" id="lp-bg-body" value="#FFFBF5" style="width:44px;height:36px;border:1px solid var(--border);border-radius:6px;cursor:pointer">
+                  <input id="lp-bg-body-hex" value="#FFFBF5" style="width:90px;font-size:.85rem" oninput="document.getElementById('lp-bg-body').value=this.value">
+                </div>
+              </div>
+              <div class="field">
+                <label>Hero background color</label>
+                <div style="display:flex;gap:.5rem;align-items:center">
+                  <input type="color" id="lp-bg-hero" value="#FFFBF5" style="width:44px;height:36px;border:1px solid var(--border);border-radius:6px;cursor:pointer">
+                  <input id="lp-bg-hero-hex" value="#FFFBF5" style="width:90px;font-size:.85rem" oninput="document.getElementById('lp-bg-hero').value=this.value">
+                </div>
+              </div>
+              <div class="field">
+                <label>Section (benefits/pricing) bg</label>
+                <div style="display:flex;gap:.5rem;align-items:center">
+                  <input type="color" id="lp-bg-section" value="#FFFFFF" style="width:44px;height:36px;border:1px solid var(--border);border-radius:6px;cursor:pointer">
+                  <input id="lp-bg-section-hex" value="#FFFFFF" style="width:90px;font-size:.85rem" oninput="document.getElementById('lp-bg-section').value=this.value">
+                </div>
+              </div>
+              <div class="field">
+                <label>Demo section background</label>
+                <div style="display:flex;gap:.5rem;align-items:center">
+                  <input type="color" id="lp-bg-demo" value="#E6F7F1" style="width:44px;height:36px;border:1px solid var(--border);border-radius:6px;cursor:pointer">
+                  <input id="lp-bg-demo-hex" value="#E6F7F1" style="width:90px;font-size:.85rem" oninput="document.getElementById('lp-bg-demo').value=this.value">
+                </div>
+              </div>
+              <div class="field">
+                <label>Footer background</label>
+                <div style="display:flex;gap:.5rem;align-items:center">
+                  <input type="color" id="lp-bg-footer" value="#1C1F26" style="width:44px;height:36px;border:1px solid var(--border);border-radius:6px;cursor:pointer">
+                  <input id="lp-bg-footer-hex" value="#1C1F26" style="width:90px;font-size:.85rem" oninput="document.getElementById('lp-bg-footer').value=this.value">
+                </div>
+              </div>
+              <div class="field">
+                <label>Nav background</label>
+                <div style="display:flex;gap:.5rem;align-items:center">
+                  <input type="color" id="lp-bg-nav" value="#FFFFFF" style="width:44px;height:36px;border:1px solid var(--border);border-radius:6px;cursor:pointer">
+                  <input id="lp-bg-nav-hex" value="#FFFFFF" style="width:90px;font-size:.85rem" oninput="document.getElementById('lp-bg-nav').value=this.value">
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Text Colors -->
+          <div style="background:var(--warm);border:1px solid var(--border);border-radius:12px;padding:1rem">
+            <div style="font-weight:600;font-size:.85rem;margin-bottom:.85rem">✍ Text Colors</div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:.85rem">
+              <div class="field">
+                <label>Hero H1 color</label>
+                <div style="display:flex;gap:.5rem;align-items:center">
+                  <input type="color" id="lp-color-h1" value="#292524" style="width:44px;height:36px;border:1px solid var(--border);border-radius:6px;cursor:pointer">
+                  <input id="lp-color-h1-hex" value="#292524" style="width:90px;font-size:.85rem" oninput="document.getElementById('lp-color-h1').value=this.value">
+                </div>
+              </div>
+              <div class="field">
+                <label>H1 highlight (em) color</label>
+                <div style="display:flex;gap:.5rem;align-items:center">
+                  <input type="color" id="lp-color-em" value="#0D9F6E" style="width:44px;height:36px;border:1px solid var(--border);border-radius:6px;cursor:pointer">
+                  <input id="lp-color-em-hex" value="#0D9F6E" style="width:90px;font-size:.85rem" oninput="document.getElementById('lp-color-em').value=this.value">
+                </div>
+              </div>
+              <div class="field">
+                <label>Body text color</label>
+                <div style="display:flex;gap:.5rem;align-items:center">
+                  <input type="color" id="lp-color-body" value="#57534E" style="width:44px;height:36px;border:1px solid var(--border);border-radius:6px;cursor:pointer">
+                  <input id="lp-color-body-hex" value="#57534E" style="width:90px;font-size:.85rem" oninput="document.getElementById('lp-color-body').value=this.value">
+                </div>
+              </div>
+              <div class="field">
+                <label>Accent / Link color</label>
+                <div style="display:flex;gap:.5rem;align-items:center">
+                  <input type="color" id="lp-color-accent" value="#0D9F6E" style="width:44px;height:36px;border:1px solid var(--border);border-radius:6px;cursor:pointer">
+                  <input id="lp-color-accent-hex" value="#0D9F6E" style="width:90px;font-size:.85rem" oninput="document.getElementById('lp-color-accent').value=this.value">
+                </div>
+              </div>
+              <div class="field">
+                <label>CTA button color</label>
+                <div style="display:flex;gap:.5rem;align-items:center">
+                  <input type="color" id="lp-color-cta" value="#0D9F6E" style="width:44px;height:36px;border:1px solid var(--border);border-radius:6px;cursor:pointer">
+                  <input id="lp-color-cta-hex" value="#0D9F6E" style="width:90px;font-size:.85rem" oninput="document.getElementById('lp-color-cta').value=this.value">
+                </div>
+              </div>
+              <div class="field">
+                <label>Section title color</label>
+                <div style="display:flex;gap:.5rem;align-items:center">
+                  <input type="color" id="lp-color-sec-title" value="#292524" style="width:44px;height:36px;border:1px solid var(--border);border-radius:6px;cursor:pointer">
+                  <input id="lp-color-sec-title-hex" value="#292524" style="width:90px;font-size:.85rem" oninput="document.getElementById('lp-color-sec-title').value=this.value">
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Hero BG Image -->
+          <div style="background:var(--warm);border:1px solid var(--border);border-radius:12px;padding:1rem">
+            <div style="font-weight:600;font-size:.85rem;margin-bottom:.85rem">🖼 Hero Background Image</div>
+            <div style="display:grid;gap:.75rem">
+              <div id="lp-hero-bg-preview" style="height:120px;background:#F1F5F9;border-radius:8px;border:2px dashed var(--border);display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:.85rem">
+                No image — click to upload
+              </div>
+              <div style="display:flex;gap:.5rem;flex-wrap:wrap">
+                <label style="display:inline-flex;align-items:center;gap:.4rem;padding:.5rem 1rem;background:var(--accent);color:#fff;border-radius:8px;cursor:pointer;font-size:.85rem;font-weight:600">
+                  📁 Upload Image
+                  <input type="file" id="lp-hero-bg-file" accept="image/*" style="display:none" onchange="previewHeroBg(this)">
+                </label>
+                <button onclick="clearHeroBg()" style="padding:.5rem 1rem;border:1px solid var(--border);border-radius:8px;cursor:pointer;background:var(--warm);font-size:.85rem">✕ Clear</button>
+              </div>
+              <div class="field">
+                <label>Or enter image URL</label>
+                <input id="lp-hero-bg-url" placeholder="https://... or /uploads/..." oninput="previewHeroBgUrl(this.value)">
+              </div>
+              <div class="field">
+                <label>Image opacity (0.1 = faint, 1.0 = full)</label>
+                <div style="display:flex;align-items:center;gap:.5rem">
+                  <input type="range" id="lp-hero-bg-opacity" min="0.1" max="1" step="0.05" value="0.3" style="flex:1" oninput="document.getElementById('lp-hero-bg-opacity-val').textContent=this.value">
+                  <span id="lp-hero-bg-opacity-val" style="font-size:.8rem;min-width:32px;color:var(--muted)">0.3</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Preset Themes -->
+          <div style="background:var(--warm);border:1px solid var(--border);border-radius:12px;padding:1rem">
+            <div style="font-weight:600;font-size:.85rem;margin-bottom:.85rem">✨ Quick Themes</div>
+            <div style="display:flex;gap:.6rem;flex-wrap:wrap">
+              <button onclick="applyTheme('mint')" style="padding:.5rem 1rem;border:1px solid #A7F3D0;border-radius:8px;cursor:pointer;background:#E6F7F1;color:#065F46;font-size:.82rem;font-weight:600">🌿 Mint</button>
+              <button onclick="applyTheme('ocean')" style="padding:.5rem 1rem;border:1px solid #BAE6FD;border-radius:8px;cursor:pointer;background:#E0F2FE;color:#0C4A6E;font-size:.82rem;font-weight:600">🌊 Ocean Blue</button>
+              <button onclick="applyTheme('peach')" style="padding:.5rem 1rem;border:1px solid #FED7AA;border-radius:8px;cursor:pointer;background:#FFFBF5;color:#9A3412;font-size:.82rem;font-weight:600">🍑 Peach</button>
+              <button onclick="applyTheme('lavender')" style="padding:.5rem 1rem;border:1px solid #DDD6FE;border-radius:8px;cursor:pointer;background:#FAF5FF;color:#4C1D95;font-size:.82rem;font-weight:600">💜 Lavender</button>
+              <button onclick="applyTheme('charcoal')" style="padding:.5rem 1rem;border:1px solid #D6D3D1;border-radius:8px;cursor:pointer;background:#F5F5F4;color:#1C1917;font-size:.82rem;font-weight:600">🪨 Charcoal</button>
+            </div>
+          </div>
+
         </div>
       </div>
     </div>
