@@ -18,7 +18,8 @@
 <meta name="twitter:title" content="MyanAi — Myanmar AI Products Platform">
 <meta name="twitter:description" content="Myanmar businesses အတွက် AI-powered software platform">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,700;1,700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,700;1,700&family=Noto+Sans+Myanmar:wght@400;500;700&family=Padauk:wght@400;700&family=Inter:wght@400;500;600;700&family=Poppins:wght@400;500;600;700&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Noto+Sans+Myanmar:wght@400;700&family=Padauk:wght@400;700&display=swap">
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{
@@ -40,7 +41,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);lin
 #ann-banner{display:none;padding:.6rem 1rem;text-align:center;font-size:.85rem;font-weight:500}
 
 /* ── NAV ── */
-nav{position:fixed;top:0;left:0;right:0;z-index:100;padding:1rem 5vw;display:flex;align-items:center;gap:2rem;background:rgba(9,9,11,.85);backdrop-filter:blur(20px);border-bottom:0.5px solid var(--border);transition:background .3s}
+nav{position:fixed;top:0;left:0;right:0;z-index:100;padding:1rem 5vw;display:flex;align-items:center;gap:2rem;background:rgba(255,255,255,.95);backdrop-filter:blur(20px);border-bottom:1px solid #E2E8F0;transition:background .3s,box-shadow .3s;box-shadow:0 1px 8px rgba(0,0,0,.05)}
 .nav-logo{display:flex;align-items:center;gap:.6rem;text-decoration:none}
 .nav-logo-mark{width:32px;height:32px;border-radius:10px;background:var(--accent);display:flex;align-items:center;justify-content:center;font-size:.85rem;font-weight:700;color:#fff}
 .nav-logo-text{font-size:1rem;font-weight:700;letter-spacing:-.4px;color:var(--text)}
@@ -172,6 +173,13 @@ footer{padding:3rem 5vw;border-top:0.5px solid var(--border);max-width:1200px;ma
 .btn-emerald:hover{background:#059669;transform:translateY(-1px);box-shadow:0 4px 16px rgba(16,185,129,.4)}
 .btn-blue{background:#2563EB;color:#fff;padding:.75rem 1.75rem;border-radius:99px;font-weight:700;font-size:.95rem;text-decoration:none;display:inline-flex;align-items:center;gap:.5rem;transition:all .2s;box-shadow:0 2px 8px rgba(37,99,235,.3)}
 .btn-blue:hover{background:#1d4ed8;transform:translateY(-1px)}
+
+/* Pyidaungsu font */
+@font-face {
+  font-family: 'Pyidaungsu';
+  src: url('https://fonts.gstatic.com/s/notosansmyanmar/v22/AlZy_zVFtYP12Znabd8uEA.woff2') format('woff2');
+  font-weight: 400;
+}
 </style>
 <link rel="manifest" href="/manifest.json">
 </head>
@@ -386,21 +394,27 @@ footer{padding:3rem 5vw;border-top:0.5px solid var(--border);max-width:1200px;ma
     };
 
     // Hero
-    if(s.hero_title_line1 || s.hero_title_line2) {
-      const h1 = document.getElementById('hero-h1');
-      if(h1 && (s.hero_title_line1||s.hero_title_line2)) {
-        h1.innerHTML = `${s.hero_title_line1||''}<br><em>${s.hero_title_line2||''}</em>`;
-      }
+    const _h1 = document.getElementById('hero-h1');
+    if(_h1 && (s.hero_title_line1 || s.hero_title_line2)) {
+      _h1.innerHTML = (s.hero_title_line1||'')+'<br><em>'+(s.hero_title_line2||'')+'</em>';
     }
     set('hero-sub',  s.hero_subtitle);
     set('hero-desc', s.hero_desc);
+
+    // [cleaned: old system]
+    if(s.hero_h1_lh || s.hero_h1_ls) {
+      const h1=document.getElementById('hero-h1');
+      if(h1){ if(s.hero_h1_lh) h1.style.lineHeight=s.hero_h1_lh; if(s.hero_h1_ls) h1.style.letterSpacing=s.hero_h1_ls+'em'; }
+    }
+    if(s.hero_sub_lh) { const sub=document.getElementById('hero-sub'); if(sub) sub.style.lineHeight=s.hero_sub_lh; }
+    if(s.hero_desc_lh) { const desc=document.getElementById('hero-desc'); if(desc) desc.style.lineHeight=s.hero_desc_lh; }
     set('hero-cta1', s.cta_primary_text);
     set('hero-cta2', s.cta_demo_text);
     if(s.cta_demo_url) document.getElementById('hero-cta2')?.setAttribute('href', s.cta_demo_url);
 
     // Brand
     if(s.store_name) {
-      document.getElementById('nav-logo-text').innerHTML = s.store_name;
+      const _logo=document.getElementById('nav-logo-text'); if(_logo) _logo.textContent=s.store_name;
       document.title = s.store_name + ' — Myanmar AI Platform';
     }
 
@@ -438,73 +452,59 @@ footer{padding:3rem 5vw;border-top:0.5px solid var(--border);max-width:1200px;ma
     if(s.page_title) document.title = s.page_title;
     else if(s.store_name) document.title = s.store_name + ' — Myanmar AI Platform';
 
-    // Contact grid
-    const contactGrid = document.getElementById('contact-grid');
-    if(contactGrid) {
-      const contacts = [
-        {key:'contact_phone',    icon:'📞', label:'Phone / Viber', href: v=>`tel:${v}`},
-        {key:'contact_email',    icon:'📧', label:'Email',          href: v=>`mailto:${v}`},
-        {key:'contact_address',  icon:'📍', label:'Address',        href: v=>`https://maps.google.com?q=${encodeURIComponent(v)}`},
-        {key:'contact_facebook', icon:'📘', label:'Facebook',       href: v=>v},
-        {key:'contact_messenger',icon:'💬', label:'Messenger',      href: v=>v},
-        {key:'contact_viber',    icon:'📱', label:'Viber',          href: v=>v},
-        {key:'contact_instagram',icon:'📸', label:'Instagram',      href: v=>v},
-        {key:'contact_tiktok',   icon:'🎵', label:'TikTok',         href: v=>v},
-      ].filter(c=>s[c.key]);
-
-      if(contacts.length) {
-        contactGrid.innerHTML = contacts.map(c=>`
-          <a href="${c.href(s[c.key])}" target="_blank" rel="noopener"
-             style="display:flex;align-items:center;gap:.75rem;padding:1rem 1.2rem;background:var(--card);border:0.5px solid var(--border);border-radius:var(--radius);text-decoration:none;color:var(--text);transition:all .2s"
-             onmouseover="this.style.borderColor='var(--accent)'" onmouseout="this.style.borderColor='var(--border)'">
-            <span style="font-size:1.4rem">${c.icon}</span>
-            <div>
-              <div style="font-size:.72rem;color:var(--text-mid);text-transform:uppercase;letter-spacing:.06em;margin-bottom:2px">${c.label}</div>
-              <div style="font-size:.88rem;font-weight:500">${s[c.key]}</div>
-            </div>
-          </a>`).join('');
-      } else {
-        contactGrid.style.display='none';
-      }
-    }
-
-    // Tenant count stat
-    if(tenantsRes.ok && tenantsRes.tenants) {
-      const active = tenantsRes.tenants.filter(t=>t.is_active).length;
-      set('stat-tenants', active + '+');
-    }
-
-    // Plans / Pricing
-    if(plansRes.ok && plansRes.plans) {
-      const planColors = {free:'#6b7280',basic:'#3b82f6',pro:'#a78bfa',enterprise:'#f59e0b'};
-      const planEmoji  = {free:'🆓',basic:'⭐',pro:'🚀',enterprise:'🏢'};
-      const grid = document.getElementById('pricing-grid');
-      if(grid) {
-        grid.innerHTML = plansRes.plans.map((p,i)=>{
-          const isFeatured = p.code==='pro';
-          const mmk = parseInt(p.price_mmk||0).toLocaleString();
-          return `<div class="price-card ${isFeatured?'featured':''}">
-            ${isFeatured?'<div style="font-size:.72rem;color:var(--accent2);font-weight:700;margin-bottom:.25rem">✦ Popular</div>':''}
-            <div class="price-plan">${planEmoji[p.code]||'📦'} ${p.name}</div>
-            <div class="price-amount">${mmk==='0'?'Free':mmk} <span>${mmk==='0'?'forever':'MMK/month'}</span></div>
-            <ul class="price-feats">
-              <li>${p.max_branches} branch${p.max_branches>1?'es':''}</li>
-              <li>${p.max_staff} staff accounts</li>
-              <li>${p.max_menu_items} menu items</li>
-              <li>KDS · Tables · Stock</li>
-              <li>KBZPay · Wave Money</li>
-              ${p.code!=='free'?'<li>Priority support</li>':''}
-            </ul>
-            <a class="${isFeatured?'btn-plan btn-plan-primary':'btn-plan btn-plan-secondary'}"
-               href="signup.html?plan=${p.code}">
-              ${mmk==='0'?'Start free':'Try 14 days free'}
-            </a>
-          </div>`;
-        }).join('');
-      }
-    }
-
+    // [styling applied separately below]
   } catch(e) { console.error('Init error:', e); }
+})();
+
+// Apply saved styling separately (won't block content if it fails)
+(async function applyStyles(){
+  try {
+    const res = await fetch('site_settings.php?action=get').then(r=>r.json()).catch(()=>({ok:false}));
+    const s = res.settings || {};
+    const inj=(id,css)=>{let st=document.getElementById(id);if(!st){st=document.createElement('style');st.id=id;document.head.appendChild(st);}st.textContent=css;};
+
+    if(s.hero_t1_size)   inj('init-t1-s','#hero-h1{font-size:'+s.hero_t1_size+'px!important}');
+    if(s.hero_t1_weight) inj('init-t1-w','#hero-h1{font-weight:'+s.hero_t1_weight+'!important}');
+    if(s.hero_t1_align)  inj('init-t1-al','#hero-h1{text-align:'+s.hero_t1_align+'!important}');
+    if(s.hero_t1_color)  inj('init-t1-c','#hero-h1{color:'+s.hero_t1_color+'!important}');
+    if(s.hero_t1_lh)     inj('init-t1-lh','#hero-h1{line-height:'+s.hero_t1_lh+'!important}');
+    if(s.hero_t1_font)   inj('init-t1-f','#hero-h1{font-family:'+s.hero_t1_font+'!important}');
+
+    if(s.hero_t2_size)   inj('init-t2-s','#hero-h1 em{font-size:'+s.hero_t2_size+'px!important}');
+    if(s.hero_t2_weight) inj('init-t2-w','#hero-h1 em{font-weight:'+s.hero_t2_weight+'!important}');
+    if(s.hero_t2_color)  inj('init-t2-c','#hero-h1 em{color:'+s.hero_t2_color+'!important}');
+    if(s.hero_t2_font)   inj('init-t2-f','#hero-h1 em{font-family:'+s.hero_t2_font+'!important}');
+
+    if(s.hero_sub_size)   inj('init-sub-s','#hero-sub{font-size:'+s.hero_sub_size+'px!important}');
+    if(s.hero_sub_weight) inj('init-sub-w','#hero-sub{font-weight:'+s.hero_sub_weight+'!important}');
+    if(s.hero_sub_align)  inj('init-sub-al','#hero-sub{text-align:'+s.hero_sub_align+'!important}');
+    if(s.hero_sub_color)  inj('init-sub-c','#hero-sub{color:'+s.hero_sub_color+'!important}');
+    if(s.hero_sub_lh)     inj('init-sub-lh','#hero-sub{line-height:'+s.hero_sub_lh+'!important}');
+    if(s.hero_sub_font)   inj('init-sub-f','#hero-sub{font-family:'+s.hero_sub_font+'!important}');
+
+    if(s.hero_desc_size)   inj('init-desc-s','#hero-desc{font-size:'+s.hero_desc_size+'px!important}');
+    if(s.hero_desc_align)  inj('init-desc-al','#hero-desc{text-align:'+s.hero_desc_align+'!important}');
+    if(s.hero_desc_color)  inj('init-desc-c','#hero-desc{color:'+s.hero_desc_color+'!important}');
+    if(s.hero_desc_lh)     inj('init-desc-lh','#hero-desc{line-height:'+s.hero_desc_lh+'!important}');
+
+    if(s.hero_badge_size)  inj('init-badge-s','#hero-label{font-size:'+s.hero_badge_size+'px!important}');
+    if(s.hero_badge_color) inj('init-badge-c','#hero-label{color:'+s.hero_badge_color+'!important}');
+
+    if(s.cta1_bg)     inj('init-cta1-bg','#hero-cta1{background:'+s.cta1_bg+'!important;border-color:'+s.cta1_bg+'!important}');
+    if(s.cta1_color)  inj('init-cta1-c','#hero-cta1{color:'+s.cta1_color+'!important}');
+    if(s.cta1_size)   inj('init-cta1-s','#hero-cta1{font-size:'+s.cta1_size+'px!important}');
+    if(s.cta2_bg)     inj('init-cta2-bg','#hero-cta2{background:'+s.cta2_bg+'!important;border-color:'+s.cta2_bg+'!important}');
+    if(s.nav_cta_bg)  inj('init-navcta-bg','#nav-cta{background:'+s.nav_cta_bg+'!important}');
+
+    if(s.bg_body)   document.body.style.background=s.bg_body;
+    if(s.bg_hero){  const h=document.querySelector('.hero');if(h)h.style.background=s.bg_hero;}
+    if(s.bg_nav)    inj('init-nav-bg','#main-nav{background:'+s.bg_nav+'!important}');
+    if(s.bg_footer){const f=document.getElementById('page-footer');if(f)f.style.background=s.bg_footer;}
+    if(s.color_accent){
+      document.documentElement.style.setProperty('--teal',s.color_accent);
+      document.documentElement.style.setProperty('--accent',s.color_accent);
+    }
+  } catch(e){ console.warn('applyStyles:',e); }
 })();
 
 /* ── Reveal on scroll ── */
@@ -514,9 +514,296 @@ const obs = new IntersectionObserver(entries=>{
 document.querySelectorAll('.reveal').forEach(el=>obs.observe(el));
 
 /* ── Nav scroll style ── */
+// Live preview message handler
+window.
+
+// ── Landing Page Editor real-time postMessage handler ──
+window.addEventListener('message', e=>{
+  if(!e.data||!e.data.type) return;
+
+  // Helper: set element text
+  const setText=(id,val)=>{ const el=document.getElementById(id); if(el&&val!==undefined) el.textContent=val; };
+  // Helper: set element style properties
+  const setStyle=(id,styles)=>{ const el=document.getElementById(id); if(!el) return; Object.entries(styles).forEach(([k,v])=>{ if(v) el.style[k]=v; }); };
+
+  if(e.data.type==='lpe-push-all'){
+    const s=e.data.settings||{};
+    // Hero content
+    const h1=document.getElementById('hero-h1');
+    if(h1&&(s.hero_title_line1||s.hero_title_line2))
+      h1.innerHTML=(s.hero_title_line1||'')+'<br><em>'+(s.hero_title_line2||'')+'</em>';
+    setText('hero-sub',s.hero_subtitle);
+    setText('hero-desc',s.hero_desc);
+    setText('hero-label',s.hero_label);
+    // Hero styling
+    if(h1){
+      if(s.t1_font) h1.style.fontFamily=s.t1_font;
+      if(s.t1_size) h1.style.fontSize=s.t1_size+'px';
+      if(s.t1_weight) h1.style.fontWeight=s.t1_weight;
+      if(s.t1_align) h1.style.textAlign=s.t1_align;
+      if(s.t1_color) h1.style.color=s.t1_color;
+      if(s.t1_lh) h1.style.lineHeight=s.t1_lh;
+    }
+    const em=document.querySelector('#hero-h1 em');
+    if(em){
+      if(s.t2_color) em.style.color=s.t2_color;
+      if(s.t2_size) em.style.fontSize=s.t2_size+'px';
+      if(s.t2_weight) em.style.fontWeight=s.t2_weight;
+    }
+    const sub=document.getElementById('hero-sub');
+    if(sub){
+      if(s.sub_font) sub.style.fontFamily=s.sub_font;
+      if(s.sub_size) sub.style.fontSize=s.sub_size+'px';
+      if(s.sub_align) sub.style.textAlign=s.sub_align;
+      if(s.sub_color) sub.style.color=s.sub_color;
+      if(s.sub_lh) sub.style.lineHeight=s.sub_lh;
+    }
+    const desc=document.getElementById('hero-desc');
+    if(desc){
+      if(s.desc_size) desc.style.fontSize=s.desc_size+'px';
+      if(s.desc_align) desc.style.textAlign=s.desc_align;
+      if(s.desc_color) desc.style.color=s.desc_color;
+      if(s.desc_lh) desc.style.lineHeight=s.desc_lh;
+    }
+    const badge=document.getElementById('hero-label');
+    if(badge){
+      if(s.badge_size) badge.style.fontSize=s.badge_size+'px';
+      if(s.badge_color) badge.style.color=s.badge_color;
+    }
+    // Buttons
+    const cta1=document.getElementById('hero-cta1');
+    if(cta1){
+      if(s.cta1_text) cta1.textContent=s.cta1_text;
+      if(s.cta1_url) cta1.href=s.cta1_url;
+      if(s.cta1_bg) cta1.style.background=s.cta1_bg;
+      if(s.cta1_color) cta1.style.color=s.cta1_color;
+      if(s.cta1_size) cta1.style.fontSize=s.cta1_size+'px';
+    }
+    const cta2=document.getElementById('hero-cta2');
+    if(cta2){
+      if(s.cta2_text) cta2.textContent=s.cta2_text;
+      if(s.cta2_url) cta2.href=s.cta2_url;
+      if(s.cta2_bg) cta2.style.background=s.cta2_bg;
+    }
+    const navCta=document.getElementById('nav-cta');
+    if(navCta){
+      if(s.navcta_text) navCta.textContent=s.navcta_text;
+      if(s.navcta_bg) navCta.style.background=s.navcta_bg;
+    }
+    // Colors
+    if(s.bg_body) document.body.style.background=s.bg_body;
+    if(s.bg_hero){ const hero=document.querySelector('.hero'); if(hero) hero.style.background=s.bg_hero; }
+    if(s.bg_nav){ const nav=document.getElementById('main-nav'); if(nav){ nav.style.background=s.bg_nav; nav.dataset.origBg=s.bg_nav; } }
+    if(s.bg_footer){ const ft=document.getElementById('page-footer'); if(ft) ft.style.background=s.bg_footer; }
+    if(s.accent){ document.documentElement.style.setProperty('--teal',s.accent); document.documentElement.style.setProperty('--accent',s.accent); }
+    if(s.color_h1 && h1) h1.style.color=s.color_h1;
+    // Fonts
+    if(s.font_mm||s.font_en){
+      window._lpeMM=s.font_mm||"'Noto Sans Myanmar','Pyidaungsu','Padauk',sans-serif";
+      window._lpeEN=s.font_en||"'Inter',sans-serif";
+      const f=window._lpeMM+','+window._lpeEN;
+      document.getElementById('lpe-font-rt')?.remove();
+      const st=document.createElement('style'); st.id='lpe-font-rt';
+      st.textContent='body,h1,h2,h3,h4,p,span,a,button,.hero-h1,.hero-sub,.hero-desc,.nav-logo-text,.nav-links a,.section-h2,.plan-name,.product-name{font-family:'+f+'!important}';
+      document.head.appendChild(st);
+    }
+    // Brand
+    const logo=document.getElementById('nav-logo-text');
+    if(logo&&s.store_name) logo.textContent=s.store_name;
+    // Banner
+    const banner=document.getElementById('ann-banner');
+    if(banner){
+      if(s.ann_on==='1') banner.style.display='';
+      else if(s.ann_on==='0') banner.style.display='none';
+      if(s.ann_text) banner.textContent=s.ann_text;
+      if(s.ann_bg) banner.style.background=s.ann_bg;
+    }
+    return;
+  }
+
+  // Real-time single field update
+  if(e.data.type==='lpe-rt'){
+    const {field,prop,val}=e.data;
+    const h1   = document.getElementById('hero-h1');
+    const em   = document.querySelector('#hero-h1 em');
+    const sub  = document.getElementById('hero-sub');
+    const desc = document.getElementById('hero-desc');
+    const badge= document.getElementById('hero-label');
+
+    // Helper: inject !important style tag
+    const inj=(id,css)=>{
+      let s=document.getElementById(id);
+      if(!s){s=document.createElement('style');s.id=id;document.head.appendChild(s);}
+      s.textContent=css;
+    };
+
+    // ── T1 (hero-h1) ──
+    if(field==='lp-t1'){
+      if(prop==='text'&&h1){
+        const e2=h1.querySelector('em');
+        const et=e2?e2.outerHTML:'';
+        h1.innerHTML=val+(et||'');
+      }
+      if(prop==='size'){
+        inj('lpe-rt-t1-size','#hero-h1{font-size:'+val+'px!important}');
+        // Keep T2 em at its own size — don't let T1 bleed through
+        const t2St=document.getElementById('lpe-rt-t2-s');
+        if(!t2St){
+          // T2 has no explicit size yet — pin it to its current computed size
+          const emEl=document.querySelector('#hero-h1 em');
+          if(emEl){
+            const curSize=getComputedStyle(emEl).fontSize;
+            inj('lpe-rt-t2-s-lock','#hero-h1 em{font-size:'+curSize+'!important}');
+          }
+        }
+      }
+      if(prop==='weight') inj('lpe-rt-t1-w','#hero-h1{font-weight:'+val+'!important}');
+      if(prop==='align')  inj('lpe-rt-t1-al','#hero-h1{text-align:'+val+'!important}');
+      if(prop==='color')  inj('lpe-rt-t1-c','#hero-h1{color:'+val+'!important}');
+      if(prop==='lh')     inj('lpe-rt-t1-lh','#hero-h1{line-height:'+val+'!important}');
+      if(prop==='font'){
+        const fn=val.replace(/'/g,'').split(',')[0].trim();
+        const fm={'Noto Sans Myanmar':'Noto+Sans+Myanmar:wght@400;700','Padauk':'Padauk:wght@400;700','Poppins':'Poppins:wght@400;500;600;700','Inter':'Inter:wght@400;500;600;700','DM Sans':'DM+Sans:wght@400;500;600;700'};
+        if(fm[fn]&&!document.getElementById('gf-'+fn.replace(/\s/g,'-'))){const lk=document.createElement('link');lk.id='gf-'+fn.replace(/\s/g,'-');lk.rel='stylesheet';lk.href='https://fonts.googleapis.com/css2?family='+fm[fn]+'&display=swap';document.head.appendChild(lk);}
+        inj('lpe-rt-t1-f','#hero-h1{font-family:'+val+'!important}');
+      }
+    }
+
+    // ── T2 (hero-h1 em) ──
+    if(field==='lp-t2'){
+      if(prop==='text'&&em)   em.textContent=val;
+      if(prop==='color')      inj('lpe-rt-t2-c','#hero-h1 em{color:'+val+'!important}');
+      if(prop==='size')       inj('lpe-rt-t2-s','#hero-h1 em{font-size:'+val+'px!important}');
+      if(prop==='weight')     inj('lpe-rt-t2-w','#hero-h1 em{font-weight:'+val+'!important}');
+      if(prop==='font')       inj('lpe-rt-t2-f','#hero-h1 em{font-family:'+val+'!important}');
+    }
+
+    // ── Sub-headline ──
+    if(field==='lp-sub'){
+      if(prop==='text'&&sub)  sub.textContent=val;
+      if(prop==='size')       inj('lpe-rt-sub-s','#hero-sub{font-size:'+val+'px!important}');
+      if(prop==='align')      inj('lpe-rt-sub-al','#hero-sub{text-align:'+val+'!important}');
+      if(prop==='color')      inj('lpe-rt-sub-c','#hero-sub{color:'+val+'!important}');
+      if(prop==='lh')         inj('lpe-rt-sub-lh','#hero-sub{line-height:'+val+'!important}');
+      if(prop==='font')       inj('lpe-rt-sub-f','#hero-sub{font-family:'+val+'!important}');
+    }
+
+    // ── Description ──
+    if(field==='lp-desc'){
+      if(prop==='text'&&desc) desc.textContent=val;
+      if(prop==='size')       inj('lpe-rt-desc-s','#hero-desc{font-size:'+val+'px!important}');
+      if(prop==='align')      inj('lpe-rt-desc-al','#hero-desc{text-align:'+val+'!important}');
+      if(prop==='color')      inj('lpe-rt-desc-c','#hero-desc{color:'+val+'!important}');
+      if(prop==='lh')         inj('lpe-rt-desc-lh','#hero-desc{line-height:'+val+'!important}');
+      if(prop==='font')       inj('lpe-rt-desc-f','#hero-desc{font-family:'+val+'!important}');
+    }
+
+    // ── Badge / Pill ──
+    if(field==='lp-badge'){
+      if(prop==='text'&&badge)  badge.textContent=val;
+      if(prop==='size')         inj('lpe-rt-badge-s','#hero-label{font-size:'+val+'px!important}');
+      if(prop==='color')        inj('lpe-rt-badge-c','#hero-label{color:'+val+'!important}');
+      if(prop==='font')         inj('lpe-rt-badge-f','#hero-label{font-family:'+val+'!important}');
+    }
+
+    // ── CTA Buttons ──
+    if(field==='lp-cta1'){
+      const el=document.getElementById('hero-cta1');
+      if(prop==='text'&&el)   el.textContent=val;
+      if(prop==='size')       inj('lpe-rt-cta1-s','#hero-cta1{font-size:'+val+'px!important}');
+      if(prop==='color')      inj('lpe-rt-cta1-c','#hero-cta1{color:'+val+'!important}');
+      if(prop==='weight')     inj('lpe-rt-cta1-w','#hero-cta1{font-weight:'+val+'!important}');
+      if(prop==='font')       inj('lpe-rt-cta1-f','#hero-cta1{font-family:'+val+'!important}');
+    }
+    if(field==='lp-cta1-bg')  inj('lpe-rt-cta1-bg','#hero-cta1{background:'+val+'!important;border-color:'+val+'!important}');
+    if(field==='lp-cta2'){
+      const el=document.getElementById('hero-cta2');
+      if(prop==='text'&&el)   el.textContent=val;
+      if(prop==='size')       inj('lpe-rt-cta2-s','#hero-cta2{font-size:'+val+'px!important}');
+    }
+    if(field==='lp-cta2-bg')  inj('lpe-rt-cta2-bg','#hero-cta2{background:'+val+'!important;border-color:'+val+'!important}');
+    if(field==='lp-nav-cta'){
+      const el=document.getElementById('nav-cta');
+      if(prop==='text'&&el)   el.textContent=val;
+    }
+    if(field==='lp-nav-cta-bg') inj('lpe-rt-navcta-bg','#nav-cta{background:'+val+'!important}');
+
+    // ── Colors ──
+    if(field==='colors'){
+      if(prop==='lp-bg-body')    document.body.style.background=val;
+      if(prop==='lp-bg-hero'){   const h=document.querySelector('.hero');if(h)h.style.background=val; }
+      if(prop==='lp-bg-nav')     inj('lpe-rt-nav-bg','#main-nav{background:'+val+'!important}');
+      if(prop==='lp-bg-footer'){  const f=document.getElementById('page-footer');if(f)f.style.background=val; }
+      if(prop==='lp-color-accent'){
+        document.documentElement.style.setProperty('--teal',val);
+        document.documentElement.style.setProperty('--accent',val);
+      }
+      if(prop==='lp-color-h1'&&h1) inj('lpe-rt-t1-c','#hero-h1{color:'+val+'!important}');
+    }
+
+    // ── Fonts ──
+    if(field==='fonts'){
+      if(!window._lpeFonts) window._lpeFonts={mm:"'Noto Sans Myanmar','Pyidaungsu','Padauk',sans-serif",en:"'Inter',sans-serif"};
+      window._lpeFonts[prop]=val;
+      const f=window._lpeFonts.mm+','+window._lpeFonts.en;
+      // Load Google Font dynamically
+      const fontMap={
+        'Noto Sans Myanmar':'Noto+Sans+Myanmar:wght@400;700',
+        'Padauk':'Padauk:wght@400;700',
+        'Inter':'Inter:wght@400;500;600;700',
+        'DM Sans':'DM+Sans:wght@400;500;600;700',
+        'Poppins':'Poppins:wght@400;500;600;700',
+      };
+      const fontName=val.replace(/'/g,'').split(',')[0].trim();
+      const param=fontMap[fontName];
+      if(param){
+        const lid='gf-lpe-'+fontName.replace(/\s/g,'-');
+        if(!document.getElementById(lid)){
+          const lk=document.createElement('link');
+          lk.id=lid; lk.rel='stylesheet';
+          lk.href='https://fonts.googleapis.com/css2?family='+param+'&display=swap';
+          document.head.appendChild(lk);
+        }
+      }
+      // Remove individual font overrides so global font wins
+      ['lpe-rt-t1-f','lpe-rt-t2-f','lpe-rt-sub-f','lpe-rt-desc-f'].forEach(id=>document.getElementById(id)?.remove());
+      document.getElementById('dyn-font')?.remove();
+      const st=document.createElement('style'); st.id='dyn-font';
+      st.textContent='html body,html body *{font-family:'+f+'!important}';
+      document.head.appendChild(st);
+      document.body.style.fontFamily=f;
+    }
+
+    // ── Brand ──
+    if(field==='lp-store-name'&&prop==='text'){
+      const logo=document.getElementById('nav-logo-text');
+      if(logo) logo.textContent=val;
+    }
+
+    // ── Banner ──
+    if(field==='ann-text'||field==='banner'){
+      const banner=document.getElementById('ann-banner');
+      if(banner){
+        if(field==='ann-text'&&prop==='text') banner.textContent=val;
+        if(prop==='bg')  inj('lpe-rt-ban-bg','#ann-banner{background:'+val+'!important}');
+        if(prop==='on')  inj('lpe-rt-ban-on','#ann-banner{display:'+(val==='1'?'block':'none')+'!important}');
+        if(prop==='color') inj('lpe-rt-ban-c','#ann-banner{color:'+val+'!important}');
+      }
+    }  }
+});
+
 window.addEventListener('scroll',()=>{
-  document.getElementById('main-nav').style.background =
-    scrollY>10?'rgba(9,9,11,.95)':'rgba(9,9,11,.85)';
+  const nav = document.getElementById('main-nav');
+  if(!nav) return;
+  if(scrollY>10){
+    nav.style.background='rgba(255,255,255,.97)';
+    nav.style.boxShadow='0 2px 12px rgba(0,0,0,.08)';
+  } else {
+    // Restore DB-set nav bg or default
+    const dbBg = nav.dataset.origBg||'rgba(255,255,255,.95)';
+    nav.style.background=dbBg;
+    nav.style.boxShadow='';
+  }
 });
 </script>
 </body>

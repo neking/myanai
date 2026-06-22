@@ -115,15 +115,7 @@ if (isset($_GET['api'])) { // GET+POST both handled
                 $tSettings = json_decode($tenant['settings'] ?? '{}', true);
                 $tHash = $tSettings['admin_pass_hash'] ?? '';
                 if ($tHash && password_verify($inputPass, $tHash)) {
-                    $_SESSION['login_attempts'] = 0;
-                    $_SESSION['admin'] = ['user' => $inputUser, 'role' => 'tenant'];
-                    $_SESSION['tenant_id'] = $tenant['id'];
-                    $_SESSION['tenant_slug'] = $tenant['slug'];
-                    $_SESSION['tenant_name'] = $tenant['name'];
-                    $_SESSION['tenant_plan'] = $tenant['plan'];
-                    $_SESSION['tenant_plan_expires'] = $tenant['plan_expires'] ?? null;
-                    $_SESSION['login_time'] = time();
-                    echo json_encode(['ok' => true, 'role' => 'tenant', 'tenant' => $tenant['slug']]);
+                    echo json_encode(['ok'=>false,'msg'=>'Tenant accounts must login at /tenant.php','redirect'=>'/tenant.php']);
                     exit;
                 }
             }
@@ -1211,9 +1203,9 @@ tr:hover td{background:#fef9f4;}
 .cat-tab:hover,.cat-tab.on{background:var(--ink);color:#fff;border-color:var(--ink);}
 
 /* TOAST */
-.lp-tab{background:none;border:none;border-bottom:2px solid transparent;padding:.6rem 1.1rem;font-size:.83rem;font-weight:500;cursor:pointer;color:var(--muted);transition:all .15s;white-space:nowrap}
+
 .lp-tab:hover{color:var(--ink)}
-.lp-tab.active{color:var(--ink);border-bottom-color:var(--accent)}
+
 .toast{position:fixed;bottom:1.5rem;right:1.5rem;z-index:999;background:var(--ink);color:var(--paper);padding:.65rem 1.1rem;border-radius:10px;font-size:.84rem;font-weight:500;box-shadow:0 8px 24px rgba(0,0,0,.2);transform:translateY(70px);opacity:0;transition:all .3s ease;max-width:280px;}
 .toast.show{transform:translateY(0);opacity:1;}
 .toast.ok{border-left:4px solid var(--green);}
@@ -1285,7 +1277,8 @@ tr.drop-below{box-shadow:0 2px 0 var(--accent);}
 }
 
 @media(max-width:600px){
-  /* ── NAV ── */
+  
+/* ── NAV ── */
   .mobile-nav{display:block;}
   .main{padding-bottom:72px;}
   .hamburger{display:none;}
@@ -1410,6 +1403,46 @@ tr.drop-below{box-shadow:0 2px 0 var(--accent);}
   #qr-grid{grid-template-columns:1fr 1fr;}
   .reason-grid{grid-template-columns:1fr;}
 }
+
+
+/* Preview overlay */
+#lpe-preview-overlay{display:none;position:fixed;inset:0;z-index:9998;background:rgba(0,0,0,0);transition:background .3s}
+#lpe-preview-box{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:93vw;height:91vh;background:#fff;border-radius:14px;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,.35);display:flex;flex-direction:column;opacity:0;transition:opacity .3s}
+#lpe-preview-bar{display:flex;align-items:center;justify-content:space-between;padding:.55rem .9rem;background:#F1F5F9;border-bottom:1px solid #E2E8F0;flex-shrink:0}
+#lpe-preview-iframe{flex:1;border:none;width:100%}
+@keyframes lpe-spin{to{transform:rotate(360deg)}}
+.lpe-spinner{width:18px;height:18px;border:2.5px solid rgba(0,0,0,.15);border-top-color:var(--accent);border-radius:50%;animation:lpe-spin .7s linear infinite}
+
+
+/* ── Landing Page Editor ── */
+.lpe-tabs{display:flex;gap:.3rem;flex-wrap:wrap;padding:.6rem 1rem .45rem;border-bottom:1px solid var(--border);background:#F8FAFC;position:sticky;top:0;z-index:10}
+.lpe-tab{padding:.28rem .7rem;font-size:.76rem;font-weight:600;border:1px solid #E2E8F0;border-radius:20px;cursor:pointer;background:#ffffff;color:#64748B;transition:all .15s;white-space:nowrap}
+.lpe-tab.active{background:var(--accent);color:#fff;border-color:var(--accent)}
+.lpe-panel{display:none;padding:1rem 1.2rem;max-width:660px}
+.lpe-panel.active{display:block}
+.lpe-section{background:#fff;border:1px solid #E8EDF2;border-radius:10px;padding:.85rem 1rem;margin-bottom:.6rem;box-shadow:0 1px 3px rgba(0,0,0,.04)}
+.lpe-section-title{font-size:.72rem;font-weight:700;color:#374151;margin-bottom:.55rem;display:flex;align-items:center;gap:.3rem;text-transform:uppercase;letter-spacing:.05em}
+.lpe-field{margin-bottom:.5rem}
+.lpe-label{font-size:.7rem;font-weight:600;color:#64748B;margin-bottom:.18rem;display:block}
+.lpe-input,.lpe-textarea,.lpe-select-main{width:100%;padding:.4rem .6rem;border:1px solid #E2E8F0;border-radius:7px;background:#fff;color:var(--ink);font-family:inherit;font-size:.86rem;box-sizing:border-box;transition:border-color .15s}
+.lpe-input:focus,.lpe-textarea:focus{border-color:var(--accent);outline:none;box-shadow:0 0 0 2px rgba(16,185,129,.1)}
+.lpe-textarea{resize:vertical;min-height:48px;line-height:1.5}
+.lpe-ctrl{display:flex;flex-wrap:wrap;align-items:center;gap:.2rem;margin-top:.28rem;background:#F8FAFC;border:1px solid #EEF2F7;border-radius:6px;padding:.28rem .42rem}
+.lpe-ctrl-lbl{font-size:.62rem;font-weight:700;color:#94A3B8;white-space:nowrap;letter-spacing:.04em;text-transform:uppercase;min-width:26px}
+.lpe-font-sel{font-size:.71rem;padding:.16rem .28rem;border:1px solid #E2E8F0;border-radius:5px;background:#fff;color:var(--ink);max-width:115px;height:24px}
+.lpe-range-wrap{display:flex;align-items:center;gap:.18rem}
+.lpe-range-wrap input[type=range]{width:75px;height:3px;accent-color:var(--accent);cursor:pointer}
+.lpe-range-val{font-size:.69rem;color:#64748B;min-width:32px;font-variant-numeric:tabular-nums;font-family:monospace}
+.lpe-fw,.lpe-al{padding:.15rem .38rem;font-size:.68rem;border:1px solid #E2E8F0;border-radius:5px;cursor:pointer;background:#fff;color:#374151;font-weight:700;transition:all .1s;line-height:1.2;min-width:22px;text-align:center}
+.lpe-fw:hover,.lpe-al:hover{background:#F1F5F9;border-color:#CBD5E1}
+.lpe-fw.on,.lpe-al.on{background:var(--accent);color:#fff;border-color:var(--accent)}
+.lpe-color-wrap{display:flex;align-items:center;gap:.22rem}
+.lpe-color-wrap input[type=color]{width:26px;height:24px;padding:1px 2px;border:1px solid #E2E8F0;border-radius:5px;cursor:pointer}
+.lpe-color-hex{width:65px!important;font-size:.7rem!important;padding:.16rem .28rem!important;font-family:monospace!important;margin-top:0!important;height:24px!important}
+#lpe-preview-panel{display:none;position:fixed;top:60px;right:0;bottom:0;width:540px;z-index:500;background:#fff;border-left:2px solid #E2E8F0;flex-direction:column;box-shadow:-4px 0 20px rgba(0,0,0,.1);min-width:300px;max-width:85vw}
+@keyframes lpe-spin{to{transform:rotate(360deg)}}
+.lpe-spinner{width:16px;height:16px;border:2px solid rgba(0,0,0,.1);border-top-color:var(--accent);border-radius:50%;animation:lpe-spin .7s linear infinite}
+
 </style>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 </head>
@@ -1511,7 +1544,7 @@ async function doLogin() {
 
       <!-- MARKETING -->
       <div class="nav-sect">Marketing</div>
-      <div class="nav-item" id="nav-landing" onclick="showPage('landing')">
+      <div class="nav-item" id="nav-landing" onclick="showPage('landing');setTimeout(lpeLoad,300)">
         <span class="nav-icon">🌐</span> Landing page
       </div>
       <div class="nav-item" id="nav-demo" onclick="showPage('demo')">
@@ -1795,13 +1828,10 @@ async function doLogin() {
   </div>
 </div>
 
-
-
-
-<script src="admin_main.js?v=<?= time() ?>"></script>
+<script src="admin_main.js?v=1781768650<?= time() ?>"></script>
 <script>
 function twRow(n,f){
-  var d=document.createElement('div'+branchParams());
+  var d=document.createElement('div');
   d.style.cssText='display:flex;gap:6px;margin-bottom:4px';
   d.innerHTML='<input class="tw-n" placeholder="မြို့နယ်" value="'+n+'" style="flex:2;padding:.3rem .6rem;border:1px solid #ccc;border-radius:6px;font-size:.82rem">'
     +'<input type="number" class="tw-f" placeholder="Ks" value="'+f+'" style="flex:1;padding:.3rem .6rem;border:1px solid #ccc;border-radius:6px;font-size:.82rem">'
@@ -1809,48 +1839,48 @@ function twRow(n,f){
   return d;
 }
 function prRow(c,t,v,l){
-  var d=document.createElement('div'+branchParams());
+  var d=document.createElement('div');
   d.style.cssText='display:flex;gap:6px;margin-bottom:4px;flex-wrap:wrap';
   d.innerHTML='<input class="pr-c" placeholder="CODE" value="'+c+'" style="width:90px;padding:.3rem .6rem;border:1px solid #ccc;border-radius:6px;font-size:.82rem;text-transform:uppercase">'
     +'<select class="pr-t" style="padding:.3rem .6rem;border:1px solid #ccc;border-radius:6px;font-size:.82rem">'
-    +'<option value="fixed"'+(t==='fixed'?' selected':''+branchParams())+'>Fixed Ks</option>'
-    +'<option value="percent"'+(t==='percent'?' selected':''+branchParams())+'>Percent %</option>'
-    +'<option value="free_ship"'+(t==='free_ship'?' selected':''+branchParams())+'>Free ship</option></select>'
+    +'<option value="fixed"'+(t==='fixed'?' selected':'')+'>Fixed Ks</option>'
+    +'<option value="percent"'+(t==='percent'?' selected':'')+'>Percent %</option>'
+    +'<option value="free_ship"'+(t==='free_ship'?' selected':'')+'>Free ship</option></select>'
     +'<input type="number" class="pr-v" placeholder="value" value="'+v+'" style="width:80px;padding:.3rem .6rem;border:1px solid #ccc;border-radius:6px;font-size:.82rem">'
     +'<input class="pr-l" placeholder="label" value="'+l+'" style="flex:1;min-width:100px;padding:.3rem .6rem;border:1px solid #ccc;border-radius:6px;font-size:.82rem">'
     +'<button type="button" style="padding:.3rem .6rem;background:#dc2626;color:#fff;border:none;border-radius:6px;cursor:pointer" onclick="this.parentElement.remove()">✕</button>';
   return d;
 }
-function addTownshipRow(){document.getElementById('township-fee-editor'+branchParams()).appendChild(twRow('',''+branchParams()));}
-function addPromoRow(){document.getElementById('promo-code-editor'+branchParams()).appendChild(prRow('','fixed','',''+branchParams()));}
+function addTownshipRow(){document.getElementById('township-fee-editor').appendChild(twRow('',''));}
+function addPromoRow(){document.getElementById('promo-code-editor').appendChild(prRow('','fixed','',''));}
 function initTownshipEditors(s){
-  var tw={};try{tw=JSON.parse(s.township_fees||'{}'+branchParams());}catch(e){}
-  var wrap=document.getElementById('township-fee-editor'+branchParams());
+  var tw={};try{tw=JSON.parse(s.township_fees||'{}');}catch(e){}
+  var wrap=document.getElementById('township-fee-editor');
   if(wrap){wrap.innerHTML='';Object.entries(tw).forEach(function(e){wrap.appendChild(twRow(e[0],e[1]));});}
-  var pr=[];try{pr=JSON.parse(s.promo_codes||'[]'+branchParams());}catch(e){}
-  var pw=document.getElementById('promo-code-editor'+branchParams());
-  if(pw){pw.innerHTML='';pr.forEach(function(p){pw.appendChild(prRow(p.code||'',p.type||'fixed',p.value||'',p.label||''+branchParams()));});}
+  var pr=[];try{pr=JSON.parse(s.promo_codes||'[]');}catch(e){}
+  var pw=document.getElementById('promo-code-editor');
+  if(pw){pw.innerHTML='';pr.forEach(function(p){pw.appendChild(prRow(p.code||'',p.type||'fixed',p.value||'',p.label||''));});}
 }
 function collectTownshipPromo(){
   var tw={};
-  document.querySelectorAll('#township-fee-editor>div'+branchParams()).forEach(function(r){
-    var n=r.querySelector('.tw-n'+branchParams()).value.trim();
-    var f=parseInt(r.querySelector('.tw-f'+branchParams()).value)||0;
+  document.querySelectorAll('#township-fee-editor>div').forEach(function(r){
+    var n=r.querySelector('.tw-n').value.trim();
+    var f=parseInt(r.querySelector('.tw-f').value)||0;
     if(n)tw[n]=f;
   });
-  document.getElementById('st-township_fees'+branchParams()).value=JSON.stringify(tw);
+  document.getElementById('st-township_fees').value=JSON.stringify(tw);
   var pr=[];
-  document.querySelectorAll('#promo-code-editor>div'+branchParams()).forEach(function(r){
-    var c=r.querySelector('.pr-c'+branchParams()).value.trim().toUpperCase();
-    var t=r.querySelector('.pr-t'+branchParams()).value;
-    var v=parseInt(r.querySelector('.pr-v'+branchParams()).value)||0;
-    var l=r.querySelector('.pr-l'+branchParams()).value.trim();
+  document.querySelectorAll('#promo-code-editor>div').forEach(function(r){
+    var c=r.querySelector('.pr-c').value.trim().toUpperCase();
+    var t=r.querySelector('.pr-t').value;
+    var v=parseInt(r.querySelector('.pr-v').value)||0;
+    var l=r.querySelector('.pr-l').value.trim();
     if(c)pr.push({code:c,type:t,value:v,label:l});
   });
-  document.getElementById('st-promo_codes'+branchParams()).value=JSON.stringify(pr);
+  document.getElementById('st-promo_codes').value=JSON.stringify(pr);
 }
 </script>
-<script src="admin_modules.js?v=1781166732"></script>
+<script src="admin_modules.js?v=1781768650"></script>
 <script>
 (function(){
 var slOff=0,slTotal=0,SL_LIMIT=50;
@@ -1904,14 +1934,14 @@ const ALL_PAGES = [
   'landing','demo','announce','saas','settings'
 ];
 async function loadStaff(){
-  const el=document.getElementById('staff-list'+branchParams());
+  const el=document.getElementById('staff-list');
   el.innerHTML='<div style="padding:2rem;text-align:center;color:var(--text-muted)">Loading...</div>';
   try{
-    const d=await(await fetch('staff_api.php?action=list'+branchParams())).json();
+    const d=await(await fetch('staff_api.php?action=list')).json();
     if(!d.ok)throw new Error(d.msg);
     if(!d.staff.length){el.innerHTML='<div style="padding:2rem;text-align:center;color:var(--text-muted)">No staff yet</div>';return;}
     el.innerHTML=d.staff.map(s=>{
-      const perms=(s.permissions||[]).map(p=>{const pg=ALL_PAGES.find(x=>x.k===p);return pg?`<span style="font-size:.72rem;background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:.15rem .5rem">${pg.l}</span>`:''}).join(' '+branchParams());
+      const perms=(s.permissions||[]).map(p=>{const pg=ALL_PAGES.find(x=>x.k===p);return pg?`<span style="font-size:.72rem;background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:.15rem .5rem">${pg.l}</span>`:''}).join(' ');
       const roleBadge=s.role==='manager'?'<span style="background:#dbeafe;color:#1e40af;padding:.2rem .6rem;border-radius:10px;font-size:.75rem;font-weight:600">👔 Manager</span>':'<span style="background:#f3f4f6;color:#555;padding:.2rem .6rem;border-radius:10px;font-size:.75rem;font-weight:600">🧑‍🍳 Waiter</span>';
       const activeBadge=s.is_active?'<span style="color:#27ae60;font-size:.75rem">● Active</span>':'<span style="color:#e74c3c;font-size:.75rem">● Inactive</span>';
       const sData=encodeURIComponent(JSON.stringify(s));
@@ -2106,441 +2136,162 @@ document.addEventListener('DOMContentLoaded', function() {
       <div class="page-title">🌐 Landing Page Editor</div>
     </div>
     <div style="display:flex;gap:.5rem;align-items:center">
-      <a href="landing-page.html" target="_blank" class="btn btn-ghost btn-sm">👁 Preview</a>
-      <button class="btn btn-primary btn-sm" onclick="saveLandingPage()">💾 Save all</button>
+      <button class="btn btn-ghost btn-sm" onclick="lpeOpenPreview()">👁 Live Preview</button>
+      <button class="btn btn-ghost btn-sm" onclick="lpeResetToSaved()" style="color:#7C3AED;border-color:#DDD6FE">↺ Revert</button>
+      <button class="btn btn-primary btn-sm" onclick="lpeSave()">💾 Save</button>
     </div>
   </div>
-  <div class="content">
-
-    <!-- Tab nav -->
-    <div style="display:flex;gap:0;border-bottom:0.5px solid var(--border);margin-bottom:1.2rem;overflow-x:auto">
-      <button onclick="lpTab('hero')"       id="lp-tab-hero"       class="lp-tab active">🦸 Hero</button>
-      <button onclick="lpTab('typography')"  id="lp-tab-typography"  class="lp-tab">🔤 Typography</button>
-      <button onclick="lpTab('styling')"     id="lp-tab-styling"     class="lp-tab">🎨 Styling</button>
-      <button onclick="lpTab('brand')"       id="lp-tab-brand"       class="lp-tab">🏷 Brand</button>
-      <button onclick="lpTab('cta')"         id="lp-tab-cta"         class="lp-tab">🔗 Buttons</button>
-      <button onclick="lpTab('announce')"    id="lp-tab-announce"    class="lp-tab">📣 Banner</button>
-      <button onclick="lpTab('contact')"     id="lp-tab-contact"     class="lp-tab">📞 Contact</button>
-      <button onclick="lpTab('demo')"        id="lp-tab-demo"        class="lp-tab">🎭 Demo</button>
-      <button onclick="lpTab('footer')"      id="lp-tab-footer"      class="lp-tab">🔻 Footer</button>
-    </div>
-
-    <!-- HERO tab -->
-    <div id="lp-panel-hero">
-      <div class="table-wrap" style="padding:1.3rem;max-width:700px">
-        <div style="font-weight:600;font-size:.9rem;margin-bottom:1rem;color:var(--muted)">Hero section — main headline</div>
-        <div style="display:grid;gap:.9rem">
-          <div class="field">
-            <label>Title line 1 (ပထမကြောင်း)</label>
-            <input id="lp-title1" placeholder="Myanmar businesses" style="font-size:.95rem">
-          </div>
-          <div class="field">
-            <label>Title line 2 — highlight ဖြစ်မည် (ဒုတိယကြောင်း)</label>
-            <input id="lp-title2" placeholder="AI နဲ့ ထွန်းလင်းပါ" style="font-size:.95rem">
-          </div>
-          <div class="field">
-            <label>Sub-headline (subtitle)</label>
-            <input id="lp-subtitle" placeholder="MyanAi — မြန်မာ business တွေအတွက် AI-powered software platform">
-          </div>
-          <div class="field">
-            <label>Description text (2-3 sentences)</label>
-            <textarea id="lp-desc" rows="3" style="width:100%;padding:.5rem .7rem;border:0.5px solid var(--border);border-radius:8px;background:var(--warm);color:var(--ink);font-family:inherit;font-size:.85rem" placeholder="POS, HR, Analytics နဲ့ AI tools တွေကို တစ်ခုတည်းသော platform မှ ရယူပါ..."></textarea>
-          </div>
-          <div class="field">
-            <label>Label badge text (hero ထဲ pill)</label>
-            <input id="lp-label" placeholder="🇲🇲 Myanmar-built · AI-powered">
-          </div>
-        </div>
+  <div class="content" style="padding:0;overflow-y:auto">
+<div id="lpe-preview-panel" style="display:none;position:fixed;top:60px;right:0;bottom:0;width:540px;z-index:500;background:#fff;border-left:2px solid #E2E8F0;flex-direction:column;box-shadow:-4px 0 20px rgba(0,0,0,.1)">
+  <div id="lpe-resize-handle" style="position:absolute;left:0;top:0;bottom:0;width:6px;cursor:col-resize;z-index:10"></div>
+  <div style="display:flex;align-items:center;justify-content:space-between;padding:.45rem .75rem;background:#F8FAFC;border-bottom:1px solid #E2E8F0;flex-shrink:0;padding-left:14px">
+    <div style="display:flex;align-items:center;gap:.5rem">
+      <div id="lpe-spinner" style="display:none"><div class="lpe-spinner"></div></div>
+      <span style="font-weight:700;font-size:.78rem;color:#374151">👁 Preview</span>
+      <span style="font-size:.68rem;color:#94A3B8">ပြင်တာနဲ့ ချက်ချင်းပြ</span>
+      <div style="display:flex;gap:.2rem;margin-left:.4rem">
+        <button onclick="lpeResizePanel(720)" style="padding:.15rem .4rem;font-size:.65rem;border:1px solid #E2E8F0;border-radius:4px;cursor:pointer;background:#fff;color:#64748B" title="720px">S</button><button onclick="lpeResizePanel(900)" style="padding:.15rem .4rem;font-size:.65rem;border:1px solid #E2E8F0;border-radius:4px;cursor:pointer;background:#fff;color:#64748B" title="900px">M</button><button onclick="lpeResizePanel(1100)" style="padding:.15rem .4rem;font-size:.65rem;border:1px solid #E2E8F0;border-radius:4px;cursor:pointer;background:#fff;color:#64748B" title="1100px">L</button>
       </div>
     </div>
-
-    <!-- TYPOGRAPHY tab -->
-    <div id="lp-panel-typography" style="display:none">
-      <div class="table-wrap" style="padding:1.3rem;max-width:750px">
-        <div style="font-weight:600;font-size:.9rem;margin-bottom:1.2rem;color:var(--muted)">🔤 Typography — ဖောင့်နှင့် စာလုံးသတ်မှတ်ချက်</div>
-        <div style="display:grid;gap:1.1rem">
-
-          <!-- MM Font -->
-          <div class="field">
-            <label style="font-weight:600">မြန်မာ ဖောင့် (Myanmar Font)</label>
-            <select id="lp-font-mm" style="padding:.5rem .75rem;border:1px solid var(--border);border-radius:8px;background:var(--warm);color:var(--ink);font-size:.9rem;width:100%">
-              <option value="'Noto Sans Myanmar','Pyidaungsu','Padauk',sans-serif">Noto Sans Myanmar (ကြည်လင်, ခေတ်မီ) ★ Recommended</option>
-              <option value="'Padauk',sans-serif">Padauk (ရိုးရာ, ဖတ်ရလွယ်)</option>
-              <option value="'Pyidaungsu',sans-serif">Pyidaungsu (တရားဝင်, ဦးပိုင်ဆိုင်)</option>
-              <option value="'Myanmar Text',sans-serif">Myanmar Text (Windows built-in)</option>
-            </select>
-            <small style="color:var(--muted);font-size:.75rem">Hero H1, body text, Myanmar UI labels အားလုံးကို apply လုပ်မည်</small>
-          </div>
-
-          <!-- ENG Font -->
-          <div class="field">
-            <label style="font-weight:600">အင်္ဂလိပ် ဖောင့် (English Font)</label>
-            <select id="lp-font-en" style="padding:.5rem .75rem;border:1px solid var(--border);border-radius:8px;background:var(--warm);color:var(--ink);font-size:.9rem;width:100%">
-              <option value="'Inter',sans-serif">Inter (Clean, Modern) ★ Recommended</option>
-              <option value="'DM Sans',sans-serif">DM Sans (Friendly, Rounded)</option>
-              <option value="'Plus Jakarta Sans',sans-serif">Plus Jakarta Sans (Professional)</option>
-              <option value="'Poppins',sans-serif">Poppins (Geometric, Bold)</option>
-              <option value="'IBM Plex Sans',sans-serif">IBM Plex Sans (Corporate)</option>
-            </select>
-            <small style="color:var(--muted);font-size:.75rem">Prices, numbers, English labels တွေအတွက်</small>
-          </div>
-
-          <!-- Font Sizes -->
-          <div style="background:var(--warm);border:1px solid var(--border);border-radius:12px;padding:1rem">
-            <div style="font-weight:600;font-size:.85rem;margin-bottom:.85rem">📐 Font Sizes</div>
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:.85rem">
-              <div class="field">
-                <label>H1 Hero title size</label>
-                <div style="display:flex;align-items:center;gap:.5rem">
-                  <input type="range" id="lp-h1-size" min="24" max="72" value="40" style="flex:1" oninput="document.getElementById('lp-h1-size-val').textContent=this.value+'px'">
-                  <span id="lp-h1-size-val" style="font-size:.8rem;min-width:36px;color:var(--muted)">40px</span>
-                </div>
-              </div>
-              <div class="field">
-                <label>Subtitle text size</label>
-                <div style="display:flex;align-items:center;gap:.5rem">
-                  <input type="range" id="lp-sub-size" min="12" max="24" value="16" style="flex:1" oninput="document.getElementById('lp-sub-size-val').textContent=this.value+'px'">
-                  <span id="lp-sub-size-val" style="font-size:.8rem;min-width:36px;color:var(--muted)">16px</span>
-                </div>
-              </div>
-              <div class="field">
-                <label>Section heading size</label>
-                <div style="display:flex;align-items:center;gap:.5rem">
-                  <input type="range" id="lp-sec-h2-size" min="18" max="48" value="32" style="flex:1" oninput="document.getElementById('lp-sec-h2-size-val').textContent=this.value+'px'">
-                  <span id="lp-sec-h2-size-val" style="font-size:.8rem;min-width:36px;color:var(--muted)">32px</span>
-                </div>
-              </div>
-              <div class="field">
-                <label>Body text size</label>
-                <div style="display:flex;align-items:center;gap:.5rem">
-                  <input type="range" id="lp-body-size" min="12" max="20" value="15" style="flex:1" oninput="document.getElementById('lp-body-size-val').textContent=this.value+'px'">
-                  <span id="lp-body-size-val" style="font-size:.8rem;min-width:36px;color:var(--muted)">15px</span>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Alignment -->
-          <div style="background:var(--warm);border:1px solid var(--border);border-radius:12px;padding:1rem">
-            <div style="font-weight:600;font-size:.85rem;margin-bottom:.85rem">↔ Alignment</div>
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:.85rem">
-              <div class="field">
-                <label>Hero H1 alignment</label>
-                <div style="display:flex;gap:.5rem">
-                  <button onclick="setAlign('lp-h1-align','left',this)" class="align-btn active" data-val="left" style="flex:1;padding:.4rem;border:1px solid var(--border);border-radius:6px;cursor:pointer;background:var(--warm)">⬅ Left</button>
-                  <button onclick="setAlign('lp-h1-align','center',this)" class="align-btn" data-val="center" style="flex:1;padding:.4rem;border:1px solid var(--border);border-radius:6px;cursor:pointer;background:var(--warm)">↔ Center</button>
-                  <button onclick="setAlign('lp-h1-align','right',this)" class="align-btn" data-val="right" style="flex:1;padding:.4rem;border:1px solid var(--border);border-radius:6px;cursor:pointer;background:var(--warm)">⮕ Right</button>
-                  <input type="hidden" id="lp-h1-align" value="left">
-                </div>
-              </div>
-              <div class="field">
-                <label>Section heading alignment</label>
-                <div style="display:flex;gap:.5rem">
-                  <button onclick="setAlign('lp-sec-align','left',this)" class="align-btn" data-val="left" style="flex:1;padding:.4rem;border:1px solid var(--border);border-radius:6px;cursor:pointer;background:var(--warm)">⬅ Left</button>
-                  <button onclick="setAlign('lp-sec-align','center',this)" class="align-btn active" data-val="center" style="flex:1;padding:.4rem;border:1px solid var(--border);border-radius:6px;cursor:pointer;background:var(--warm)">↔ Center</button>
-                  <button onclick="setAlign('lp-sec-align','right',this)" class="align-btn" data-val="right" style="flex:1;padding:.4rem;border:1px solid var(--border);border-radius:6px;cursor:pointer;background:var(--warm)">⮕ Right</button>
-                  <input type="hidden" id="lp-sec-align" value="center">
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Font Weight -->
-          <div class="field">
-            <label style="font-weight:600">H1 Font Weight</label>
-            <div style="display:flex;gap:.5rem;flex-wrap:wrap">
-              <button onclick="setFontWeight('400',this)" class="fw-btn" style="padding:.4rem .85rem;border:1px solid var(--border);border-radius:6px;cursor:pointer;background:var(--warm);font-weight:400">Regular</button>
-              <button onclick="setFontWeight('500',this)" class="fw-btn" style="padding:.4rem .85rem;border:1px solid var(--border);border-radius:6px;cursor:pointer;background:var(--warm);font-weight:500">Medium</button>
-              <button onclick="setFontWeight('600',this)" class="fw-btn" style="padding:.4rem .85rem;border:1px solid var(--border);border-radius:6px;cursor:pointer;background:var(--warm);font-weight:600">Semi-Bold</button>
-              <button onclick="setFontWeight('700',this)" class="fw-btn active" style="padding:.4rem .85rem;border:1px solid var(--border);border-radius:6px;cursor:pointer;background:var(--accent);color:#fff;font-weight:700">Bold ★</button>
-              <button onclick="setFontWeight('800',this)" class="fw-btn" style="padding:.4rem .85rem;border:1px solid var(--border);border-radius:6px;cursor:pointer;background:var(--warm);font-weight:800">Extra Bold</button>
-              <input type="hidden" id="lp-h1-weight" value="700">
-            </div>
-          </div>
-
-          <!-- Preview -->
-          <div style="background:#FFFBF5;border:1px solid var(--border);border-radius:12px;padding:1.25rem">
-            <div style="font-size:.72rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom:.75rem">Live Preview</div>
-            <div id="lp-font-preview" style="font-size:28px;font-weight:700;color:#292524;line-height:1.2;font-family:'Noto Sans Myanmar',sans-serif">မြန်မာ့စီးပွားရေး AI နည်းပညာ</div>
-            <div id="lp-font-preview-en" style="font-size:14px;color:#57534E;margin-top:.5rem;font-family:'Inter',sans-serif">MyanAi — Myanmar AI Platform</div>
-          </div>
-
-        </div>
-      </div>
+    <div style="display:flex;gap:.3rem">
+      <button onclick="lpeSave()" style="padding:.28rem .65rem;background:#10B981;color:#fff;border:none;border-radius:5px;cursor:pointer;font-size:.73rem;font-weight:600">💾 Save</button>
+      <button onclick="lpeClosePreview()" style="padding:.28rem .55rem;background:#F1F5F9;color:#374151;border:1px solid #E2E8F0;border-radius:5px;cursor:pointer;font-size:.73rem">✕</button>
     </div>
-
-    <!-- STYLING tab -->
-    <div id="lp-panel-styling" style="display:none">
-      <div class="table-wrap" style="padding:1.3rem;max-width:750px">
-        <div style="font-weight:600;font-size:.9rem;margin-bottom:1.2rem;color:var(--muted)">🎨 Styling — အရောင်နှင့် ဒီဇိုင်း</div>
-        <div style="display:grid;gap:1.1rem">
-
-          <!-- Body + Sections -->
-          <div style="background:var(--warm);border:1px solid var(--border);border-radius:12px;padding:1rem">
-            <div style="font-weight:600;font-size:.85rem;margin-bottom:.85rem">🖼 Background Colors</div>
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:.85rem">
-              <div class="field">
-                <label>Body background</label>
-                <div style="display:flex;gap:.5rem;align-items:center">
-                  <input type="color" id="lp-bg-body" value="#FFFBF5" style="width:44px;height:36px;border:1px solid var(--border);border-radius:6px;cursor:pointer">
-                  <input id="lp-bg-body-hex" value="#FFFBF5" style="width:90px;font-size:.85rem" oninput="document.getElementById('lp-bg-body').value=this.value">
-                </div>
-              </div>
-              <div class="field">
-                <label>Hero background color</label>
-                <div style="display:flex;gap:.5rem;align-items:center">
-                  <input type="color" id="lp-bg-hero" value="#FFFBF5" style="width:44px;height:36px;border:1px solid var(--border);border-radius:6px;cursor:pointer">
-                  <input id="lp-bg-hero-hex" value="#FFFBF5" style="width:90px;font-size:.85rem" oninput="document.getElementById('lp-bg-hero').value=this.value">
-                </div>
-              </div>
-              <div class="field">
-                <label>Section (benefits/pricing) bg</label>
-                <div style="display:flex;gap:.5rem;align-items:center">
-                  <input type="color" id="lp-bg-section" value="#FFFFFF" style="width:44px;height:36px;border:1px solid var(--border);border-radius:6px;cursor:pointer">
-                  <input id="lp-bg-section-hex" value="#FFFFFF" style="width:90px;font-size:.85rem" oninput="document.getElementById('lp-bg-section').value=this.value">
-                </div>
-              </div>
-              <div class="field">
-                <label>Demo section background</label>
-                <div style="display:flex;gap:.5rem;align-items:center">
-                  <input type="color" id="lp-bg-demo" value="#E6F7F1" style="width:44px;height:36px;border:1px solid var(--border);border-radius:6px;cursor:pointer">
-                  <input id="lp-bg-demo-hex" value="#E6F7F1" style="width:90px;font-size:.85rem" oninput="document.getElementById('lp-bg-demo').value=this.value">
-                </div>
-              </div>
-              <div class="field">
-                <label>Footer background</label>
-                <div style="display:flex;gap:.5rem;align-items:center">
-                  <input type="color" id="lp-bg-footer" value="#1C1F26" style="width:44px;height:36px;border:1px solid var(--border);border-radius:6px;cursor:pointer">
-                  <input id="lp-bg-footer-hex" value="#1C1F26" style="width:90px;font-size:.85rem" oninput="document.getElementById('lp-bg-footer').value=this.value">
-                </div>
-              </div>
-              <div class="field">
-                <label>Nav background</label>
-                <div style="display:flex;gap:.5rem;align-items:center">
-                  <input type="color" id="lp-bg-nav" value="#FFFFFF" style="width:44px;height:36px;border:1px solid var(--border);border-radius:6px;cursor:pointer">
-                  <input id="lp-bg-nav-hex" value="#FFFFFF" style="width:90px;font-size:.85rem" oninput="document.getElementById('lp-bg-nav').value=this.value">
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Text Colors -->
-          <div style="background:var(--warm);border:1px solid var(--border);border-radius:12px;padding:1rem">
-            <div style="font-weight:600;font-size:.85rem;margin-bottom:.85rem">✍ Text Colors</div>
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:.85rem">
-              <div class="field">
-                <label>Hero H1 color</label>
-                <div style="display:flex;gap:.5rem;align-items:center">
-                  <input type="color" id="lp-color-h1" value="#292524" style="width:44px;height:36px;border:1px solid var(--border);border-radius:6px;cursor:pointer">
-                  <input id="lp-color-h1-hex" value="#292524" style="width:90px;font-size:.85rem" oninput="document.getElementById('lp-color-h1').value=this.value">
-                </div>
-              </div>
-              <div class="field">
-                <label>H1 highlight (em) color</label>
-                <div style="display:flex;gap:.5rem;align-items:center">
-                  <input type="color" id="lp-color-em" value="#0D9F6E" style="width:44px;height:36px;border:1px solid var(--border);border-radius:6px;cursor:pointer">
-                  <input id="lp-color-em-hex" value="#0D9F6E" style="width:90px;font-size:.85rem" oninput="document.getElementById('lp-color-em').value=this.value">
-                </div>
-              </div>
-              <div class="field">
-                <label>Body text color</label>
-                <div style="display:flex;gap:.5rem;align-items:center">
-                  <input type="color" id="lp-color-body" value="#57534E" style="width:44px;height:36px;border:1px solid var(--border);border-radius:6px;cursor:pointer">
-                  <input id="lp-color-body-hex" value="#57534E" style="width:90px;font-size:.85rem" oninput="document.getElementById('lp-color-body').value=this.value">
-                </div>
-              </div>
-              <div class="field">
-                <label>Accent / Link color</label>
-                <div style="display:flex;gap:.5rem;align-items:center">
-                  <input type="color" id="lp-color-accent" value="#0D9F6E" style="width:44px;height:36px;border:1px solid var(--border);border-radius:6px;cursor:pointer">
-                  <input id="lp-color-accent-hex" value="#0D9F6E" style="width:90px;font-size:.85rem" oninput="document.getElementById('lp-color-accent').value=this.value">
-                </div>
-              </div>
-              <div class="field">
-                <label>CTA button color</label>
-                <div style="display:flex;gap:.5rem;align-items:center">
-                  <input type="color" id="lp-color-cta" value="#0D9F6E" style="width:44px;height:36px;border:1px solid var(--border);border-radius:6px;cursor:pointer">
-                  <input id="lp-color-cta-hex" value="#0D9F6E" style="width:90px;font-size:.85rem" oninput="document.getElementById('lp-color-cta').value=this.value">
-                </div>
-              </div>
-              <div class="field">
-                <label>Section title color</label>
-                <div style="display:flex;gap:.5rem;align-items:center">
-                  <input type="color" id="lp-color-sec-title" value="#292524" style="width:44px;height:36px;border:1px solid var(--border);border-radius:6px;cursor:pointer">
-                  <input id="lp-color-sec-title-hex" value="#292524" style="width:90px;font-size:.85rem" oninput="document.getElementById('lp-color-sec-title').value=this.value">
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Hero BG Image -->
-          <div style="background:var(--warm);border:1px solid var(--border);border-radius:12px;padding:1rem">
-            <div style="font-weight:600;font-size:.85rem;margin-bottom:.85rem">🖼 Hero Background Image</div>
-            <div style="display:grid;gap:.75rem">
-              <div id="lp-hero-bg-preview" style="height:120px;background:#F1F5F9;border-radius:8px;border:2px dashed var(--border);display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:.85rem">
-                No image — click to upload
-              </div>
-              <div style="display:flex;gap:.5rem;flex-wrap:wrap">
-                <label style="display:inline-flex;align-items:center;gap:.4rem;padding:.5rem 1rem;background:var(--accent);color:#fff;border-radius:8px;cursor:pointer;font-size:.85rem;font-weight:600">
-                  📁 Upload Image
-                  <input type="file" id="lp-hero-bg-file" accept="image/*" style="display:none" onchange="previewHeroBg(this)">
-                </label>
-                <button onclick="clearHeroBg()" style="padding:.5rem 1rem;border:1px solid var(--border);border-radius:8px;cursor:pointer;background:var(--warm);font-size:.85rem">✕ Clear</button>
-              </div>
-              <div class="field">
-                <label>Or enter image URL</label>
-                <input id="lp-hero-bg-url" placeholder="https://... or /uploads/..." oninput="previewHeroBgUrl(this.value)">
-              </div>
-              <div class="field">
-                <label>Image opacity (0.1 = faint, 1.0 = full)</label>
-                <div style="display:flex;align-items:center;gap:.5rem">
-                  <input type="range" id="lp-hero-bg-opacity" min="0.1" max="1" step="0.05" value="0.3" style="flex:1" oninput="document.getElementById('lp-hero-bg-opacity-val').textContent=this.value">
-                  <span id="lp-hero-bg-opacity-val" style="font-size:.8rem;min-width:32px;color:var(--muted)">0.3</span>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Preset Themes -->
-          <div style="background:var(--warm);border:1px solid var(--border);border-radius:12px;padding:1rem">
-            <div style="font-weight:600;font-size:.85rem;margin-bottom:.85rem">✨ Quick Themes</div>
-            <div style="display:flex;gap:.6rem;flex-wrap:wrap">
-              <button onclick="applyTheme('mint')" style="padding:.5rem 1rem;border:1px solid #A7F3D0;border-radius:8px;cursor:pointer;background:#E6F7F1;color:#065F46;font-size:.82rem;font-weight:600">🌿 Mint</button>
-              <button onclick="applyTheme('ocean')" style="padding:.5rem 1rem;border:1px solid #BAE6FD;border-radius:8px;cursor:pointer;background:#E0F2FE;color:#0C4A6E;font-size:.82rem;font-weight:600">🌊 Ocean Blue</button>
-              <button onclick="applyTheme('peach')" style="padding:.5rem 1rem;border:1px solid #FED7AA;border-radius:8px;cursor:pointer;background:#FFFBF5;color:#9A3412;font-size:.82rem;font-weight:600">🍑 Peach</button>
-              <button onclick="applyTheme('lavender')" style="padding:.5rem 1rem;border:1px solid #DDD6FE;border-radius:8px;cursor:pointer;background:#FAF5FF;color:#4C1D95;font-size:.82rem;font-weight:600">💜 Lavender</button>
-              <button onclick="applyTheme('charcoal')" style="padding:.5rem 1rem;border:1px solid #D6D3D1;border-radius:8px;cursor:pointer;background:#F5F5F4;color:#1C1917;font-size:.82rem;font-weight:600">🪨 Charcoal</button>
-            </div>
-          </div>
-
-        </div>
-      </div>
-    </div>
-
-    <!-- BRAND tab -->
-    <div id="lp-panel-brand" style="display:none">
-      <div class="table-wrap" style="padding:1.3rem;max-width:700px">
-        <div style="font-weight:600;font-size:.9rem;margin-bottom:1rem;color:var(--muted)">Brand name &amp; identity</div>
-        <div style="display:grid;gap:.9rem">
-          <div class="field">
-            <label>Brand / App name (nav logo)</label>
-            <input id="lp-store-name" placeholder="MyanAi">
-          </div>
-          <div class="field">
-            <label>Brand emoji / icon</label>
-            <input id="lp-emoji" placeholder="🤖" style="width:100px;font-size:1.5rem;text-align:center">
-          </div>
-          <div class="field">
-            <label>Page title (browser tab)</label>
-            <input id="lp-page-title" placeholder="MyanAi — Myanmar AI Products Platform">
-          </div>
-          <div class="field">
-            <label>Tagline (short, under brand name)</label>
-            <input id="lp-tagline" placeholder="Myanmar AI Products Platform">
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- CTA tab -->
-    <div id="lp-panel-cta" style="display:none">
-      <div class="table-wrap" style="padding:1.3rem;max-width:700px">
-        <div style="font-weight:600;font-size:.9rem;margin-bottom:1rem;color:var(--muted)">Call-to-action buttons</div>
-        <div style="display:grid;gap:.9rem">
-          <div class="field">
-            <label>Primary button text</label>
-            <input id="lp-cta1" placeholder="Free Trial စမ်း →">
-          </div>
-          <div class="field">
-            <label>Primary button URL</label>
-            <input id="lp-cta1-url" placeholder="/signup.html">
-          </div>
-          <div class="field">
-            <label>Secondary button text (demo)</label>
-            <input id="lp-cta2" placeholder="🎭 Live Demo ကြည့်">
-          </div>
-          <div class="field">
-            <label>Secondary button URL</label>
-            <input id="lp-demo-url" placeholder="/tenant.php">
-          </div>
-          <div class="field">
-            <label>Nav bar CTA text</label>
-            <input id="lp-nav-cta" placeholder="Free Trial စမ်း →">
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- ANNOUNCE tab -->
-    <div id="lp-panel-announce" style="display:none">
-      <div class="table-wrap" style="padding:1.3rem;max-width:700px">
-        <div style="font-weight:600;font-size:.9rem;margin-bottom:1rem;color:var(--muted)">Top announcement banner</div>
-        <div style="display:grid;gap:.9rem">
-          <div class="field" style="display:flex;align-items:center;gap:.75rem">
-            <input type="checkbox" id="lp-ann-on" style="width:18px;height:18px">
-            <label for="lp-ann-on" style="cursor:pointer;font-weight:500">Show announcement banner</label>
-          </div>
-          <div class="field">
-            <label>Banner text</label>
-            <input id="lp-ann-text" placeholder="🎉 New: MyanAi HR launched! ">
-          </div>
-          <div class="field">
-            <label>Banner background color</label>
-            <div style="display:flex;gap:.75rem;align-items:center">
-              <input type="color" id="lp-ann-color" value="#6366f1" style="width:48px;height:36px;border-radius:8px;border:0.5px solid var(--border)">
-              <input id="lp-ann-color-hex" placeholder="#6366f1" style="width:100px" oninput="document.getElementById('lp-ann-color').value=this.value">
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- CONTACT tab -->
-    <div id="lp-panel-contact" style="display:none">
-      <div class="table-wrap" style="padding:1.3rem;max-width:700px">
-        <div style="font-weight:600;font-size:.9rem;margin-bottom:1rem;color:var(--muted)">Contact information</div>
-        <div style="display:grid;gap:.9rem">
-          <div class="field"><label>📞 Phone / Viber</label><input id="lp-phone" placeholder="09xxxxxxxxx"></div>
-          <div class="field"><label>📧 Email</label><input id="lp-email" placeholder="hello@myanai.net"></div>
-          <div class="field"><label>📍 Address</label><input id="lp-address" placeholder="Yangon, Myanmar"></div>
-          <div class="field"><label>📘 Facebook page URL</label><input id="lp-facebook" placeholder="https://fb.com/myanai"></div>
-          <div class="field"><label>💬 Messenger URL</label><input id="lp-messenger" placeholder="https://m.me/myanai"></div>
-          <div class="field"><label>📱 Viber URL</label><input id="lp-viber" placeholder="viber://chat?number=09xxxxxxxxx"></div>
-          <div class="field"><label>📸 Instagram</label><input id="lp-instagram" placeholder="https://instagram.com/myanai"></div>
-          <div class="field"><label>🎵 TikTok</label><input id="lp-tiktok" placeholder="https://tiktok.com/@myanai"></div>
-        </div>
-      </div>
-    </div>
-
-    <!-- DEMO tab -->
-    <div id="lp-panel-demo" style="display:none">
-      <div class="table-wrap" style="padding:1.3rem;max-width:700px">
-        <div style="font-weight:600;font-size:.9rem;margin-bottom:1rem;color:var(--muted)">Demo section text</div>
-        <div style="display:grid;gap:.9rem">
-          <div class="field"><label>Demo section heading</label><input id="lp-demo-heading" placeholder="Live Demo ကြည့်ပါ"></div>
-          <div class="field"><label>Demo section subtitle</label><input id="lp-demo-sub" placeholder="Sign up မလုပ်ဘဲ features အကုန် စမ်းနိုင်သည်"></div>
-          <div class="field"><label>Demo email (show to visitors)</label><input id="lp-demo-email" placeholder="demo@myanai.net"></div>
-          <div class="field"><label>Demo password (show to visitors)</label><input id="lp-demo-pass" placeholder="demo1234"></div>
-          <div class="field"><label>Demo button text</label><input id="lp-demo-btn" placeholder="🎭 Demo Admin ဝင်ကြည့် →"></div>
-        </div>
-      </div>
-    </div>
-
-    <!-- FOOTER tab -->
-    <div id="lp-panel-footer" style="display:none">
-      <div class="table-wrap" style="padding:1.3rem;max-width:700px">
-        <div style="font-weight:600;font-size:.9rem;margin-bottom:1rem;color:var(--muted)">Footer text</div>
-        <div style="display:grid;gap:.9rem">
-          <div class="field"><label>Copyright text</label><input id="lp-copyright" placeholder="© 2026 MyanAi · Made in Myanmar 🇲🇲"></div>
-          <div class="field"><label>Footer tagline</label><input id="lp-foot-tagline" placeholder="AI-powered software for Myanmar businesses"></div>
-        </div>
-      </div>
-    </div>
-
   </div>
+  <iframe id="lpe-preview-iframe" src="" style="flex:1;border:none;width:100%;height:100%;opacity:0;transition:opacity .3s" title="Landing Preview"></iframe>
 </div>
+<div class="lpe-tabs">
+<button onclick="lpeTab('hero')" id="lpe-tab-hero" class="lpe-tab active">🦸 Hero</button>
+<button onclick="lpeTab('buttons')" id="lpe-tab-buttons" class="lpe-tab">🔗 Buttons</button>
+<button onclick="lpeTab('colors')" id="lpe-tab-colors" class="lpe-tab">🎨 Colors</button>
+<button onclick="lpeTab('fonts')" id="lpe-tab-fonts" class="lpe-tab">🔤 Fonts</button>
+<button onclick="lpeTab('brand')" id="lpe-tab-brand" class="lpe-tab">🏷 Brand</button>
+<button onclick="lpeTab('banner')" id="lpe-tab-banner" class="lpe-tab">📣 Banner</button>
+<button onclick="lpeTab('contact')" id="lpe-tab-contact" class="lpe-tab">📞 Contact</button>
+<button onclick="lpeTab('demo')" id="lpe-tab-demo" class="lpe-tab">🎭 Demo</button>
+<button onclick="lpeTab('footer')" id="lpe-tab-footer" class="lpe-tab">🔻 Footer</button>
+</div>
+<div class="lpe-content">
+<div id="lpe-panel-hero" class="lpe-panel active"><div class="lpe-section"><div class="lpe-section-title">① Title Line 1 (ပထမကြောင်း)</div><div class="lpe-field"><label class="lpe-label"></label><input id="lp-t1" class="lpe-input" placeholder="သင့်လုပ်ငန်းကို" oninput="lpeRT('lp-t1','text',this.value)"><div class="lpe-ctrl"><span class="lpe-ctrl-lbl">Font</span><select id="lp-t1-font" class="lpe-font-sel" onchange="lpeRT('lp-t1','font',this.value)"><option value="">— Default —</option>
+<option value="'Noto Sans Myanmar','Pyidaungsu','Padauk',sans-serif">Noto Sans Myanmar ★</option>
+<option value="'Padauk',sans-serif">Padauk</option>
+<option value="'Pyidaungsu',sans-serif">Pyidaungsu</option>
+<option value="'Inter',sans-serif">Inter</option>
+<option value="'DM Sans',sans-serif">DM Sans</option>
+<option value="'Poppins',sans-serif">Poppins</option></select><span class="lpe-ctrl-lbl">Size</span><div class="lpe-range-wrap"><input type="range" id="lp-t1-size" min="16" max="80" value="40" oninput="document.getElementById('lp-t1-sz-v').textContent=this.value+'px';document.getElementById('lp-t1-size-num').value=this.value;lpeRT('lp-t1','size',this.value)"><input type="number" id="lp-t1-size-num" value="40" min="16" max="80" style="width:44px;padding:.12rem .2rem;font-size:.7rem;border:1px solid #E2E8F0;border-radius:4px;text-align:center;font-family:monospace;color:#374151" oninput="let v=Math.min(Math.max(parseInt(this.value)||40,16),80);this.value=v;document.getElementById('lp-t1-size').value=v;document.getElementById('lp-t1-sz-v').textContent=v+'px';lpeRT('lp-t1','size',this.value)" onblur="let v=Math.min(Math.max(parseInt(this.value)||40,16),80);this.value=v;document.getElementById('lp-t1-size').value=v;document.getElementById('lp-t1-sz-v').textContent=v+'px';"><span style="display:none" id="lp-t1-sz-v" class="lpe-range-val">40px</span></div><span class="lpe-ctrl-lbl">W</span><button class="lpe-fw" onclick="lpeFW('lp-t1','400',this)">R</button><button class="lpe-fw" onclick="lpeFW('lp-t1','500',this)">M</button><button class="lpe-fw" onclick="lpeFW('lp-t1','600',this)">S</button><button class="lpe-fw on" onclick="lpeFW('lp-t1','700',this)">B</button><button class="lpe-fw" onclick="lpeFW('lp-t1','800',this)">X</button><input type="hidden" id="lp-t1-weight" value="700"><span class="lpe-ctrl-lbl">Align</span><button class="lpe-al on" onclick="lpeAL('lp-t1','left',this)">⬅</button><button class="lpe-al" onclick="lpeAL('lp-t1','center',this)">↔</button><button class="lpe-al" onclick="lpeAL('lp-t1','right',this)">⮕</button><input type="hidden" id="lp-t1-align" value="left"><span class="lpe-ctrl-lbl">Color</span><div class="lpe-color-wrap"><input type="color" id="lp-t1-color" value="#0F172A" oninput="lpeColorSync('lp-t1-color');lpeRT('lp-t1','color',this.value)"><input id="lp-t1-color-hex" class="lpe-input lpe-color-hex" value="#0F172A" oninput="lpeHexSync('lp-t1-color');lpeRT('lp-t1','color',document.getElementById('lp-t1-color').value)"></div><span class="lpe-ctrl-lbl">LineH</span><div class="lpe-range-wrap"><input type="range" id="lp-t1-lh" min="1.0" max="3.5" step="0.1" value="1.4" oninput="document.getElementById('lp-t1-lh-v').textContent=this.value;lpeRT('lp-t1','lh',this.value)"><span id="lp-t1-lh-v" class="lpe-range-val">1.4</span></div></div></div></div><div class="lpe-section"><div class="lpe-section-title">② Title Line 2 Highlight</div><div class="lpe-field"><label class="lpe-label"></label><input id="lp-t2" class="lpe-input" placeholder="AI နဲ့ ထွန်းလင်း" oninput="lpeRT('lp-t2','text',this.value)"><div class="lpe-ctrl"><span class="lpe-ctrl-lbl">Font</span><select id="lp-t2-font" class="lpe-font-sel" onchange="lpeRT('lp-t2','font',this.value)"><option value="">— Default —</option>
+<option value="'Noto Sans Myanmar','Pyidaungsu','Padauk',sans-serif">Noto Sans Myanmar ★</option>
+<option value="'Padauk',sans-serif">Padauk</option>
+<option value="'Pyidaungsu',sans-serif">Pyidaungsu</option>
+<option value="'Inter',sans-serif">Inter</option>
+<option value="'DM Sans',sans-serif">DM Sans</option>
+<option value="'Poppins',sans-serif">Poppins</option></select><span class="lpe-ctrl-lbl">Size</span><div class="lpe-range-wrap"><input type="range" id="lp-t2-size" min="16" max="80" value="40" oninput="document.getElementById('lp-t2-sz-v').textContent=this.value+'px';document.getElementById('lp-t2-size-num').value=this.value;lpeRT('lp-t2','size',this.value)"><input type="number" id="lp-t2-size-num" value="40" min="16" max="80" style="width:44px;padding:.12rem .2rem;font-size:.7rem;border:1px solid #E2E8F0;border-radius:4px;text-align:center;font-family:monospace;color:#374151" oninput="let v=Math.min(Math.max(parseInt(this.value)||40,16),80);this.value=v;document.getElementById('lp-t2-size').value=v;document.getElementById('lp-t2-sz-v').textContent=v+'px';lpeRT('lp-t2','size',this.value)" onblur="let v=Math.min(Math.max(parseInt(this.value)||40,16),80);this.value=v;document.getElementById('lp-t2-size').value=v;document.getElementById('lp-t2-sz-v').textContent=v+'px';"><span style="display:none" id="lp-t2-sz-v" class="lpe-range-val">40px</span></div><span class="lpe-ctrl-lbl">W</span><button class="lpe-fw" onclick="lpeFW('lp-t2','400',this)">R</button><button class="lpe-fw" onclick="lpeFW('lp-t2','500',this)">M</button><button class="lpe-fw" onclick="lpeFW('lp-t2','600',this)">S</button><button class="lpe-fw on" onclick="lpeFW('lp-t2','700',this)">B</button><button class="lpe-fw" onclick="lpeFW('lp-t2','800',this)">X</button><input type="hidden" id="lp-t2-weight" value="700"><span class="lpe-ctrl-lbl">Align</span><button class="lpe-al on" onclick="lpeAL('lp-t2','left',this)">⬅</button><button class="lpe-al" onclick="lpeAL('lp-t2','center',this)">↔</button><button class="lpe-al" onclick="lpeAL('lp-t2','right',this)">⮕</button><input type="hidden" id="lp-t2-align" value="left"><span class="lpe-ctrl-lbl">Color</span><div class="lpe-color-wrap"><input type="color" id="lp-t2-color" value="#0D9F6E" oninput="lpeColorSync('lp-t2-color');lpeRT('lp-t2','color',this.value)"><input id="lp-t2-color-hex" class="lpe-input lpe-color-hex" value="#0D9F6E" oninput="lpeHexSync('lp-t2-color');lpeRT('lp-t2','color',document.getElementById('lp-t2-color').value)"></div></div></div></div><div class="lpe-section"><div class="lpe-section-title">③ Sub-headline</div><div class="lpe-field"><label class="lpe-label"></label><input id="lp-sub" class="lpe-input" placeholder="MyanAi — မြန်မာ business တွေ" oninput="lpeRT('lp-sub','text',this.value)"><div class="lpe-ctrl"><span class="lpe-ctrl-lbl">Font</span><select id="lp-sub-font" class="lpe-font-sel" onchange="lpeRT('lp-sub','font',this.value)"><option value="">— Default —</option>
+<option value="'Noto Sans Myanmar','Pyidaungsu','Padauk',sans-serif">Noto Sans Myanmar ★</option>
+<option value="'Padauk',sans-serif">Padauk</option>
+<option value="'Pyidaungsu',sans-serif">Pyidaungsu</option>
+<option value="'Inter',sans-serif">Inter</option>
+<option value="'DM Sans',sans-serif">DM Sans</option>
+<option value="'Poppins',sans-serif">Poppins</option></select><span class="lpe-ctrl-lbl">Size</span><div class="lpe-range-wrap"><input type="range" id="lp-sub-size" min="12" max="32" value="16" oninput="document.getElementById('lp-sub-sz-v').textContent=this.value+'px';document.getElementById('lp-sub-size-num').value=this.value;lpeRT('lp-sub','size',this.value)"><input type="number" id="lp-sub-size-num" value="16" min="12" max="32" style="width:44px;padding:.12rem .2rem;font-size:.7rem;border:1px solid #E2E8F0;border-radius:4px;text-align:center;font-family:monospace;color:#374151" oninput="let v=Math.min(Math.max(parseInt(this.value)||16,12),32);this.value=v;document.getElementById('lp-sub-size').value=v;document.getElementById('lp-sub-sz-v').textContent=v+'px';lpeRT('lp-sub','size',this.value)" onblur="let v=Math.min(Math.max(parseInt(this.value)||16,12),32);this.value=v;document.getElementById('lp-sub-size').value=v;document.getElementById('lp-sub-sz-v').textContent=v+'px';"><span style="display:none" id="lp-sub-sz-v" class="lpe-range-val">16px</span></div><span class="lpe-ctrl-lbl">Align</span><button class="lpe-al on" onclick="lpeAL('lp-sub','left',this)">⬅</button><button class="lpe-al" onclick="lpeAL('lp-sub','center',this)">↔</button><button class="lpe-al" onclick="lpeAL('lp-sub','right',this)">⮕</button><input type="hidden" id="lp-sub-align" value="left"><span class="lpe-ctrl-lbl">Color</span><div class="lpe-color-wrap"><input type="color" id="lp-sub-color" value="#57534E" oninput="lpeColorSync('lp-sub-color');lpeRT('lp-sub','color',this.value)"><input id="lp-sub-color-hex" class="lpe-input lpe-color-hex" value="#57534E" oninput="lpeHexSync('lp-sub-color');lpeRT('lp-sub','color',document.getElementById('lp-sub-color').value)"></div><span class="lpe-ctrl-lbl">LineH</span><div class="lpe-range-wrap"><input type="range" id="lp-sub-lh" min="1.0" max="3.5" step="0.1" value="1.4" oninput="document.getElementById('lp-sub-lh-v').textContent=this.value;lpeRT('lp-sub','lh',this.value)"><span id="lp-sub-lh-v" class="lpe-range-val">1.4</span></div></div></div></div><div class="lpe-section"><div class="lpe-section-title">④ Description</div><div class="lpe-field"><label class="lpe-label"></label><textarea id="lp-desc" class="lpe-textarea" placeholder="POS, HR, Analytics…" rows="3" oninput="lpeRT('lp-desc','text',this.value)"></textarea><div class="lpe-ctrl"><span class="lpe-ctrl-lbl">Font</span><select id="lp-desc-font" class="lpe-font-sel" onchange="lpeRT('lp-desc','font',this.value)"><option value="">— Default —</option>
+<option value="'Noto Sans Myanmar','Pyidaungsu','Padauk',sans-serif">Noto Sans Myanmar ★</option>
+<option value="'Padauk',sans-serif">Padauk</option>
+<option value="'Pyidaungsu',sans-serif">Pyidaungsu</option>
+<option value="'Inter',sans-serif">Inter</option>
+<option value="'DM Sans',sans-serif">DM Sans</option>
+<option value="'Poppins',sans-serif">Poppins</option></select><span class="lpe-ctrl-lbl">Size</span><div class="lpe-range-wrap"><input type="range" id="lp-desc-size" min="11" max="22" value="14" oninput="document.getElementById('lp-desc-sz-v').textContent=this.value+'px';document.getElementById('lp-desc-size-num').value=this.value;lpeRT('lp-desc','size',this.value)"><input type="number" id="lp-desc-size-num" value="14" min="11" max="22" style="width:44px;padding:.12rem .2rem;font-size:.7rem;border:1px solid #E2E8F0;border-radius:4px;text-align:center;font-family:monospace;color:#374151" oninput="let v=Math.min(Math.max(parseInt(this.value)||14,11),22);this.value=v;document.getElementById('lp-desc-size').value=v;document.getElementById('lp-desc-sz-v').textContent=v+'px';lpeRT('lp-desc','size',this.value)" onblur="let v=Math.min(Math.max(parseInt(this.value)||14,11),22);this.value=v;document.getElementById('lp-desc-size').value=v;document.getElementById('lp-desc-sz-v').textContent=v+'px';"><span style="display:none" id="lp-desc-sz-v" class="lpe-range-val">14px</span></div><span class="lpe-ctrl-lbl">Align</span><button class="lpe-al on" onclick="lpeAL('lp-desc','left',this)">⬅</button><button class="lpe-al" onclick="lpeAL('lp-desc','center',this)">↔</button><button class="lpe-al" onclick="lpeAL('lp-desc','right',this)">⮕</button><input type="hidden" id="lp-desc-align" value="left"><span class="lpe-ctrl-lbl">Color</span><div class="lpe-color-wrap"><input type="color" id="lp-desc-color" value="#78716C" oninput="lpeColorSync('lp-desc-color');lpeRT('lp-desc','color',this.value)"><input id="lp-desc-color-hex" class="lpe-input lpe-color-hex" value="#78716C" oninput="lpeHexSync('lp-desc-color');lpeRT('lp-desc','color',document.getElementById('lp-desc-color').value)"></div><span class="lpe-ctrl-lbl">LineH</span><div class="lpe-range-wrap"><input type="range" id="lp-desc-lh" min="1.0" max="3.5" step="0.1" value="1.4" oninput="document.getElementById('lp-desc-lh-v').textContent=this.value;lpeRT('lp-desc','lh',this.value)"><span id="lp-desc-lh-v" class="lpe-range-val">1.4</span></div></div></div></div><div class="lpe-section"><div class="lpe-section-title">⑤ Badge / Pill</div><div class="lpe-field"><label class="lpe-label"></label><input id="lp-badge" class="lpe-input" placeholder="🇲🇲 Myanmar-built · AI-powered" oninput="lpeRT('lp-badge','text',this.value)"><div class="lpe-ctrl"><span class="lpe-ctrl-lbl">Font</span><select id="lp-badge-font" class="lpe-font-sel" onchange="lpeRT('lp-badge','font',this.value)"><option value="">— Default —</option>
+<option value="'Noto Sans Myanmar','Pyidaungsu','Padauk',sans-serif">Noto Sans Myanmar ★</option>
+<option value="'Padauk',sans-serif">Padauk</option>
+<option value="'Pyidaungsu',sans-serif">Pyidaungsu</option>
+<option value="'Inter',sans-serif">Inter</option>
+<option value="'DM Sans',sans-serif">DM Sans</option>
+<option value="'Poppins',sans-serif">Poppins</option></select><span class="lpe-ctrl-lbl">Size</span><div class="lpe-range-wrap"><input type="range" id="lp-badge-size" min="10" max="18" value="12" oninput="document.getElementById('lp-badge-sz-v').textContent=this.value+'px';document.getElementById('lp-badge-size-num').value=this.value;lpeRT('lp-badge','size',this.value)"><input type="number" id="lp-badge-size-num" value="12" min="10" max="18" style="width:44px;padding:.12rem .2rem;font-size:.7rem;border:1px solid #E2E8F0;border-radius:4px;text-align:center;font-family:monospace;color:#374151" oninput="let v=Math.min(Math.max(parseInt(this.value)||12,10),18);this.value=v;document.getElementById('lp-badge-size').value=v;document.getElementById('lp-badge-sz-v').textContent=v+'px';lpeRT('lp-badge','size',this.value)" onblur="let v=Math.min(Math.max(parseInt(this.value)||12,10),18);this.value=v;document.getElementById('lp-badge-size').value=v;document.getElementById('lp-badge-sz-v').textContent=v+'px';"><span style="display:none" id="lp-badge-sz-v" class="lpe-range-val">12px</span></div><span class="lpe-ctrl-lbl">W</span><button class="lpe-fw" onclick="lpeFW('lp-badge','400',this)">R</button><button class="lpe-fw" onclick="lpeFW('lp-badge','500',this)">M</button><button class="lpe-fw" onclick="lpeFW('lp-badge','600',this)">S</button><button class="lpe-fw on" onclick="lpeFW('lp-badge','700',this)">B</button><button class="lpe-fw" onclick="lpeFW('lp-badge','800',this)">X</button><input type="hidden" id="lp-badge-weight" value="700"><span class="lpe-ctrl-lbl">Color</span><div class="lpe-color-wrap"><input type="color" id="lp-badge-color" value="#92400E" oninput="lpeColorSync('lp-badge-color');lpeRT('lp-badge','color',this.value)"><input id="lp-badge-color-hex" class="lpe-input lpe-color-hex" value="#92400E" oninput="lpeHexSync('lp-badge-color');lpeRT('lp-badge','color',document.getElementById('lp-badge-color').value)"></div></div></div></div></div>
+<div id="lpe-panel-buttons" class="lpe-panel"><div class="lpe-section"><div class="lpe-section-title">🔵 Primary CTA Button</div><div class="lpe-field"><label class="lpe-label">Button text</label><input id="lp-cta1" class="lpe-input" placeholder="၁၄ ရက် အခမဲ့ →" oninput="lpeRT('lp-cta1','text',this.value)"><div class="lpe-ctrl"><span class="lpe-ctrl-lbl">Font</span><select id="lp-cta1-font" class="lpe-font-sel" onchange="lpeRT('lp-cta1','font',this.value)"><option value="">— Default —</option>
+<option value="'Noto Sans Myanmar','Pyidaungsu','Padauk',sans-serif">Noto Sans Myanmar ★</option>
+<option value="'Padauk',sans-serif">Padauk</option>
+<option value="'Pyidaungsu',sans-serif">Pyidaungsu</option>
+<option value="'Inter',sans-serif">Inter</option>
+<option value="'DM Sans',sans-serif">DM Sans</option>
+<option value="'Poppins',sans-serif">Poppins</option></select><span class="lpe-ctrl-lbl">Size</span><div class="lpe-range-wrap"><input type="range" id="lp-cta1-size" min="12" max="24" value="15" oninput="document.getElementById('lp-cta1-sz-v').textContent=this.value+'px';document.getElementById('lp-cta1-size-num').value=this.value;lpeRT('lp-cta1','size',this.value)"><input type="number" id="lp-cta1-size-num" value="15" min="12" max="24" style="width:44px;padding:.12rem .2rem;font-size:.7rem;border:1px solid #E2E8F0;border-radius:4px;text-align:center;font-family:monospace;color:#374151" oninput="let v=Math.min(Math.max(parseInt(this.value)||15,12),24);this.value=v;document.getElementById('lp-cta1-size').value=v;document.getElementById('lp-cta1-sz-v').textContent=v+'px';lpeRT('lp-cta1','size',this.value)" onblur="let v=Math.min(Math.max(parseInt(this.value)||15,12),24);this.value=v;document.getElementById('lp-cta1-size').value=v;document.getElementById('lp-cta1-sz-v').textContent=v+'px';"><span style="display:none" id="lp-cta1-sz-v" class="lpe-range-val">15px</span></div><span class="lpe-ctrl-lbl">W</span><button class="lpe-fw" onclick="lpeFW('lp-cta1','400',this)">R</button><button class="lpe-fw" onclick="lpeFW('lp-cta1','500',this)">M</button><button class="lpe-fw" onclick="lpeFW('lp-cta1','600',this)">S</button><button class="lpe-fw on" onclick="lpeFW('lp-cta1','700',this)">B</button><button class="lpe-fw" onclick="lpeFW('lp-cta1','800',this)">X</button><input type="hidden" id="lp-cta1-weight" value="700"><span class="lpe-ctrl-lbl">Color</span><div class="lpe-color-wrap"><input type="color" id="lp-cta1-color" value="#0F172A" oninput="lpeColorSync('lp-cta1-color');lpeRT('lp-cta1','color',this.value)"><input id="lp-cta1-color-hex" class="lpe-input lpe-color-hex" value="#0F172A" oninput="lpeHexSync('lp-cta1-color');lpeRT('lp-cta1','color',document.getElementById('lp-cta1-color').value)"></div></div></div><div class="lpe-field"><label class="lpe-label">🔗 Button URL</label><input id="lp-cta1-url" class="lpe-input" placeholder="/signup.html"></div><div class="lpe-field"><label class="lpe-label">Button background color</label><div class="lpe-color-wrap"><input type="color" id="lp-cta1-bg" value="#0D9F6E" oninput="lpeColorSync('lp-cta1-bg');lpeRT('lp-cta1-bg','bg',this.value)"><input id="lp-cta1-bg-hex" class="lpe-input lpe-color-hex" value="#0D9F6E" oninput="lpeHexSync('lp-cta1-bg');lpeRT('lp-cta1-bg','bg',document.getElementById('lp-cta1-bg').value)"></div></div></div><div class="lpe-section"><div class="lpe-section-title">⬜ Secondary CTA Button</div><div class="lpe-field"><label class="lpe-label">Button text</label><input id="lp-cta2" class="lpe-input" placeholder="🎭 Demo ကြည့်မည်" oninput="lpeRT('lp-cta2','text',this.value)"><div class="lpe-ctrl"><span class="lpe-ctrl-lbl">Font</span><select id="lp-cta2-font" class="lpe-font-sel" onchange="lpeRT('lp-cta2','font',this.value)"><option value="">— Default —</option>
+<option value="'Noto Sans Myanmar','Pyidaungsu','Padauk',sans-serif">Noto Sans Myanmar ★</option>
+<option value="'Padauk',sans-serif">Padauk</option>
+<option value="'Pyidaungsu',sans-serif">Pyidaungsu</option>
+<option value="'Inter',sans-serif">Inter</option>
+<option value="'DM Sans',sans-serif">DM Sans</option>
+<option value="'Poppins',sans-serif">Poppins</option></select><span class="lpe-ctrl-lbl">Size</span><div class="lpe-range-wrap"><input type="range" id="lp-cta2-size" min="12" max="24" value="15" oninput="document.getElementById('lp-cta2-sz-v').textContent=this.value+'px';document.getElementById('lp-cta2-size-num').value=this.value;lpeRT('lp-cta2','size',this.value)"><input type="number" id="lp-cta2-size-num" value="15" min="12" max="24" style="width:44px;padding:.12rem .2rem;font-size:.7rem;border:1px solid #E2E8F0;border-radius:4px;text-align:center;font-family:monospace;color:#374151" oninput="let v=Math.min(Math.max(parseInt(this.value)||15,12),24);this.value=v;document.getElementById('lp-cta2-size').value=v;document.getElementById('lp-cta2-sz-v').textContent=v+'px';lpeRT('lp-cta2','size',this.value)" onblur="let v=Math.min(Math.max(parseInt(this.value)||15,12),24);this.value=v;document.getElementById('lp-cta2-size').value=v;document.getElementById('lp-cta2-sz-v').textContent=v+'px';"><span style="display:none" id="lp-cta2-sz-v" class="lpe-range-val">15px</span></div><span class="lpe-ctrl-lbl">W</span><button class="lpe-fw" onclick="lpeFW('lp-cta2','400',this)">R</button><button class="lpe-fw" onclick="lpeFW('lp-cta2','500',this)">M</button><button class="lpe-fw" onclick="lpeFW('lp-cta2','600',this)">S</button><button class="lpe-fw on" onclick="lpeFW('lp-cta2','700',this)">B</button><button class="lpe-fw" onclick="lpeFW('lp-cta2','800',this)">X</button><input type="hidden" id="lp-cta2-weight" value="700"><span class="lpe-ctrl-lbl">Color</span><div class="lpe-color-wrap"><input type="color" id="lp-cta2-color" value="#0F172A" oninput="lpeColorSync('lp-cta2-color');lpeRT('lp-cta2','color',this.value)"><input id="lp-cta2-color-hex" class="lpe-input lpe-color-hex" value="#0F172A" oninput="lpeHexSync('lp-cta2-color');lpeRT('lp-cta2','color',document.getElementById('lp-cta2-color').value)"></div></div></div><div class="lpe-field"><label class="lpe-label">🔗 Button URL</label><input id="lp-demo-url" class="lpe-input" placeholder="/tenant.php"></div><div class="lpe-field"><label class="lpe-label">Button background color</label><div class="lpe-color-wrap"><input type="color" id="lp-cta2-bg" value="#FFFFFF" oninput="lpeColorSync('lp-cta2-bg');lpeRT('lp-cta2-bg','bg',this.value)"><input id="lp-cta2-bg-hex" class="lpe-input lpe-color-hex" value="#FFFFFF" oninput="lpeHexSync('lp-cta2-bg');lpeRT('lp-cta2-bg','bg',document.getElementById('lp-cta2-bg').value)"></div></div></div><div class="lpe-section"><div class="lpe-section-title">🟢 Nav Bar CTA</div><div class="lpe-field"><label class="lpe-label">Button text</label><input id="lp-nav-cta" class="lpe-input" placeholder="Free Trial →" oninput="lpeRT('lp-nav-cta','text',this.value)"><div class="lpe-ctrl"><span class="lpe-ctrl-lbl">Font</span><select id="lp-nav-cta-font" class="lpe-font-sel" onchange="lpeRT('lp-nav-cta','font',this.value)"><option value="">— Default —</option>
+<option value="'Noto Sans Myanmar','Pyidaungsu','Padauk',sans-serif">Noto Sans Myanmar ★</option>
+<option value="'Padauk',sans-serif">Padauk</option>
+<option value="'Pyidaungsu',sans-serif">Pyidaungsu</option>
+<option value="'Inter',sans-serif">Inter</option>
+<option value="'DM Sans',sans-serif">DM Sans</option>
+<option value="'Poppins',sans-serif">Poppins</option></select><span class="lpe-ctrl-lbl">Size</span><div class="lpe-range-wrap"><input type="range" id="lp-nav-cta-size" min="11" max="20" value="14" oninput="document.getElementById('lp-nav-cta-sz-v').textContent=this.value+'px';document.getElementById('lp-nav-cta-size-num').value=this.value;lpeRT('lp-nav-cta','size',this.value)"><input type="number" id="lp-nav-cta-size-num" value="14" min="11" max="20" style="width:44px;padding:.12rem .2rem;font-size:.7rem;border:1px solid #E2E8F0;border-radius:4px;text-align:center;font-family:monospace;color:#374151" oninput="let v=Math.min(Math.max(parseInt(this.value)||14,11),20);this.value=v;document.getElementById('lp-nav-cta-size').value=v;document.getElementById('lp-nav-cta-sz-v').textContent=v+'px';lpeRT('lp-nav-cta','size',this.value)" onblur="let v=Math.min(Math.max(parseInt(this.value)||14,11),20);this.value=v;document.getElementById('lp-nav-cta-size').value=v;document.getElementById('lp-nav-cta-sz-v').textContent=v+'px';"><span style="display:none" id="lp-nav-cta-sz-v" class="lpe-range-val">14px</span></div><span class="lpe-ctrl-lbl">W</span><button class="lpe-fw" onclick="lpeFW('lp-nav-cta','400',this)">R</button><button class="lpe-fw" onclick="lpeFW('lp-nav-cta','500',this)">M</button><button class="lpe-fw" onclick="lpeFW('lp-nav-cta','600',this)">S</button><button class="lpe-fw on" onclick="lpeFW('lp-nav-cta','700',this)">B</button><button class="lpe-fw" onclick="lpeFW('lp-nav-cta','800',this)">X</button><input type="hidden" id="lp-nav-cta-weight" value="700"><span class="lpe-ctrl-lbl">Color</span><div class="lpe-color-wrap"><input type="color" id="lp-nav-cta-color" value="#0F172A" oninput="lpeColorSync('lp-nav-cta-color');lpeRT('lp-nav-cta','color',this.value)"><input id="lp-nav-cta-color-hex" class="lpe-input lpe-color-hex" value="#0F172A" oninput="lpeHexSync('lp-nav-cta-color');lpeRT('lp-nav-cta','color',document.getElementById('lp-nav-cta-color').value)"></div></div></div><div class="lpe-field"><label class="lpe-label">Background color</label><div class="lpe-color-wrap"><input type="color" id="lp-nav-cta-bg" value="#0D9F6E" oninput="lpeColorSync('lp-nav-cta-bg');lpeRT('lp-nav-cta-bg','bg',this.value)"><input id="lp-nav-cta-bg-hex" class="lpe-input lpe-color-hex" value="#0D9F6E" oninput="lpeHexSync('lp-nav-cta-bg');lpeRT('lp-nav-cta-bg','bg',document.getElementById('lp-nav-cta-bg').value)"></div></div></div></div>
+<div id="lpe-panel-colors" class="lpe-panel"><div class="lpe-section"><div class="lpe-section-title">🖼 Backgrounds</div><div class="lpe-field" style="display:flex;align-items:center;justify-content:space-between;gap:.5rem"><label class="lpe-label" style="margin:0;flex:1">Body background</label><div class="lpe-color-wrap"><input type="color" id="lp-bg-body" value="#FFFBF5" oninput="lpeColorSync('lp-bg-body');lpeRT('colors','lp-bg-body',this.value)"><input id="lp-bg-body-hex" class="lpe-input lpe-color-hex" value="#FFFBF5" oninput="lpeHexSync('lp-bg-body');lpeRT('colors','lp-bg-body',document.getElementById('lp-bg-body').value)"></div></div><div class="lpe-field" style="display:flex;align-items:center;justify-content:space-between;gap:.5rem"><label class="lpe-label" style="margin:0;flex:1">Hero background</label><div class="lpe-color-wrap"><input type="color" id="lp-bg-hero" value="#FFFBF5" oninput="lpeColorSync('lp-bg-hero');lpeRT('colors','lp-bg-hero',this.value)"><input id="lp-bg-hero-hex" class="lpe-input lpe-color-hex" value="#FFFBF5" oninput="lpeHexSync('lp-bg-hero');lpeRT('colors','lp-bg-hero',document.getElementById('lp-bg-hero').value)"></div></div><div class="lpe-field" style="display:flex;align-items:center;justify-content:space-between;gap:.5rem"><label class="lpe-label" style="margin:0;flex:1">Nav bar background</label><div class="lpe-color-wrap"><input type="color" id="lp-bg-nav" value="#FFFFFF" oninput="lpeColorSync('lp-bg-nav');lpeRT('colors','lp-bg-nav',this.value)"><input id="lp-bg-nav-hex" class="lpe-input lpe-color-hex" value="#FFFFFF" oninput="lpeHexSync('lp-bg-nav');lpeRT('colors','lp-bg-nav',document.getElementById('lp-bg-nav').value)"></div></div><div class="lpe-field" style="display:flex;align-items:center;justify-content:space-between;gap:.5rem"><label class="lpe-label" style="margin:0;flex:1">Sections background</label><div class="lpe-color-wrap"><input type="color" id="lp-bg-section" value="#FFFFFF" oninput="lpeColorSync('lp-bg-section');lpeRT('colors','lp-bg-section',this.value)"><input id="lp-bg-section-hex" class="lpe-input lpe-color-hex" value="#FFFFFF" oninput="lpeHexSync('lp-bg-section');lpeRT('colors','lp-bg-section',document.getElementById('lp-bg-section').value)"></div></div><div class="lpe-field" style="display:flex;align-items:center;justify-content:space-between;gap:.5rem"><label class="lpe-label" style="margin:0;flex:1">Footer background</label><div class="lpe-color-wrap"><input type="color" id="lp-bg-footer" value="#1C1F26" oninput="lpeColorSync('lp-bg-footer');lpeRT('colors','lp-bg-footer',this.value)"><input id="lp-bg-footer-hex" class="lpe-input lpe-color-hex" value="#1C1F26" oninput="lpeHexSync('lp-bg-footer');lpeRT('colors','lp-bg-footer',document.getElementById('lp-bg-footer').value)"></div></div></div><div class="lpe-section"><div class="lpe-section-title">✍ Text & Accent</div><div class="lpe-field" style="display:flex;align-items:center;justify-content:space-between;gap:.5rem"><label class="lpe-label" style="margin:0;flex:1">Accent / primary color</label><div class="lpe-color-wrap"><input type="color" id="lp-color-accent" value="#0D9F6E" oninput="lpeColorSync('lp-color-accent');lpeRT('colors','lp-color-accent',this.value)"><input id="lp-color-accent-hex" class="lpe-input lpe-color-hex" value="#0D9F6E" oninput="lpeHexSync('lp-color-accent');lpeRT('colors','lp-color-accent',document.getElementById('lp-color-accent').value)"></div></div><div class="lpe-field" style="display:flex;align-items:center;justify-content:space-between;gap:.5rem"><label class="lpe-label" style="margin:0;flex:1">H1 title color</label><div class="lpe-color-wrap"><input type="color" id="lp-color-h1" value="#0F172A" oninput="lpeColorSync('lp-color-h1');lpeRT('colors','lp-color-h1',this.value)"><input id="lp-color-h1-hex" class="lpe-input lpe-color-hex" value="#0F172A" oninput="lpeHexSync('lp-color-h1');lpeRT('colors','lp-color-h1',document.getElementById('lp-color-h1').value)"></div></div><div class="lpe-field" style="display:flex;align-items:center;justify-content:space-between;gap:.5rem"><label class="lpe-label" style="margin:0;flex:1">Body text color</label><div class="lpe-color-wrap"><input type="color" id="lp-color-body" value="#57534E" oninput="lpeColorSync('lp-color-body');lpeRT('colors','lp-color-body',this.value)"><input id="lp-color-body-hex" class="lpe-input lpe-color-hex" value="#57534E" oninput="lpeHexSync('lp-color-body');lpeRT('colors','lp-color-body',document.getElementById('lp-color-body').value)"></div></div></div><div class="lpe-section"><div class="lpe-section-title">✨ Quick Themes</div><div style="display:flex;gap:.5rem;flex-wrap:wrap"><button onclick="lpeTheme('mint')" style="padding:.4rem .85rem;background:#E6F7F1;color:#065F46;border:1px solid #A7F3D0;border-radius:8px;cursor:pointer;font-size:.82rem;font-weight:600">🌿 Mint</button><button onclick="lpeTheme('ocean')" style="padding:.4rem .85rem;background:#E0F2FE;color:#0C4A6E;border:1px solid #BAE6FD;border-radius:8px;cursor:pointer;font-size:.82rem;font-weight:600">🌊 Ocean</button><button onclick="lpeTheme('peach')" style="padding:.4rem .85rem;background:#FFFBF5;color:#9A3412;border:1px solid #FED7AA;border-radius:8px;cursor:pointer;font-size:.82rem;font-weight:600">🍑 Peach</button><button onclick="lpeTheme('lavender')" style="padding:.4rem .85rem;background:#FAF5FF;color:#4C1D95;border:1px solid #DDD6FE;border-radius:8px;cursor:pointer;font-size:.82rem;font-weight:600">💜 Lavender</button><button onclick="lpeTheme('dark')" style="padding:.4rem .85rem;background:#1C1F26;color:#fff;border:1px solid #374151;border-radius:8px;cursor:pointer;font-size:.82rem;font-weight:600">🌑 Dark</button></div></div></div>
+<div id="lpe-panel-fonts" class="lpe-panel"><div class="lpe-section"><div class="lpe-section-title">🔤 Global Font Settings</div><div class="lpe-field"><label class="lpe-label">Myanmar Font (စာသားအကုန်)</label><select id="lp-font-mm" class="lpe-select-main" onchange="lpeRT('fonts','mm',this.value)"><option value="'Noto Sans Myanmar','Pyidaungsu','Padauk',sans-serif">Noto Sans Myanmar ★</option><option value="'Padauk',sans-serif">Padauk</option><option value="'Pyidaungsu',sans-serif">Pyidaungsu</option></select></div><div class="lpe-field"><label class="lpe-label">English Font</label><select id="lp-font-en" class="lpe-select-main" onchange="lpeRT('fonts','en',this.value)"><option value="'Inter',sans-serif">Inter ★</option><option value="'DM Sans',sans-serif">DM Sans</option><option value="'Poppins',sans-serif">Poppins</option></select></div></div></div>
+<div id="lpe-panel-brand" class="lpe-panel"><div class="lpe-section"><div class="lpe-section-title">🏷 Brand Identity</div><div class="lpe-field"><label class="lpe-label">Brand / App name (Nav)</label><input id="lp-store-name" class="lpe-input" placeholder="MyanAi" oninput="lpeRT('lp-store-name','text',this.value)"><div class="lpe-ctrl"><span class="lpe-ctrl-lbl">Font</span><select id="lp-store-name-font" class="lpe-font-sel" onchange="lpeRT('lp-store-name','font',this.value)"><option value="">— Default —</option>
+<option value="'Noto Sans Myanmar','Pyidaungsu','Padauk',sans-serif">Noto Sans Myanmar ★</option>
+<option value="'Padauk',sans-serif">Padauk</option>
+<option value="'Pyidaungsu',sans-serif">Pyidaungsu</option>
+<option value="'Inter',sans-serif">Inter</option>
+<option value="'DM Sans',sans-serif">DM Sans</option>
+<option value="'Poppins',sans-serif">Poppins</option></select><span class="lpe-ctrl-lbl">Size</span><div class="lpe-range-wrap"><input type="range" id="lp-store-name-size" min="12" max="32" value="18" oninput="document.getElementById('lp-store-name-sz-v').textContent=this.value+'px';document.getElementById('lp-store-name-size-num').value=this.value;lpeRT('lp-store-name','size',this.value)"><input type="number" id="lp-store-name-size-num" value="18" min="12" max="32" style="width:44px;padding:.12rem .2rem;font-size:.7rem;border:1px solid #E2E8F0;border-radius:4px;text-align:center;font-family:monospace;color:#374151" oninput="let v=Math.min(Math.max(parseInt(this.value)||18,12),32);this.value=v;document.getElementById('lp-store-name-size').value=v;document.getElementById('lp-store-name-sz-v').textContent=v+'px';lpeRT('lp-store-name','size',this.value)" onblur="let v=Math.min(Math.max(parseInt(this.value)||18,12),32);this.value=v;document.getElementById('lp-store-name-size').value=v;document.getElementById('lp-store-name-sz-v').textContent=v+'px';"><span style="display:none" id="lp-store-name-sz-v" class="lpe-range-val">18px</span></div><span class="lpe-ctrl-lbl">W</span><button class="lpe-fw" onclick="lpeFW('lp-store-name','400',this)">R</button><button class="lpe-fw" onclick="lpeFW('lp-store-name','500',this)">M</button><button class="lpe-fw" onclick="lpeFW('lp-store-name','600',this)">S</button><button class="lpe-fw on" onclick="lpeFW('lp-store-name','700',this)">B</button><button class="lpe-fw" onclick="lpeFW('lp-store-name','800',this)">X</button><input type="hidden" id="lp-store-name-weight" value="700"><span class="lpe-ctrl-lbl">Color</span><div class="lpe-color-wrap"><input type="color" id="lp-store-name-color" value="#0F172A" oninput="lpeColorSync('lp-store-name-color');lpeRT('lp-store-name','color',this.value)"><input id="lp-store-name-color-hex" class="lpe-input lpe-color-hex" value="#0F172A" oninput="lpeHexSync('lp-store-name-color');lpeRT('lp-store-name','color',document.getElementById('lp-store-name-color').value)"></div></div></div><div class="lpe-field"><label class="lpe-label">Tagline</label><input id="lp-tagline" class="lpe-input" placeholder="Myanmar AI Platform" oninput="lpeRT('lp-tagline','text',this.value)"><div class="lpe-ctrl"><span class="lpe-ctrl-lbl">Font</span><select id="lp-tagline-font" class="lpe-font-sel" onchange="lpeRT('lp-tagline','font',this.value)"><option value="">— Default —</option>
+<option value="'Noto Sans Myanmar','Pyidaungsu','Padauk',sans-serif">Noto Sans Myanmar ★</option>
+<option value="'Padauk',sans-serif">Padauk</option>
+<option value="'Pyidaungsu',sans-serif">Pyidaungsu</option>
+<option value="'Inter',sans-serif">Inter</option>
+<option value="'DM Sans',sans-serif">DM Sans</option>
+<option value="'Poppins',sans-serif">Poppins</option></select><span class="lpe-ctrl-lbl">Size</span><div class="lpe-range-wrap"><input type="range" id="lp-tagline-size" min="10" max="22" value="13" oninput="document.getElementById('lp-tagline-sz-v').textContent=this.value+'px';document.getElementById('lp-tagline-size-num').value=this.value;lpeRT('lp-tagline','size',this.value)"><input type="number" id="lp-tagline-size-num" value="13" min="10" max="22" style="width:44px;padding:.12rem .2rem;font-size:.7rem;border:1px solid #E2E8F0;border-radius:4px;text-align:center;font-family:monospace;color:#374151" oninput="let v=Math.min(Math.max(parseInt(this.value)||13,10),22);this.value=v;document.getElementById('lp-tagline-size').value=v;document.getElementById('lp-tagline-sz-v').textContent=v+'px';lpeRT('lp-tagline','size',this.value)" onblur="let v=Math.min(Math.max(parseInt(this.value)||13,10),22);this.value=v;document.getElementById('lp-tagline-size').value=v;document.getElementById('lp-tagline-sz-v').textContent=v+'px';"><span style="display:none" id="lp-tagline-sz-v" class="lpe-range-val">13px</span></div><span class="lpe-ctrl-lbl">Align</span><button class="lpe-al on" onclick="lpeAL('lp-tagline','left',this)">⬅</button><button class="lpe-al" onclick="lpeAL('lp-tagline','center',this)">↔</button><button class="lpe-al" onclick="lpeAL('lp-tagline','right',this)">⮕</button><input type="hidden" id="lp-tagline-align" value="left"><span class="lpe-ctrl-lbl">Color</span><div class="lpe-color-wrap"><input type="color" id="lp-tagline-color" value="#57534E" oninput="lpeColorSync('lp-tagline-color');lpeRT('lp-tagline','color',this.value)"><input id="lp-tagline-color-hex" class="lpe-input lpe-color-hex" value="#57534E" oninput="lpeHexSync('lp-tagline-color');lpeRT('lp-tagline','color',document.getElementById('lp-tagline-color').value)"></div></div></div><div class="lpe-field"><label class="lpe-label">📄 Page title (Browser tab)</label><input id="lp-page-title" class="lpe-input" placeholder="MyanAi — Myanmar AI"></div><div class="lpe-field"><label class="lpe-label">Brand emoji</label><input id="lp-emoji" class="lpe-input" placeholder="🤖" style="width:70px;font-size:1.3rem;text-align:center" oninput="lpeRT('brand','emoji',this.value)"></div></div></div>
+<div id="lpe-panel-banner" class="lpe-panel"><div class="lpe-section"><div class="lpe-section-title">📣 Announcement Banner</div><div class="lpe-field" style="display:flex;align-items:center;gap:.6rem"><input type="checkbox" id="ann-on" style="width:16px;height:16px" onchange="lpeRT('banner','on',this.checked?'1':'0')"><label for="ann-on" class="lpe-label" style="margin:0;cursor:pointer">Banner ပြပါ</label></div><div class="lpe-field"><label class="lpe-label">Banner text</label><textarea id="ann-text" class="lpe-textarea" placeholder="🎉 New feature..." rows="2" oninput="lpeRT('ann-text','text',this.value)"></textarea><div class="lpe-ctrl"><span class="lpe-ctrl-lbl">Font</span><select id="ann-text-font" class="lpe-font-sel" onchange="lpeRT('ann-text','font',this.value)"><option value="">— Default —</option>
+<option value="'Noto Sans Myanmar','Pyidaungsu','Padauk',sans-serif">Noto Sans Myanmar ★</option>
+<option value="'Padauk',sans-serif">Padauk</option>
+<option value="'Pyidaungsu',sans-serif">Pyidaungsu</option>
+<option value="'Inter',sans-serif">Inter</option>
+<option value="'DM Sans',sans-serif">DM Sans</option>
+<option value="'Poppins',sans-serif">Poppins</option></select><span class="lpe-ctrl-lbl">Size</span><div class="lpe-range-wrap"><input type="range" id="ann-text-size" min="11" max="20" value="14" oninput="document.getElementById('ann-text-sz-v').textContent=this.value+'px';document.getElementById('ann-text-size-num').value=this.value;lpeRT('ann-text','size',this.value)"><input type="number" id="ann-text-size-num" value="14" min="11" max="20" style="width:44px;padding:.12rem .2rem;font-size:.7rem;border:1px solid #E2E8F0;border-radius:4px;text-align:center;font-family:monospace;color:#374151" oninput="let v=Math.min(Math.max(parseInt(this.value)||14,11),20);this.value=v;document.getElementById('ann-text-size').value=v;document.getElementById('ann-text-sz-v').textContent=v+'px';lpeRT('ann-text','size',this.value)" onblur="let v=Math.min(Math.max(parseInt(this.value)||14,11),20);this.value=v;document.getElementById('ann-text-size').value=v;document.getElementById('ann-text-sz-v').textContent=v+'px';"><span style="display:none" id="ann-text-sz-v" class="lpe-range-val">14px</span></div><span class="lpe-ctrl-lbl">W</span><button class="lpe-fw" onclick="lpeFW('ann-text','400',this)">R</button><button class="lpe-fw" onclick="lpeFW('ann-text','500',this)">M</button><button class="lpe-fw" onclick="lpeFW('ann-text','600',this)">S</button><button class="lpe-fw on" onclick="lpeFW('ann-text','700',this)">B</button><button class="lpe-fw" onclick="lpeFW('ann-text','800',this)">X</button><input type="hidden" id="ann-text-weight" value="700"><span class="lpe-ctrl-lbl">Align</span><button class="lpe-al on" onclick="lpeAL('ann-text','left',this)">⬅</button><button class="lpe-al" onclick="lpeAL('ann-text','center',this)">↔</button><button class="lpe-al" onclick="lpeAL('ann-text','right',this)">⮕</button><input type="hidden" id="ann-text-align" value="left"><span class="lpe-ctrl-lbl">Color</span><div class="lpe-color-wrap"><input type="color" id="ann-text-color" value="#FFFFFF" oninput="lpeColorSync('ann-text-color');lpeRT('ann-text','color',this.value)"><input id="ann-text-color-hex" class="lpe-input lpe-color-hex" value="#FFFFFF" oninput="lpeHexSync('ann-text-color');lpeRT('ann-text','color',document.getElementById('ann-text-color').value)"></div></div></div><div class="lpe-field"><label class="lpe-label">Banner background color</label><div class="lpe-color-wrap"><input type="color" id="lp-ann-color" value="#10B981" oninput="lpeColorSync('lp-ann-color');lpeRT('banner','bg',this.value)"><input id="lp-ann-color-hex" class="lpe-input lpe-color-hex" value="#10B981" oninput="lpeHexSync('lp-ann-color');lpeRT('banner','bg',document.getElementById('lp-ann-color').value)"></div></div></div></div>
+<div id="lpe-panel-contact" class="lpe-panel"><div class="lpe-section"><div class="lpe-section-title">📝 Contact Section Text</div><div class="lpe-field"><label class="lpe-label">Section heading</label><input id="lp-contact-heading" class="lpe-input" placeholder="မေးစရာ ရှိပါသလား" oninput="lpeRT('lp-contact-heading','text',this.value)"><div class="lpe-ctrl"><span class="lpe-ctrl-lbl">Font</span><select id="lp-contact-heading-font" class="lpe-font-sel" onchange="lpeRT('lp-contact-heading','font',this.value)"><option value="">— Default —</option>
+<option value="'Noto Sans Myanmar','Pyidaungsu','Padauk',sans-serif">Noto Sans Myanmar ★</option>
+<option value="'Padauk',sans-serif">Padauk</option>
+<option value="'Pyidaungsu',sans-serif">Pyidaungsu</option>
+<option value="'Inter',sans-serif">Inter</option>
+<option value="'DM Sans',sans-serif">DM Sans</option>
+<option value="'Poppins',sans-serif">Poppins</option></select><span class="lpe-ctrl-lbl">Size</span><div class="lpe-range-wrap"><input type="range" id="lp-contact-heading-size" min="16" max="40" value="24" oninput="document.getElementById('lp-contact-heading-sz-v').textContent=this.value+'px';document.getElementById('lp-contact-heading-size-num').value=this.value;lpeRT('lp-contact-heading','size',this.value)"><input type="number" id="lp-contact-heading-size-num" value="24" min="16" max="40" style="width:44px;padding:.12rem .2rem;font-size:.7rem;border:1px solid #E2E8F0;border-radius:4px;text-align:center;font-family:monospace;color:#374151" oninput="let v=Math.min(Math.max(parseInt(this.value)||24,16),40);this.value=v;document.getElementById('lp-contact-heading-size').value=v;document.getElementById('lp-contact-heading-sz-v').textContent=v+'px';lpeRT('lp-contact-heading','size',this.value)" onblur="let v=Math.min(Math.max(parseInt(this.value)||24,16),40);this.value=v;document.getElementById('lp-contact-heading-size').value=v;document.getElementById('lp-contact-heading-sz-v').textContent=v+'px';"><span style="display:none" id="lp-contact-heading-sz-v" class="lpe-range-val">24px</span></div><span class="lpe-ctrl-lbl">W</span><button class="lpe-fw" onclick="lpeFW('lp-contact-heading','400',this)">R</button><button class="lpe-fw" onclick="lpeFW('lp-contact-heading','500',this)">M</button><button class="lpe-fw" onclick="lpeFW('lp-contact-heading','600',this)">S</button><button class="lpe-fw on" onclick="lpeFW('lp-contact-heading','700',this)">B</button><button class="lpe-fw" onclick="lpeFW('lp-contact-heading','800',this)">X</button><input type="hidden" id="lp-contact-heading-weight" value="700"><span class="lpe-ctrl-lbl">Align</span><button class="lpe-al on" onclick="lpeAL('lp-contact-heading','left',this)">⬅</button><button class="lpe-al" onclick="lpeAL('lp-contact-heading','center',this)">↔</button><button class="lpe-al" onclick="lpeAL('lp-contact-heading','right',this)">⮕</button><input type="hidden" id="lp-contact-heading-align" value="left"><span class="lpe-ctrl-lbl">Color</span><div class="lpe-color-wrap"><input type="color" id="lp-contact-heading-color" value="#0F172A" oninput="lpeColorSync('lp-contact-heading-color');lpeRT('lp-contact-heading','color',this.value)"><input id="lp-contact-heading-color-hex" class="lpe-input lpe-color-hex" value="#0F172A" oninput="lpeHexSync('lp-contact-heading-color');lpeRT('lp-contact-heading','color',document.getElementById('lp-contact-heading-color').value)"></div><span class="lpe-ctrl-lbl">LineH</span><div class="lpe-range-wrap"><input type="range" id="lp-contact-heading-lh" min="1.0" max="3.5" step="0.1" value="1.4" oninput="document.getElementById('lp-contact-heading-lh-v').textContent=this.value;lpeRT('lp-contact-heading','lh',this.value)"><span id="lp-contact-heading-lh-v" class="lpe-range-val">1.4</span></div></div></div><div class="lpe-field"><label class="lpe-label">Subtitle</label><input id="lp-contact-sub" class="lpe-input" placeholder="ဆက်သွယ်နိုင်သည်" oninput="lpeRT('lp-contact-sub','text',this.value)"><div class="lpe-ctrl"><span class="lpe-ctrl-lbl">Font</span><select id="lp-contact-sub-font" class="lpe-font-sel" onchange="lpeRT('lp-contact-sub','font',this.value)"><option value="">— Default —</option>
+<option value="'Noto Sans Myanmar','Pyidaungsu','Padauk',sans-serif">Noto Sans Myanmar ★</option>
+<option value="'Padauk',sans-serif">Padauk</option>
+<option value="'Pyidaungsu',sans-serif">Pyidaungsu</option>
+<option value="'Inter',sans-serif">Inter</option>
+<option value="'DM Sans',sans-serif">DM Sans</option>
+<option value="'Poppins',sans-serif">Poppins</option></select><span class="lpe-ctrl-lbl">Size</span><div class="lpe-range-wrap"><input type="range" id="lp-contact-sub-size" min="12" max="22" value="15" oninput="document.getElementById('lp-contact-sub-sz-v').textContent=this.value+'px';document.getElementById('lp-contact-sub-size-num').value=this.value;lpeRT('lp-contact-sub','size',this.value)"><input type="number" id="lp-contact-sub-size-num" value="15" min="12" max="22" style="width:44px;padding:.12rem .2rem;font-size:.7rem;border:1px solid #E2E8F0;border-radius:4px;text-align:center;font-family:monospace;color:#374151" oninput="let v=Math.min(Math.max(parseInt(this.value)||15,12),22);this.value=v;document.getElementById('lp-contact-sub-size').value=v;document.getElementById('lp-contact-sub-sz-v').textContent=v+'px';lpeRT('lp-contact-sub','size',this.value)" onblur="let v=Math.min(Math.max(parseInt(this.value)||15,12),22);this.value=v;document.getElementById('lp-contact-sub-size').value=v;document.getElementById('lp-contact-sub-sz-v').textContent=v+'px';"><span style="display:none" id="lp-contact-sub-sz-v" class="lpe-range-val">15px</span></div><span class="lpe-ctrl-lbl">Align</span><button class="lpe-al on" onclick="lpeAL('lp-contact-sub','left',this)">⬅</button><button class="lpe-al" onclick="lpeAL('lp-contact-sub','center',this)">↔</button><button class="lpe-al" onclick="lpeAL('lp-contact-sub','right',this)">⮕</button><input type="hidden" id="lp-contact-sub-align" value="left"><span class="lpe-ctrl-lbl">Color</span><div class="lpe-color-wrap"><input type="color" id="lp-contact-sub-color" value="#57534E" oninput="lpeColorSync('lp-contact-sub-color');lpeRT('lp-contact-sub','color',this.value)"><input id="lp-contact-sub-color-hex" class="lpe-input lpe-color-hex" value="#57534E" oninput="lpeHexSync('lp-contact-sub-color');lpeRT('lp-contact-sub','color',document.getElementById('lp-contact-sub-color').value)"></div></div></div></div><div class="lpe-section"><div class="lpe-section-title">🔗 Contact Links</div><div class="lpe-field"><label class="lpe-label">📞 Phone / Viber</label><input id="lp-phone" class="lpe-input" placeholder="09-XXXXXXXXX"></div><div class="lpe-field"><label class="lpe-label">📧 Email</label><input id="lp-email" class="lpe-input" placeholder="hello@myanai.net"></div><div class="lpe-field"><label class="lpe-label">📍 Address</label><input id="lp-address" class="lpe-input" placeholder="Yangon, Myanmar"></div><div class="lpe-field"><label class="lpe-label">📘 Facebook URL</label><input id="lp-facebook" class="lpe-input" placeholder="https://fb.com/myanai"></div><div class="lpe-field"><label class="lpe-label">💬 Messenger URL</label><input id="lp-messenger" class="lpe-input" placeholder="https://m.me/myanai"></div><div class="lpe-field"><label class="lpe-label">📱 Viber URL</label><input id="lp-viber" class="lpe-input" placeholder="viber://chat?number=09..."></div><div class="lpe-field"><label class="lpe-label">📸 Instagram URL</label><input id="lp-instagram" class="lpe-input" placeholder="https://instagram.com/myanai"></div><div class="lpe-field"><label class="lpe-label">🎵 TikTok URL</label><input id="lp-tiktok" class="lpe-input" placeholder="https://tiktok.com/@myanai"></div></div></div>
+<div id="lpe-panel-demo" class="lpe-panel"><div class="lpe-section"><div class="lpe-section-title">🎭 Demo Section</div><div class="lpe-field"><label class="lpe-label">Section heading</label><input id="lp-demo-heading" class="lpe-input" placeholder="Register မဘဲ Live Demo ကြည့်ပါ" oninput="lpeRT('lp-demo-heading','text',this.value)"><div class="lpe-ctrl"><span class="lpe-ctrl-lbl">Font</span><select id="lp-demo-heading-font" class="lpe-font-sel" onchange="lpeRT('lp-demo-heading','font',this.value)"><option value="">— Default —</option>
+<option value="'Noto Sans Myanmar','Pyidaungsu','Padauk',sans-serif">Noto Sans Myanmar ★</option>
+<option value="'Padauk',sans-serif">Padauk</option>
+<option value="'Pyidaungsu',sans-serif">Pyidaungsu</option>
+<option value="'Inter',sans-serif">Inter</option>
+<option value="'DM Sans',sans-serif">DM Sans</option>
+<option value="'Poppins',sans-serif">Poppins</option></select><span class="lpe-ctrl-lbl">Size</span><div class="lpe-range-wrap"><input type="range" id="lp-demo-heading-size" min="16" max="40" value="24" oninput="document.getElementById('lp-demo-heading-sz-v').textContent=this.value+'px';document.getElementById('lp-demo-heading-size-num').value=this.value;lpeRT('lp-demo-heading','size',this.value)"><input type="number" id="lp-demo-heading-size-num" value="24" min="16" max="40" style="width:44px;padding:.12rem .2rem;font-size:.7rem;border:1px solid #E2E8F0;border-radius:4px;text-align:center;font-family:monospace;color:#374151" oninput="let v=Math.min(Math.max(parseInt(this.value)||24,16),40);this.value=v;document.getElementById('lp-demo-heading-size').value=v;document.getElementById('lp-demo-heading-sz-v').textContent=v+'px';lpeRT('lp-demo-heading','size',this.value)" onblur="let v=Math.min(Math.max(parseInt(this.value)||24,16),40);this.value=v;document.getElementById('lp-demo-heading-size').value=v;document.getElementById('lp-demo-heading-sz-v').textContent=v+'px';"><span style="display:none" id="lp-demo-heading-sz-v" class="lpe-range-val">24px</span></div><span class="lpe-ctrl-lbl">W</span><button class="lpe-fw" onclick="lpeFW('lp-demo-heading','400',this)">R</button><button class="lpe-fw" onclick="lpeFW('lp-demo-heading','500',this)">M</button><button class="lpe-fw" onclick="lpeFW('lp-demo-heading','600',this)">S</button><button class="lpe-fw on" onclick="lpeFW('lp-demo-heading','700',this)">B</button><button class="lpe-fw" onclick="lpeFW('lp-demo-heading','800',this)">X</button><input type="hidden" id="lp-demo-heading-weight" value="700"><span class="lpe-ctrl-lbl">Align</span><button class="lpe-al on" onclick="lpeAL('lp-demo-heading','left',this)">⬅</button><button class="lpe-al" onclick="lpeAL('lp-demo-heading','center',this)">↔</button><button class="lpe-al" onclick="lpeAL('lp-demo-heading','right',this)">⮕</button><input type="hidden" id="lp-demo-heading-align" value="left"><span class="lpe-ctrl-lbl">Color</span><div class="lpe-color-wrap"><input type="color" id="lp-demo-heading-color" value="#0F172A" oninput="lpeColorSync('lp-demo-heading-color');lpeRT('lp-demo-heading','color',this.value)"><input id="lp-demo-heading-color-hex" class="lpe-input lpe-color-hex" value="#0F172A" oninput="lpeHexSync('lp-demo-heading-color');lpeRT('lp-demo-heading','color',document.getElementById('lp-demo-heading-color').value)"></div><span class="lpe-ctrl-lbl">LineH</span><div class="lpe-range-wrap"><input type="range" id="lp-demo-heading-lh" min="1.0" max="3.5" step="0.1" value="1.4" oninput="document.getElementById('lp-demo-heading-lh-v').textContent=this.value;lpeRT('lp-demo-heading','lh',this.value)"><span id="lp-demo-heading-lh-v" class="lpe-range-val">1.4</span></div></div></div><div class="lpe-field"><label class="lpe-label">Subtitle</label><input id="lp-demo-sub" class="lpe-input" placeholder="Features အကုန် စမ်းနိုင်" oninput="lpeRT('lp-demo-sub','text',this.value)"><div class="lpe-ctrl"><span class="lpe-ctrl-lbl">Font</span><select id="lp-demo-sub-font" class="lpe-font-sel" onchange="lpeRT('lp-demo-sub','font',this.value)"><option value="">— Default —</option>
+<option value="'Noto Sans Myanmar','Pyidaungsu','Padauk',sans-serif">Noto Sans Myanmar ★</option>
+<option value="'Padauk',sans-serif">Padauk</option>
+<option value="'Pyidaungsu',sans-serif">Pyidaungsu</option>
+<option value="'Inter',sans-serif">Inter</option>
+<option value="'DM Sans',sans-serif">DM Sans</option>
+<option value="'Poppins',sans-serif">Poppins</option></select><span class="lpe-ctrl-lbl">Size</span><div class="lpe-range-wrap"><input type="range" id="lp-demo-sub-size" min="12" max="22" value="15" oninput="document.getElementById('lp-demo-sub-sz-v').textContent=this.value+'px';document.getElementById('lp-demo-sub-size-num').value=this.value;lpeRT('lp-demo-sub','size',this.value)"><input type="number" id="lp-demo-sub-size-num" value="15" min="12" max="22" style="width:44px;padding:.12rem .2rem;font-size:.7rem;border:1px solid #E2E8F0;border-radius:4px;text-align:center;font-family:monospace;color:#374151" oninput="let v=Math.min(Math.max(parseInt(this.value)||15,12),22);this.value=v;document.getElementById('lp-demo-sub-size').value=v;document.getElementById('lp-demo-sub-sz-v').textContent=v+'px';lpeRT('lp-demo-sub','size',this.value)" onblur="let v=Math.min(Math.max(parseInt(this.value)||15,12),22);this.value=v;document.getElementById('lp-demo-sub-size').value=v;document.getElementById('lp-demo-sub-sz-v').textContent=v+'px';"><span style="display:none" id="lp-demo-sub-sz-v" class="lpe-range-val">15px</span></div><span class="lpe-ctrl-lbl">Align</span><button class="lpe-al on" onclick="lpeAL('lp-demo-sub','left',this)">⬅</button><button class="lpe-al" onclick="lpeAL('lp-demo-sub','center',this)">↔</button><button class="lpe-al" onclick="lpeAL('lp-demo-sub','right',this)">⮕</button><input type="hidden" id="lp-demo-sub-align" value="left"><span class="lpe-ctrl-lbl">Color</span><div class="lpe-color-wrap"><input type="color" id="lp-demo-sub-color" value="#57534E" oninput="lpeColorSync('lp-demo-sub-color');lpeRT('lp-demo-sub','color',this.value)"><input id="lp-demo-sub-color-hex" class="lpe-input lpe-color-hex" value="#57534E" oninput="lpeHexSync('lp-demo-sub-color');lpeRT('lp-demo-sub','color',document.getElementById('lp-demo-sub-color').value)"></div></div></div><div class="lpe-field"><label class="lpe-label">📧 Demo email</label><input id="lp-demo-email" class="lpe-input" placeholder="demo@myanai.net"></div><div class="lpe-field"><label class="lpe-label">🔑 Demo password</label><input id="lp-demo-pass" class="lpe-input" placeholder="demo1234"></div><div class="lpe-field"><label class="lpe-label">Demo button text</label><input id="lp-demo-btn" class="lpe-input" placeholder="🎭 Demo Admin ဝင်ကြည့် →" oninput="lpeRT('lp-demo-btn','text',this.value)"><div class="lpe-ctrl"><span class="lpe-ctrl-lbl">Font</span><select id="lp-demo-btn-font" class="lpe-font-sel" onchange="lpeRT('lp-demo-btn','font',this.value)"><option value="">— Default —</option>
+<option value="'Noto Sans Myanmar','Pyidaungsu','Padauk',sans-serif">Noto Sans Myanmar ★</option>
+<option value="'Padauk',sans-serif">Padauk</option>
+<option value="'Pyidaungsu',sans-serif">Pyidaungsu</option>
+<option value="'Inter',sans-serif">Inter</option>
+<option value="'DM Sans',sans-serif">DM Sans</option>
+<option value="'Poppins',sans-serif">Poppins</option></select><span class="lpe-ctrl-lbl">Size</span><div class="lpe-range-wrap"><input type="range" id="lp-demo-btn-size" min="12" max="22" value="15" oninput="document.getElementById('lp-demo-btn-sz-v').textContent=this.value+'px';document.getElementById('lp-demo-btn-size-num').value=this.value;lpeRT('lp-demo-btn','size',this.value)"><input type="number" id="lp-demo-btn-size-num" value="15" min="12" max="22" style="width:44px;padding:.12rem .2rem;font-size:.7rem;border:1px solid #E2E8F0;border-radius:4px;text-align:center;font-family:monospace;color:#374151" oninput="let v=Math.min(Math.max(parseInt(this.value)||15,12),22);this.value=v;document.getElementById('lp-demo-btn-size').value=v;document.getElementById('lp-demo-btn-sz-v').textContent=v+'px';lpeRT('lp-demo-btn','size',this.value)" onblur="let v=Math.min(Math.max(parseInt(this.value)||15,12),22);this.value=v;document.getElementById('lp-demo-btn-size').value=v;document.getElementById('lp-demo-btn-sz-v').textContent=v+'px';"><span style="display:none" id="lp-demo-btn-sz-v" class="lpe-range-val">15px</span></div><span class="lpe-ctrl-lbl">W</span><button class="lpe-fw" onclick="lpeFW('lp-demo-btn','400',this)">R</button><button class="lpe-fw" onclick="lpeFW('lp-demo-btn','500',this)">M</button><button class="lpe-fw" onclick="lpeFW('lp-demo-btn','600',this)">S</button><button class="lpe-fw on" onclick="lpeFW('lp-demo-btn','700',this)">B</button><button class="lpe-fw" onclick="lpeFW('lp-demo-btn','800',this)">X</button><input type="hidden" id="lp-demo-btn-weight" value="700"><span class="lpe-ctrl-lbl">Color</span><div class="lpe-color-wrap"><input type="color" id="lp-demo-btn-color" value="#FFFFFF" oninput="lpeColorSync('lp-demo-btn-color');lpeRT('lp-demo-btn','color',this.value)"><input id="lp-demo-btn-color-hex" class="lpe-input lpe-color-hex" value="#FFFFFF" oninput="lpeHexSync('lp-demo-btn-color');lpeRT('lp-demo-btn','color',document.getElementById('lp-demo-btn-color').value)"></div></div></div></div></div>
+<div id="lpe-panel-footer" class="lpe-panel"><div class="lpe-section"><div class="lpe-section-title">🔻 Footer</div><div class="lpe-field"><label class="lpe-label">Copyright text</label><input id="lp-copyright" class="lpe-input" placeholder="© 2026 MyanAi.net" oninput="lpeRT('lp-copyright','text',this.value)"><div class="lpe-ctrl"><span class="lpe-ctrl-lbl">Font</span><select id="lp-copyright-font" class="lpe-font-sel" onchange="lpeRT('lp-copyright','font',this.value)"><option value="">— Default —</option>
+<option value="'Noto Sans Myanmar','Pyidaungsu','Padauk',sans-serif">Noto Sans Myanmar ★</option>
+<option value="'Padauk',sans-serif">Padauk</option>
+<option value="'Pyidaungsu',sans-serif">Pyidaungsu</option>
+<option value="'Inter',sans-serif">Inter</option>
+<option value="'DM Sans',sans-serif">DM Sans</option>
+<option value="'Poppins',sans-serif">Poppins</option></select><span class="lpe-ctrl-lbl">Size</span><div class="lpe-range-wrap"><input type="range" id="lp-copyright-size" min="10" max="18" value="13" oninput="document.getElementById('lp-copyright-sz-v').textContent=this.value+'px';document.getElementById('lp-copyright-size-num').value=this.value;lpeRT('lp-copyright','size',this.value)"><input type="number" id="lp-copyright-size-num" value="13" min="10" max="18" style="width:44px;padding:.12rem .2rem;font-size:.7rem;border:1px solid #E2E8F0;border-radius:4px;text-align:center;font-family:monospace;color:#374151" oninput="let v=Math.min(Math.max(parseInt(this.value)||13,10),18);this.value=v;document.getElementById('lp-copyright-size').value=v;document.getElementById('lp-copyright-sz-v').textContent=v+'px';lpeRT('lp-copyright','size',this.value)" onblur="let v=Math.min(Math.max(parseInt(this.value)||13,10),18);this.value=v;document.getElementById('lp-copyright-size').value=v;document.getElementById('lp-copyright-sz-v').textContent=v+'px';"><span style="display:none" id="lp-copyright-sz-v" class="lpe-range-val">13px</span></div><span class="lpe-ctrl-lbl">W</span><button class="lpe-fw" onclick="lpeFW('lp-copyright','400',this)">R</button><button class="lpe-fw" onclick="lpeFW('lp-copyright','500',this)">M</button><button class="lpe-fw" onclick="lpeFW('lp-copyright','600',this)">S</button><button class="lpe-fw on" onclick="lpeFW('lp-copyright','700',this)">B</button><button class="lpe-fw" onclick="lpeFW('lp-copyright','800',this)">X</button><input type="hidden" id="lp-copyright-weight" value="700"><span class="lpe-ctrl-lbl">Align</span><button class="lpe-al on" onclick="lpeAL('lp-copyright','left',this)">⬅</button><button class="lpe-al" onclick="lpeAL('lp-copyright','center',this)">↔</button><button class="lpe-al" onclick="lpeAL('lp-copyright','right',this)">⮕</button><input type="hidden" id="lp-copyright-align" value="left"><span class="lpe-ctrl-lbl">Color</span><div class="lpe-color-wrap"><input type="color" id="lp-copyright-color" value="#94A3B8" oninput="lpeColorSync('lp-copyright-color');lpeRT('lp-copyright','color',this.value)"><input id="lp-copyright-color-hex" class="lpe-input lpe-color-hex" value="#94A3B8" oninput="lpeHexSync('lp-copyright-color');lpeRT('lp-copyright','color',document.getElementById('lp-copyright-color').value)"></div></div></div><div class="lpe-field"><label class="lpe-label">Footer tagline</label><input id="lp-foot-tagline" class="lpe-input" placeholder="Myanmar AI Platform" oninput="lpeRT('lp-foot-tagline','text',this.value)"><div class="lpe-ctrl"><span class="lpe-ctrl-lbl">Font</span><select id="lp-foot-tagline-font" class="lpe-font-sel" onchange="lpeRT('lp-foot-tagline','font',this.value)"><option value="">— Default —</option>
+<option value="'Noto Sans Myanmar','Pyidaungsu','Padauk',sans-serif">Noto Sans Myanmar ★</option>
+<option value="'Padauk',sans-serif">Padauk</option>
+<option value="'Pyidaungsu',sans-serif">Pyidaungsu</option>
+<option value="'Inter',sans-serif">Inter</option>
+<option value="'DM Sans',sans-serif">DM Sans</option>
+<option value="'Poppins',sans-serif">Poppins</option></select><span class="lpe-ctrl-lbl">Size</span><div class="lpe-range-wrap"><input type="range" id="lp-foot-tagline-size" min="10" max="18" value="13" oninput="document.getElementById('lp-foot-tagline-sz-v').textContent=this.value+'px';document.getElementById('lp-foot-tagline-size-num').value=this.value;lpeRT('lp-foot-tagline','size',this.value)"><input type="number" id="lp-foot-tagline-size-num" value="13" min="10" max="18" style="width:44px;padding:.12rem .2rem;font-size:.7rem;border:1px solid #E2E8F0;border-radius:4px;text-align:center;font-family:monospace;color:#374151" oninput="let v=Math.min(Math.max(parseInt(this.value)||13,10),18);this.value=v;document.getElementById('lp-foot-tagline-size').value=v;document.getElementById('lp-foot-tagline-sz-v').textContent=v+'px';lpeRT('lp-foot-tagline','size',this.value)" onblur="let v=Math.min(Math.max(parseInt(this.value)||13,10),18);this.value=v;document.getElementById('lp-foot-tagline-size').value=v;document.getElementById('lp-foot-tagline-sz-v').textContent=v+'px';"><span style="display:none" id="lp-foot-tagline-sz-v" class="lpe-range-val">13px</span></div><span class="lpe-ctrl-lbl">Align</span><button class="lpe-al on" onclick="lpeAL('lp-foot-tagline','left',this)">⬅</button><button class="lpe-al" onclick="lpeAL('lp-foot-tagline','center',this)">↔</button><button class="lpe-al" onclick="lpeAL('lp-foot-tagline','right',this)">⮕</button><input type="hidden" id="lp-foot-tagline-align" value="left"><span class="lpe-ctrl-lbl">Color</span><div class="lpe-color-wrap"><input type="color" id="lp-foot-tagline-color" value="#64748B" oninput="lpeColorSync('lp-foot-tagline-color');lpeRT('lp-foot-tagline','color',this.value)"><input id="lp-foot-tagline-color-hex" class="lpe-input lpe-color-hex" value="#64748B" oninput="lpeHexSync('lp-foot-tagline-color');lpeRT('lp-foot-tagline','color',document.getElementById('lp-foot-tagline-color').value)"></div></div></div></div></div>
+</div>
+  </div>
 
-<!-- ═══ DEMO CONTROL ═══ -->
 <div id="page-demo" style="display:none">
   <div class="page-head">
     <div style="display:flex;align-items:center;gap:.5rem">
@@ -2995,10 +2746,6 @@ function toggleTheme(){
 }
 </script>
 <!-- ── UPGRADE PAGE ── -->
-
-
-
-
 
 </body>
 </html>
