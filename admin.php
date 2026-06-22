@@ -76,6 +76,67 @@ if (isset($_GET['api'])) { // GET+POST both handled
     header('Content-Type: application/json; charset=utf-8');
 
     /* login */
+    // Demo orders (recent)
+    if($_GET['api']==='demo_orders'){
+      $tid=intval($_GET['tenant_id']??0);
+      if(!$tid){echo json_encode(['ok'=>false]);exit;}
+      $stmt=getPDO()->prepare("SELECT id,status,total_amount,special_notes as notes,customer_name,created_at FROM orders WHERE tenant_id=? AND deleted_at IS NULL ORDER BY created_at DESC LIMIT 10");
+      $stmt->execute([$tid]);
+      $orders=$stmt->fetchAll(PDO::FETCH_ASSOC);
+      echo json_encode(['ok'=>true,'orders'=>$orders]);exit;
+    }
+    // Demo password change
+    if($_GET['api']==='set_demo_password'){
+      $b=json_decode(file_get_contents('php://input'),true);
+      $pass=$b['password']??'';
+      if(strlen($pass)<6){echo json_encode(['ok'=>false,'msg'=>'Password too short']);exit;}
+      $hash=password_hash($pass,PASSWORD_BCRYPT);
+      $stmt=getPDO()->prepare("UPDATE tenants SET settings=JSON_SET(COALESCE(settings,'{}'),'$.admin_pass_hash',?) WHERE owner_email='demo@myanai.net'");
+      $stmt->execute([$hash]);
+      echo json_encode(['ok'=>true]);exit;
+    }
+    // Reset demo data
+    if($_GET['api']==='reset_demo'){
+      $stmt=getPDO()->prepare("SELECT id FROM tenants WHERE owner_email='demo@myanai.net' LIMIT 1");
+      $stmt->execute(); $demo=$stmt->fetch(PDO::FETCH_ASSOC);
+      if(!$demo){echo json_encode(['ok'=>false,'msg'=>'Demo tenant not found']);exit;}
+      $tid=$demo['id'];
+      getPDO()->prepare("DELETE FROM orders WHERE tenant_id=?")->execute([$tid]);
+      getPDO()->prepare("DELETE FROM order_items WHERE tenant_id=?")->execute([$tid]);
+      getPDO()->prepare("DELETE FROM customers WHERE tenant_id=?")->execute([$tid]);
+      echo json_encode(['ok'=>true,'msg'=>'Demo data reset']);exit;
+    }
+    // Inject sample data
+    if($_GET['api']==='inject_sample'){
+      $b=json_decode(file_get_contents('php://input'),true);
+      $type=$b['type']??'orders';
+      $stmt=getPDO()->prepare("SELECT id FROM tenants WHERE owner_email='demo@myanai.net' LIMIT 1");
+      $stmt->execute(); $demo=$stmt->fetch(PDO::FETCH_ASSOC);
+      if(!$demo){echo json_encode(['ok'=>false,'msg'=>'Demo tenant not found']);exit;}
+      $tid=$demo['id']; $count=0;
+      if($type==='orders'){
+        $statuses=['new','processing','done'];
+        $items=[['Shan Noodle',2500],['Mohinga',1500],['Tea',500],['Coffee',800],['Rice',1200]];
+        for($i=0;$i<10;$i++){
+          $item=$items[array_rand($items)];
+          $status=$statuses[array_rand($statuses)];
+          $total=$item[1]*rand(1,3);
+          $hrs=rand(0,48);
+          $stmt=getPDO()->prepare("INSERT INTO orders (tenant_id,status,total_amount,special_notes,customer_name,customer_phone,delivery_address,created_at) VALUES (?,?,?,?,?,?,?,?)");
+          $stmt->execute([$tid,$status,$total,$item[0].' x'.rand(1,3),'Demo Customer','09'.(string)rand(100000000,999999999),'Yangon, Myanmar',date('Y-m-d H:i:s',time()-$hrs*3600)]);
+          $count++;
+        }
+      }
+      if($type==='customers'){
+        $names=['Mg Mg','Aye Aye','Ko Ko','Ma Ma','Zaw Zaw','Su Su','Kyaw Kyaw','Nyi Nyi','Win Win','Thida'];
+        foreach($names as $name){
+          $phone='09'.rand(100000000,999999999);
+          $stmt=getPDO()->prepare("INSERT IGNORE INTO customers (tenant_id,name,phone,created_at) VALUES (?,?,?,NOW())");
+          $stmt->execute([$tid,$name,$phone]); $count++;
+        }
+      }
+      echo json_encode(['ok'=>true,'count'=>$count,'type'=>$type]);exit;
+    }
     if ($_GET['api'] === 'login') {
         $b = json_decode(file_get_contents('php://input'), true);
         $inputUser = $b['user'] ?? '';
@@ -2298,26 +2359,83 @@ document.addEventListener('DOMContentLoaded', function() {
       <button class="hamburger" onclick="openSidebar()">☰</button>
       <div class="page-title">🎭 Demo Control</div>
     </div>
+    <div style="display:flex;gap:.5rem">
+      <a href="/tenant.php" target="_blank" class="btn btn-ghost btn-sm">🔗 Open Demo Site</a>
+      <button class="btn btn-danger btn-sm" onclick="resetDemoData()">🔄 Reset Data</button>
+    </div>
   </div>
-  <div class="content">
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem">
+  <div class="content" style="padding:1.25rem;max-width:900px">
+
+    <!-- Row 1: Status + Credentials -->
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1rem">
+
+      <!-- Demo Status -->
       <div class="table-wrap" style="padding:1.2rem">
-        <div style="font-weight:600;margin-bottom:.75rem">Demo tenant info</div>
+        <div style="font-weight:700;font-size:.82rem;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);margin-bottom:.75rem">📊 Demo Tenant Status</div>
         <div id="demo-tenant-info" style="color:var(--muted);font-size:.85rem">Loading...</div>
-        <div style="margin-top:1rem;display:flex;gap:.5rem;flex-wrap:wrap">
-          <a href="/tenant.php" target="_blank" class="btn btn-ghost btn-sm">🔗 Open demo</a>
-          <button class="btn btn-danger btn-sm" onclick="resetDemoData()">🔄 Reset demo data</button>
-        </div>
+        <div id="demo-stats" style="margin-top:.75rem;display:grid;grid-template-columns:1fr 1fr 1fr;gap:.5rem;text-align:center"></div>
       </div>
+
+      <!-- Credentials -->
       <div class="table-wrap" style="padding:1.2rem">
-        <div style="font-weight:600;margin-bottom:.75rem">Demo credentials</div>
-        <div style="font-size:.85rem;color:var(--muted);line-height:2">
-          Email: <code style="background:var(--warm);padding:1px 6px;border-radius:4px">demo@myanai.net</code><br>
-          Pass: <code style="background:var(--warm);padding:1px 6px;border-radius:4px">demo1234</code>
+        <div style="font-weight:700;font-size:.82rem;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);margin-bottom:.75rem">🔑 Demo Credentials</div>
+        <div style="font-size:.85rem;line-height:2.2">
+          <div style="display:flex;align-items:center;justify-content:space-between">
+            <span style="color:var(--muted)">Email</span>
+            <code id="demo-email-val" style="background:var(--warm);padding:2px 8px;border-radius:5px;font-size:.8rem">demo@myanai.net</code>
+          </div>
+          <div style="display:flex;align-items:center;justify-content:space-between">
+            <span style="color:var(--muted)">Password</span>
+            <code id="demo-pass-val" style="background:var(--warm);padding:2px 8px;border-radius:5px;font-size:.8rem">demo1234</code>
+          </div>
         </div>
-        <div style="margin-top:.75rem;font-size:.78rem;color:var(--muted)">Landing page မှ "Try Demo" button နှိပ်ရင် auto-login ဖြစ်မည်</div>
+        <div style="margin-top:.75rem;padding:.5rem .75rem;background:#F0FDF4;border-radius:6px;font-size:.75rem;color:#065F46">
+          ✅ Landing page မှ "Try Demo" → auto-login ဖြစ်မည်
+        </div>
       </div>
     </div>
+
+    <!-- Row 2: Change Password + Sample Data -->
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1rem">
+
+      <!-- Change Demo Password -->
+      <div class="table-wrap" style="padding:1.2rem">
+        <div style="font-weight:700;font-size:.82rem;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);margin-bottom:.75rem">🔐 Change Demo Password</div>
+        <div style="display:flex;flex-direction:column;gap:.5rem">
+          <input id="demo-new-pass" type="password" placeholder="New password (min 6 chars)"
+            style="padding:.42rem .65rem;border:1px solid var(--border);border-radius:7px;background:var(--warm);color:var(--ink);font-size:.85rem;width:100%;box-sizing:border-box">
+          <input id="demo-confirm-pass" type="password" placeholder="Confirm password"
+            style="padding:.42rem .65rem;border:1px solid var(--border);border-radius:7px;background:var(--warm);color:var(--ink);font-size:.85rem;width:100%;box-sizing:border-box">
+          <button onclick="changeDemoPassword()" class="btn btn-primary btn-sm" style="width:100%">💾 Update Password</button>
+        </div>
+      </div>
+
+      <!-- Sample Data Controls -->
+      <div class="table-wrap" style="padding:1.2rem">
+        <div style="font-weight:700;font-size:.82rem;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);margin-bottom:.75rem">🗂 Sample Data</div>
+        <div style="display:flex;flex-direction:column;gap:.5rem">
+          <button onclick="injectSampleData('orders')" class="btn btn-ghost btn-sm" style="text-align:left">
+            📦 Inject Sample Orders (10)
+          </button>
+          <button onclick="injectSampleData('products')" class="btn btn-ghost btn-sm" style="text-align:left">
+            🛍 Inject Sample Products (5)
+          </button>
+          <button onclick="injectSampleData('customers')" class="btn btn-ghost btn-sm" style="text-align:left">
+            👥 Inject Sample Customers (10)
+          </button>
+          <button onclick="resetDemoData()" class="btn btn-sm" style="text-align:left;background:#FEF2F2;color:#DC2626;border:1px solid #FCA5A5">
+            🗑 Clear All Demo Data
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Row 3: Demo Access Log -->
+    <div class="table-wrap" style="padding:1.2rem">
+      <div style="font-weight:700;font-size:.82rem;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);margin-bottom:.75rem">📈 Demo Activity</div>
+      <div id="demo-activity" style="font-size:.83rem;color:var(--muted);text-align:center;padding:1rem">Loading activity...</div>
+    </div>
+
   </div>
 </div>
 

@@ -2844,20 +2844,91 @@ async function loadDemoInfo() {
   const d = await fetch('tenant_api.php?action=list',{credentials:'include'}).then(r=>r.json()).catch(()=>({ok:false}));
   const el = document.getElementById('demo-tenant-info');
   if(!el||!d.ok) return;
-  const demo = (d.tenants||[]).find(t=>t.slug==='demo'||t.id==1);
-  if(!demo){ el.textContent='Demo tenant (slug=demo) မရှိသေး'; return; }
-  el.innerHTML=`
-    <div style="line-height:2">
-      Name: <strong>${demo.name}</strong><br>
-      Plan: <strong>${demo.plan?.toUpperCase()}</strong><br>
-      Status: <strong style="color:${demo.is_active?'#059669':'#dc2626'}">${demo.is_active?'Active':'Suspended'}</strong><br>
-      ID: ${demo.id}
-    </div>`;
+  const demo = (d.tenants||[]).find(t=>t.slug==='demo'||t.owner_email==='demo@myanai.net');
+  if(!demo){ el.innerHTML='<span style="color:#DC2626">Demo tenant မရှိသေး</span>'; return; }
+  el.innerHTML=`<div style="display:flex;flex-direction:column;gap:.3rem;font-size:.84rem">
+    <div style="display:flex;justify-content:space-between"><span style="color:var(--muted)">Name</span><strong>${demo.name}</strong></div>
+    <div style="display:flex;justify-content:space-between"><span style="color:var(--muted)">Plan</span><strong>${(demo.plan||'free').toUpperCase()}</strong></div>
+    <div style="display:flex;justify-content:space-between"><span style="color:var(--muted)">Status</span>
+      <strong style="color:${demo.is_active?'#059669':'#DC2626'}">${demo.is_active?'🟢 Active':'🔴 Suspended'}</strong></div>
+    <div style="display:flex;justify-content:space-between"><span style="color:var(--muted)">Tenant ID</span><code>#${demo.id}</code></div>
+  </div>`;
+  const statsEl = document.getElementById('demo-stats');
+  if(statsEl){
+    const ord=demo.total_orders||0, rev=demo.total_revenue||0;
+    statsEl.innerHTML=`
+      <div style="background:var(--warm);border-radius:8px;padding:.5rem;font-size:.75rem">
+        <div style="font-size:1.1rem;font-weight:700;color:var(--accent)">${ord}</div><div style="color:var(--muted)">Orders</div></div>
+      <div style="background:var(--warm);border-radius:8px;padding:.5rem;font-size:.75rem">
+        <div style="font-size:1.1rem;font-weight:700;color:var(--accent)">${Number(rev).toLocaleString()}</div><div style="color:var(--muted)">Revenue</div></div>
+      <div style="background:var(--warm);border-radius:8px;padding:.5rem;font-size:.75rem">
+        <div style="font-size:1.1rem;font-weight:700;color:var(--accent)">${demo.is_active?'ON':'OFF'}</div><div style="color:var(--muted)">Status</div></div>`;
+  }
+  loadDemoActivity(demo.id);
 }
 
-async function resetDemoData() {
-  if(!confirm('Demo tenant data ကို reset လုပ်မလား? (test orders, data clear ဖြစ်မည်)')) return;
-  toast('🔄 Reset feature coming soon');
+async function loadDemoActivity(tenantId){
+  const el = document.getElementById('demo-activity');
+  if(!el) return;
+  try{
+    // Use admin.php API to get recent orders for demo tenant
+    const d = await fetch(`admin.php?api=demo_orders&tenant_id=${tenantId}`,{credentials:'include'}).then(r=>r.json()).catch(()=>({ok:false}));
+    if(!d.ok||!d.orders?.length){
+      el.innerHTML='<div style="text-align:center;padding:1rem;color:var(--muted)">📭 No recent orders — Sample data ထည့်ပါ</div>';
+      return;
+    }
+    el.innerHTML=`<table style="width:100%;font-size:.82rem;border-collapse:collapse">
+      <thead><tr style="color:var(--muted);text-align:left;background:var(--warm)">
+        <th style="padding:.4rem .6rem;border-radius:6px 0 0 0">Order #</th>
+        <th style="padding:.4rem .6rem">Notes</th>
+        <th style="padding:.4rem .6rem">Total</th>
+        <th style="padding:.4rem .6rem">Status</th>
+        <th style="padding:.4rem .6rem;border-radius:0 6px 0 0">Time</th>
+      </tr></thead>
+      <tbody>${(d.orders||[]).map(o=>`<tr style="border-top:1px solid var(--border)">
+        <td style="padding:.35rem .6rem"><code style="font-size:.78rem">#${o.id}</code></td>
+        <td style="padding:.35rem .6rem">${o.notes||'—'}</td>
+        <td style="padding:.35rem .6rem;font-weight:600">${Number(o.total_amount||0).toLocaleString()} <span style="color:var(--muted);font-weight:400">MMK</span></td>
+        <td style="padding:.35rem .6rem">
+          <span style="padding:2px 8px;border-radius:99px;font-size:.73rem;font-weight:600;
+            background:${o.status==='done'?'#D1FAE5':o.status==='processing'?'#FEF3C7':'#DBEAFE'};
+            color:${o.status==='done'?'#065F46':o.status==='processing'?'#92400E':'#1E40AF'}">
+            ${o.status==='done'?'✅ Done':o.status==='processing'?'⏳ Processing':'🆕 New'}
+          </span>
+        </td>
+        <td style="padding:.35rem .6rem;color:var(--muted);font-size:.78rem">${new Date(o.created_at).toLocaleString('en-GB',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'})}</td>
+      </tr>`).join('')}</tbody>
+    </table>`;
+  }catch(e){ el.innerHTML='<span style="color:var(--muted)">Activity load failed: '+e.message+'</span>'; }
+}
+
+async function changeDemoPassword(){
+  const np=document.getElementById('demo-new-pass')?.value?.trim();
+  const cp=document.getElementById('demo-confirm-pass')?.value?.trim();
+  if(!np||!cp){ toast('Password ထည့်ပါ','err'); return; }
+  if(np.length<6){ toast('Password အနည်းဆုံး ၆ လုံး','err'); return; }
+  if(np!==cp){ toast('Password မတူဘူး','err'); return; }
+  const r=await fetch('admin.php?api=set_demo_password',{method:'POST',headers:{'Content-Type':'application/json'},credentials:'include',body:JSON.stringify({password:np})}).then(r=>r.json()).catch(()=>({ok:false}));
+  if(r.ok){ toast('✅ Demo password ပြောင်းပြီ');
+    document.getElementById('demo-new-pass').value='';
+    document.getElementById('demo-confirm-pass').value='';
+    document.getElementById('demo-pass-val').textContent=np;
+  } else toast(r.msg||'Error','err');
+}
+
+async function injectSampleData(type){
+  toast('⏳ Sample '+type+' ထည့်နေသည်...');
+  const r=await fetch('admin.php?api=inject_sample',{method:'POST',headers:{'Content-Type':'application/json'},credentials:'include',body:JSON.stringify({type})}).then(r=>r.json()).catch(()=>({ok:false}));
+  if(r.ok){ toast('✅ Sample '+type+' ထည့်ပြီ — '+(r.count||'')+'records'); loadDemoInfo(); }
+  else toast(r.msg||'Failed','err');
+}
+
+async function resetDemoData(){
+  if(!confirm('⚠️ Demo data အကုန် ဖျက်မည် — သေချာပါသလား?')) return;
+  toast('⏳ Resetting...');
+  const r=await fetch('admin.php?api=reset_demo',{method:'POST',credentials:'include'}).then(r=>r.json()).catch(()=>({ok:false}));
+  if(r.ok){ toast('✅ Demo data reset ပြီ'); loadDemoInfo(); }
+  else toast(r.msg||'Reset failed','err');
 }
 
 /* ── Announcement save ── */
