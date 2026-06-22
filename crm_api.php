@@ -124,7 +124,6 @@ if ($action === 'list' && $_SERVER['REQUEST_METHOD'] === 'GET') {
     $where  = ['1=1'];
     $params = [];
     if ($tenantId > 0) {
-        // customers table has no tenant_id — filter via orders
         $where[]  = 'EXISTS (SELECT 1 FROM orders o WHERE o.customer_phone=c.phone AND o.tenant_id=?)';
         $params[] = $tenantId;
     }

@@ -463,47 +463,84 @@ footer{padding:3rem 5vw;border-top:0.5px solid var(--border);max-width:1200px;ma
     const s = res.settings || {};
     const inj=(id,css)=>{let st=document.getElementById(id);if(!st){st=document.createElement('style');st.id=id;document.head.appendChild(st);}st.textContent=css;};
 
+    // ── T1 ──
     if(s.hero_t1_size)   inj('init-t1-s','#hero-h1{font-size:'+s.hero_t1_size+'px!important}');
     if(s.hero_t1_weight) inj('init-t1-w','#hero-h1{font-weight:'+s.hero_t1_weight+'!important}');
     if(s.hero_t1_align)  inj('init-t1-al','#hero-h1{text-align:'+s.hero_t1_align+'!important}');
     if(s.hero_t1_color)  inj('init-t1-c','#hero-h1{color:'+s.hero_t1_color+'!important}');
     if(s.hero_t1_lh)     inj('init-t1-lh','#hero-h1{line-height:'+s.hero_t1_lh+'!important}');
     if(s.hero_t1_font)   inj('init-t1-f','#hero-h1{font-family:'+s.hero_t1_font+'!important}');
-
+    // ── T2 ──
     if(s.hero_t2_size)   inj('init-t2-s','#hero-h1 em{font-size:'+s.hero_t2_size+'px!important}');
     if(s.hero_t2_weight) inj('init-t2-w','#hero-h1 em{font-weight:'+s.hero_t2_weight+'!important}');
     if(s.hero_t2_color)  inj('init-t2-c','#hero-h1 em{color:'+s.hero_t2_color+'!important}');
     if(s.hero_t2_font)   inj('init-t2-f','#hero-h1 em{font-family:'+s.hero_t2_font+'!important}');
-
+    // ── Sub ──
     if(s.hero_sub_size)   inj('init-sub-s','#hero-sub{font-size:'+s.hero_sub_size+'px!important}');
     if(s.hero_sub_weight) inj('init-sub-w','#hero-sub{font-weight:'+s.hero_sub_weight+'!important}');
     if(s.hero_sub_align)  inj('init-sub-al','#hero-sub{text-align:'+s.hero_sub_align+'!important}');
     if(s.hero_sub_color)  inj('init-sub-c','#hero-sub{color:'+s.hero_sub_color+'!important}');
     if(s.hero_sub_lh)     inj('init-sub-lh','#hero-sub{line-height:'+s.hero_sub_lh+'!important}');
     if(s.hero_sub_font)   inj('init-sub-f','#hero-sub{font-family:'+s.hero_sub_font+'!important}');
-
+    // ── Desc ──
     if(s.hero_desc_size)   inj('init-desc-s','#hero-desc{font-size:'+s.hero_desc_size+'px!important}');
     if(s.hero_desc_align)  inj('init-desc-al','#hero-desc{text-align:'+s.hero_desc_align+'!important}');
     if(s.hero_desc_color)  inj('init-desc-c','#hero-desc{color:'+s.hero_desc_color+'!important}');
     if(s.hero_desc_lh)     inj('init-desc-lh','#hero-desc{line-height:'+s.hero_desc_lh+'!important}');
-
+    // ── Badge ──
     if(s.hero_badge_size)  inj('init-badge-s','#hero-label{font-size:'+s.hero_badge_size+'px!important}');
     if(s.hero_badge_color) inj('init-badge-c','#hero-label{color:'+s.hero_badge_color+'!important}');
-
+    // ── CTA Buttons ──
+    if(s.cta_primary_text){const el=document.getElementById('hero-cta1');if(el)el.textContent=s.cta_primary_text;}
+    if(s.cta_primary_url) {const el=document.getElementById('hero-cta1');if(el)el.href=s.cta_primary_url;}
     if(s.cta1_bg)     inj('init-cta1-bg','#hero-cta1{background:'+s.cta1_bg+'!important;border-color:'+s.cta1_bg+'!important}');
     if(s.cta1_color)  inj('init-cta1-c','#hero-cta1{color:'+s.cta1_color+'!important}');
     if(s.cta1_size)   inj('init-cta1-s','#hero-cta1{font-size:'+s.cta1_size+'px!important}');
+    if(s.cta1_weight) inj('init-cta1-w','#hero-cta1{font-weight:'+s.cta1_weight+'!important}');
+    if(s.cta_demo_text){const el=document.getElementById('hero-cta2');if(el)el.textContent=s.cta_demo_text;}
+    if(s.cta_demo_url) {const el=document.getElementById('hero-cta2');if(el)el.href=s.cta_demo_url;}
     if(s.cta2_bg)     inj('init-cta2-bg','#hero-cta2{background:'+s.cta2_bg+'!important;border-color:'+s.cta2_bg+'!important}');
+    // ── Nav CTA ──
+    if(s.nav_cta_text){const el=document.getElementById('nav-cta');if(el)el.textContent=s.nav_cta_text;}
     if(s.nav_cta_bg)  inj('init-navcta-bg','#nav-cta{background:'+s.nav_cta_bg+'!important}');
-
-    if(s.bg_body)   document.body.style.background=s.bg_body;
-    if(s.bg_hero){  const h=document.querySelector('.hero');if(h)h.style.background=s.bg_hero;}
+    // ── Colors ──
+    if(s.bg_body)    document.body.style.background=s.bg_body;
+    if(s.bg_hero)   {const h=document.querySelector('.hero');if(h)h.style.background=s.bg_hero;}
     if(s.bg_nav)    inj('init-nav-bg','#main-nav{background:'+s.bg_nav+'!important}');
-    if(s.bg_footer){const f=document.getElementById('page-footer');if(f)f.style.background=s.bg_footer;}
+    if(s.bg_footer) {const f=document.getElementById('page-footer');if(f)f.style.background=s.bg_footer;}
     if(s.color_accent){
       document.documentElement.style.setProperty('--teal',s.color_accent);
       document.documentElement.style.setProperty('--accent',s.color_accent);
     }
+    if(s.color_body) inj('init-body-c','body{color:'+s.color_body+'!important}');
+    // color_h1 only if no specific T1 color set
+    if(s.color_h1&&!s.hero_t1_color) inj('init-h1-c','#hero-h1{color:'+s.color_h1+'!important}');
+    // ── Banner ──
+    if(s.announcement_on==='1'){
+      inj('init-ban-on','#ann-banner{display:block!important}');
+      if(s.announcement_text){const ban=document.getElementById('ann-banner');if(ban)ban.textContent=s.announcement_text;}
+    } else { inj('init-ban-on','#ann-banner{display:none!important}'); }
+    if(s.announcement_color){const ban=document.getElementById('ann-banner');if(ban)ban.style.background=s.announcement_color;}
+    // ── Contact ──
+    if(s.lp_contact_heading){const el=document.getElementById('contact-heading');if(el)el.textContent=s.lp_contact_heading;}
+    if(s.lp_contact_sub)    {const el=document.getElementById('contact-sub');    if(el)el.textContent=s.lp_contact_sub;}
+    if(s.contact_phone)    {const el=document.querySelector('a[href^="tel"]');     if(el)el.href='tel:'+s.contact_phone;}
+    if(s.contact_email)    {const el=document.querySelector('a[href^="mailto"]');  if(el)el.href='mailto:'+s.contact_email;}
+    if(s.contact_facebook) {const el=document.querySelector('a[href*="facebook"]');if(el)el.href=s.contact_facebook;}
+    if(s.contact_messenger){const el=document.querySelector('a[href*="m.me"]');    if(el)el.href=s.contact_messenger;}
+    if(s.contact_viber)    {const el=document.querySelector('a[href*="viber"]');   if(el)el.href=s.contact_viber;}
+    if(s.contact_instagram){const el=document.querySelector('a[href*="instagram"]');if(el)el.href=s.contact_instagram;}
+    if(s.contact_tiktok)   {const el=document.querySelector('a[href*="tiktok"]');  if(el)el.href=s.contact_tiktok;}
+    // ── Demo Section ──
+    if(s.demo_heading){const el=document.getElementById('demo-heading');if(el)el.textContent=s.demo_heading;}
+    if(s.demo_sub)    {const el=document.getElementById('demo-sub');    if(el)el.textContent=s.demo_sub;}
+    if(s.demo_btn_text){const el=document.getElementById('demo-cta');  if(el)el.textContent=s.demo_btn_text;}
+    // ── Footer ──
+    if(s.footer_copyright){const el=document.getElementById('foot-copy');   if(el)el.textContent=s.footer_copyright;}
+    if(s.footer_tagline)  {const el=document.querySelector('.foot-tagline');if(el)el.textContent=s.footer_tagline;}
+    // ── Page title ──
+    if(s.page_title) document.title=s.page_title;
+    else if(s.store_name) document.title=s.store_name+' — Myanmar AI Platform';
   } catch(e){ console.warn('applyStyles:',e); }
 })();
 
@@ -765,8 +802,8 @@ window.addEventListener('message', e=>{
           document.head.appendChild(lk);
         }
       }
-      // Remove individual font overrides so global font wins
-      ['lpe-rt-t1-f','lpe-rt-t2-f','lpe-rt-sub-f','lpe-rt-desc-f'].forEach(id=>document.getElementById(id)?.remove());
+      // Remove ALL individual font overrides so global font wins
+      ['lpe-rt-t1-f','lpe-rt-t2-f','lpe-rt-sub-f','lpe-rt-desc-f','lpe-rt-badge-f','lpe-rt-cta1-f','init-t1-f','init-t2-f','init-sub-f'].forEach(id=>document.getElementById(id)?.remove());
       document.getElementById('dyn-font')?.remove();
       const st=document.createElement('style'); st.id='dyn-font';
       st.textContent='html body,html body *{font-family:'+f+'!important}';

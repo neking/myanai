@@ -1,6 +1,6 @@
 <?php
 // Load .env file
-$envFile = __DIR__ . '/.env';
+$envFile = '/etc/myanai.env';
 if (file_exists($envFile)) {
     foreach (file($envFile, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES) as $line) {
         if (strpos(trim($line), '#') === 0) continue;
