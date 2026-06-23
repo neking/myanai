@@ -145,6 +145,29 @@ try {
     $itemStmt  = $pdo->prepare("INSERT INTO order_items (order_id,menu_item_id,item_name,unit_price,qty,subtotal) VALUES (:order_id,:item_id,:item_name,:item_price,:item_qty,:item_subtotal)");
     $stockStmt = $pdo->prepare("UPDATE menu_items SET stock_qty=stock_qty-:qty WHERE id=:id AND stock_qty>=:qty_check");
 
+    // ★★★ CRITICAL: PRE-VALIDATE ALL STOCK BEFORE ANY DEDUCTION ★★★
+    // This prevents partial stock deduction if later items fail
+    $stockCheck = $pdo->prepare("SELECT id, name, stock_qty FROM menu_items WHERE id=:id");
+    foreach ($items as $item) {
+        $itemId = (int)$item['item_id'];
+        $qty    = (int)$item['qty'];
+        
+        $stockCheck->execute([':id' => $itemId]);
+        $menuItem = $stockCheck->fetch(PDO::FETCH_ASSOC);
+        
+        if (!$menuItem) {
+            throw new RuntimeException("Menu item not found: ID {$itemId}");
+        }
+        
+        if ((int)$menuItem['stock_qty'] < $qty) {
+            throw new RuntimeException(
+                "Insufficient stock for {$menuItem['name']}: " .
+                "Need {$qty}, available {$menuItem['stock_qty']}"
+            );
+        }
+    }
+    // ★★★ Stock validation passed - now safe to deduct ★★★
+
     foreach ($items as $item) {
         $itemId   = (int)$item['item_id'];
         $qty      = (int)$item['qty'];
