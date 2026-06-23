@@ -522,12 +522,29 @@ if (isset($_GET['api'])) { // GET+POST both handled
     /* saas tenant list */
     if ($api === 'saas_tenants') {
         requireAdmin();
+        // ★ Optimized: JOIN instead of correlated subqueries ★
         $tenants = db()->query("
             SELECT t.*,
-                (SELECT COUNT(*) FROM branches b WHERE b.tenant_id=t.id) AS total_branches,
-                (SELECT COUNT(*) FROM orders o WHERE o.tenant_id=t.id AND o.deleted_at IS NULL) AS total_orders,
-                (SELECT COALESCE(SUM(total_amount),0) FROM orders o WHERE o.tenant_id=t.id AND o.deleted_at IS NULL) AS total_revenue
-            FROM tenants t ORDER BY t.created_at DESC
+                COALESCE(b.total_branches, 0) AS total_branches,
+                COALESCE(o.total_orders, 0)   AS total_orders,
+                COALESCE(o.total_revenue, 0)  AS total_revenue,
+                COALESCE(o.today_orders, 0)   AS today_orders,
+                COALESCE(o.last_order_at, NULL) AS last_order_at
+            FROM tenants t
+            LEFT JOIN (
+                SELECT tenant_id, COUNT(*) AS total_branches
+                FROM branches GROUP BY tenant_id
+            ) b ON b.tenant_id = t.id
+            LEFT JOIN (
+                SELECT tenant_id,
+                    COUNT(*) AS total_orders,
+                    COALESCE(SUM(total_amount),0) AS total_revenue,
+                    COUNT(CASE WHEN DATE(created_at)=CURDATE() THEN 1 END) AS today_orders,
+                    MAX(created_at) AS last_order_at
+                FROM orders WHERE deleted_at IS NULL
+                GROUP BY tenant_id
+            ) o ON o.tenant_id = t.id
+            ORDER BY t.created_at DESC
         ")->fetchAll(PDO::FETCH_ASSOC);
         // Remove sensitive settings (password hash)
         foreach($tenants as &$t) {
@@ -1737,6 +1754,19 @@ async function doLogin() {
         </div>
       </div>
     </div>
+  <!-- ★ System Health Widget ★ -->
+  <div id="admin-health-widget" style="margin:1rem;padding:1rem;background:var(--card);border-radius:12px;border:0.5px solid var(--border)">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.75rem">
+      <span style="font-weight:600;font-size:.9rem">🖥️ System Health</span>
+      <button onclick="loadAdminHealth()" style="font-size:.72rem;background:none;border:1px solid var(--border);border-radius:6px;padding:2px 8px;cursor:pointer;color:var(--muted)">Refresh</button>
+    </div>
+    <div id="health-grid" style="display:grid;grid-template-columns:repeat(4,1fr);gap:.75rem;font-size:.8rem">
+      <div style="text-align:center"><div id="h-status" style="font-size:1.2rem">⏳</div><div style="color:var(--muted)">Status</div></div>
+      <div style="text-align:center"><div id="h-db" style="font-size:1.2rem">⏳</div><div style="color:var(--muted)">Database</div></div>
+      <div style="text-align:center"><div id="h-disk" style="font-weight:600">—</div><div style="color:var(--muted)">Disk Free</div></div>
+      <div style="text-align:center"><div id="h-errors" style="font-weight:600">—</div><div style="color:var(--muted)">Errors (1h)</div></div>
+    </div>
+  </div>
   <!-- Additional platform pages -->
 <!-- ═══ SAAS DASHBOARD ═══ -->
 <div id="page-saas" style="display:none">
@@ -2927,6 +2957,33 @@ function toggleTheme(){
   const btn = document.getElementById('theme-toggle-btn');
   if(btn) btn.textContent = next === 'dark' ? '🌙' : '☀️';
 }
+// ══ ADMIN HEALTH ══
+async function loadAdminHealth() {
+  try {
+    const r = await fetch('/health.php', {credentials:'include'});
+    const d = await r.json();
+    const set = (id, val) => { const el=document.getElementById(id); if(el) el.textContent=val; };
+    const setColor = (id, val, color) => { const el=document.getElementById(id); if(el){el.textContent=val;el.style.color=color;} };
+
+    setColor('h-status', d.status==='ok'?'✅':'⚠️', d.status==='ok'?'#059669':'#d97706');
+    setColor('h-db', d.checks?.db==='ok'?'✅':'❌', d.checks?.db==='ok'?'#059669':'#dc2626');
+    set('h-disk', (d.checks?.disk_free_gb||0) + ' GB');
+    setColor('h-errors',
+      d.checks?.errors_last_1h||0,
+      (d.checks?.errors_last_1h||0) > 5 ? '#dc2626' : '#059669'
+    );
+  } catch(e) {
+    const el = document.getElementById('h-status');
+    if(el) el.textContent = '❌';
+  }
+}
+
+// Auto-load health on dashboard open
+const _origShowPage = window.showPage;
+if (_origShowPage && typeof _origShowPage === 'function') {
+  window._healthLoaded = false;
+}
+
 // ══ LOG VIEWER ══
 let _allLogEntries = [];
 
@@ -2991,8 +3048,11 @@ document.addEventListener('DOMContentLoaded', () => {
     window.showPage = function(p) {
       orig(p);
       if (p === 'logs') setTimeout(loadLogs, 100);
+      if (p === 'dashboard') setTimeout(loadAdminHealth, 200);
     };
   }
+  // Load health on initial page load
+  setTimeout(loadAdminHealth, 500);
 });
 
 </script>

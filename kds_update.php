@@ -14,8 +14,16 @@ $kdsId  = (int)($b['kds_id'] ?? 0);
 $status = trim($b['status'] ?? '');
 $note   = trim($b['note'] ?? '');
 $reason = trim($b['cancel_reason'] ?? '');
+$tid    = (int)($b['tenant_id'] ?? 0);
 
 if (!$kdsId) { echo json_encode(['ok'=>false,'msg'=>'No kds_id']); exit; }
+
+// ★ Verify kds entry belongs to tenant ★
+if ($tid) {
+    $verify = $pdo->prepare("SELECT kq.id FROM kds_queue kq JOIN orders o ON o.id=kq.order_id WHERE kq.id=? AND o.tenant_id=?");
+    $verify->execute([$kdsId, $tid]);
+    if (!$verify->fetchColumn()) { echo json_encode(['ok'=>false,'msg'=>'Unauthorized']); exit; }
+}
 
 
 

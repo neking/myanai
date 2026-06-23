@@ -9,8 +9,12 @@ if ($action === 'login' && $_SERVER['REQUEST_METHOD'] === 'POST') {
     $d   = json_decode(file_get_contents('php://input'), true) ?? [];
     $pin = trim($d['pin'] ?? '');
     if (!$pin) { echo json_encode(['ok'=>false,'msg'=>'PIN မထည့်ရသေး']); exit; }
-    $stmt = $pdo->prepare("SELECT id,name,role FROM staff WHERE pin=? AND is_active=1");
-    $stmt->execute([$pin]);
+    $bid  = (int)($d['branch_id'] ?? 0);
+    $sql  = $bid
+        ? "SELECT id,name,role,branch_id FROM staff WHERE pin=? AND branch_id=? AND is_active=1"
+        : "SELECT id,name,role,branch_id FROM staff WHERE pin=? AND is_active=1";
+    $stmt = $pdo->prepare($sql);
+    $stmt->execute($bid ? [$pin, $bid] : [$pin]);
     $staff = $stmt->fetch(PDO::FETCH_ASSOC);
     if (!$staff) { echo json_encode(['ok'=>false,'msg'=>'PIN မှားနေသည်']); exit; }
     echo json_encode(['ok'=>true,'staff'=>$staff]);
@@ -41,7 +45,7 @@ if ($action === 'tables') {
 if ($action === 'menu') {
     $items = $pdo->query("
         SELECT id, name, category, price, stock_qty, emoji, image_path
-        FROM menu_items WHERE is_active=1 AND stock_qty>0
+        FROM menu_items WHERE is_active=1 AND stock_qty>0 AND (tenant_id=:tid OR :tid=0)
         ORDER BY category, sort_order, name
     ")->fetchAll(PDO::FETCH_ASSOC);
     echo json_encode(['ok'=>true,'items'=>$items]);
