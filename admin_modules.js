@@ -1,6 +1,6 @@
 /* ─ Branch/Tenant context params ─ */
 
-const loadStock = stockLoad; // alias for compatibility
+// loadStock alias defined after stockLoad declaration
 
 /* Shared helpers (needed before admin.php inline defines them) */
 if (typeof escHtml === 'undefined') {
@@ -378,3 +378,5 @@ async function switchBranch(branchId) {
     if(po && getComputedStyle(po).display !== 'none') branchLoad();
   }
 }
+
+window.loadStock = typeof stockLoad !== 'undefined' ? stockLoad : function(){}; // alias
