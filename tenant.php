@@ -1565,12 +1565,38 @@ async function loadCRM(){
 /* ── Stock Log stub ── */
 async function loadStockLogs(){
   const el=document.getElementById('stocklog-content');
-  if(el) el.innerHTML='<div style="color:var(--muted);padding:1rem">Stock log loading...</div>';
+  if(!el) return;
+  el.innerHTML='<div style="color:var(--muted);padding:1rem">Loading...</div>';
+  try {
+    const from = new Date(Date.now()-30*86400000).toISOString().slice(0,10);
+    const to   = new Date().toISOString().slice(0,10);
+    const tid  = window.__TENANT_ID;
+    const bid  = window.__BRANCH_ID || 0;
+    const r = await fetch(`stock_log_api.php?action=list&tenant_id=${tid}&branch_id=${bid}&date_from=${from}&date_to=${to}&per=50`,{credentials:'include'});
+    const d = await r.json();
+    const logs = d.logs || d.data || [];
+    if(!logs.length){ el.innerHTML='<div style="color:var(--muted);padding:2rem;text-align:center">No stock changes in last 30 days</div>'; return; }
+    const reasonLabel = {restock:'📥 Restock',manual_adjust:'✏️ Adjust',order_deduct:'🛒 Order',waste:'🗑 Waste',correction:'🔧 Fix',returned:'↩ Return'};
+    el.innerHTML=`<div class="table-wrap"><table><thead><tr><th>Time</th><th>Item</th><th>Change</th><th>New Qty</th><th>Reason</th><th>Note</th></tr></thead>
+    <tbody>${logs.map(l=>{
+      const neg=l.change_qty<0;
+      return`<tr>
+        <td style="font-size:.8rem;color:var(--muted)">${(l.created_at||'').slice(5,16)}</td>
+        <td>${l.emoji||'🍽️'} ${escH(l.item_name||'')}</td>
+        <td style="font-weight:700;color:${neg?'#dc2626':'#16a34a'}">${neg?'':'+'}${l.change_qty}</td>
+        <td>${l.new_qty}</td>
+        <td style="font-size:.82rem">${reasonLabel[l.reason]||l.reason||''}</td>
+        <td style="font-size:.8rem;color:var(--muted)">${escH(l.note||'')}</td>
+      </tr>`;
+    }).join('')}</tbody></table></div>`;
+  } catch(e) {
+    el.innerHTML=`<div style="color:#dc2626;padding:1rem">Error: ${e.message}</div>`;
+  }
 }
 /* ── Placeholders for shared functions ── */
 function resLoad(){const el=document.getElementById('reserve-content');if(el)el.innerHTML='<div style="color:var(--muted);padding:1rem">Reservations loading...</div>';}
 function stockLoad(){const el=document.getElementById('stock-content');if(el)el.innerHTML='<div style="color:var(--muted);padding:1rem">Stock loading...</div>';}
-function delLoad(){const el=document.getElementById('delivery-content');if(el)el.innerHTML='<div style="color:var(--muted);padding:1rem">Delivery loading...</div>';}
+// delLoad() is defined below as full async function
 function promoLoad(){const el=document.getElementById('promos-content');if(el)el.innerHTML='<div style="color:var(--muted);padding:1rem">Promos loading...</div>';}
 function branchLoad(){const el=document.getElementById('branches-content');if(el)el.innerHTML='<div style="color:var(--muted);padding:1rem">Branches loading...</div>';}
 // schedLoad() removed - use loadSchedule() directly
