@@ -1097,51 +1097,217 @@ button,select,input[type=checkbox]{
 </div>
 
 <div id="page-storefront" class="page" style="display:none">
-  <div class="content">
-    <div style="max-width:700px;display:flex;flex-direction:column;gap:1rem">
-      <div class="table-wrap" style="padding:1.3rem">
-        <div style="font-weight:600;font-size:.9rem;margin-bottom:1rem">🏪 Business info</div>
-        <div style="display:grid;gap:.75rem">
-          <div class="field"><label>Business name</label><input id="sf-name" placeholder="Demo Restaurant"></div>
-          <div class="field"><label>Tagline</label><input id="sf-tagline" placeholder="Authentic flavors"></div>
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:.75rem">
-            <div class="field"><label>Phone</label><input id="sf-phone" placeholder="09xxxxxxxxx"></div>
-            <div class="field"><label>Address</label><input id="sf-address" placeholder="Yangon"></div>
-          </div>
-        </div>
-      </div>
-      <div class="table-wrap" style="padding:1.3rem">
-        <div style="font-weight:600;font-size:.9rem;margin-bottom:1rem">🎨 Appearance</div>
-        <div style="display:grid;grid-template-columns:auto 1fr 1fr;gap:.75rem;align-items:end">
-          <div class="field"><label>Brand emoji</label><input id="sf-emoji" placeholder="🍜" style="font-size:1.4rem;width:60px;text-align:center"></div>
-          <div class="field"><label>Primary color</label>
-            <div style="display:flex;gap:.5rem">
-              <input type="color" id="sf-color" value="#e84c2b" style="width:44px;height:36px;border-radius:8px;border:0.5px solid var(--border)">
-              <input id="sf-color-hex" placeholder="#e84c2b" oninput="document.getElementById('sf-color').value=this.value">
-            </div>
-          </div>
-          <div class="field"><label>Currency</label>
-            <select id="sf-currency" style="width:100%;padding:.5rem .7rem;border:0.5px solid var(--border);border-radius:8px;background:var(--warm);color:var(--ink)">
-              <option value="MMK">MMK (Kyat)</option><option value="USD">USD</option>
-            </select>
-          </div>
-        </div>
-      </div>
-      <div class="table-wrap" style="padding:1.3rem">
-        <div style="font-weight:600;font-size:.9rem;margin-bottom:.75rem">🔗 Customer ordering URL</div>
-        <div style="display:flex;align-items:center;gap:.75rem">
-          <code id="sf-order-url" style="flex:1;background:var(--warm);padding:.4rem .7rem;border-radius:8px;font-size:.82rem;border:0.5px solid var(--border)">Loading...</code>
+  <div class="page-head">
+    <div style="display:flex;align-items:center;gap:.75rem"><button class="hamburger" onclick="openSidebar()">☰</button><span style="font-size:.95rem;font-weight:600">Storefront</span></div>
+    <div style="display:flex;gap:.5rem">
+      <button class="btn btn-ghost btn-sm" onclick="sfPreview()">👁 Preview</button>
+      <button class="btn btn-primary btn-sm" onclick="saveStorefront()">💾 Save</button>
+    </div>
+  </div>
+  <div class="content" style="display:grid;grid-template-columns:1fr 380px;gap:1rem;max-width:1100px">
+
+    <!-- LEFT: Settings -->
+    <div style="display:flex;flex-direction:column;gap:1rem">
+
+      <!-- Order URL -->
+      <div class="card" style="padding:1.25rem">
+        <div style="font-weight:600;font-size:.88rem;margin-bottom:.75rem;color:var(--muted)">🔗 Customer ordering URL</div>
+        <div style="display:flex;align-items:center;gap:.5rem">
+          <code id="sf-order-url" style="flex:1;background:var(--warm);padding:.5rem .75rem;border-radius:8px;font-size:.8rem;border:0.5px solid var(--border);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">Loading...</code>
           <button class="btn btn-ghost btn-sm" onclick="copyOrderUrl()">Copy</button>
           <a id="sf-order-link" href="#" target="_blank" class="btn btn-ghost btn-sm">Open →</a>
         </div>
       </div>
-      <div style="display:flex;gap:.75rem">
-        <button class="btn btn-primary" onclick="saveStorefront()">💾 Save</button>
-        <a id="sf-preview-btn" href="#" target="_blank" class="btn btn-ghost">👁 Preview</a>
+
+      <!-- Business Info -->
+      <div class="card" style="padding:1.25rem">
+        <div style="font-weight:600;font-size:.88rem;margin-bottom:1rem;color:var(--muted)">🏪 Business info</div>
+        <div style="display:grid;gap:.75rem">
+          <div style="display:grid;grid-template-columns:72px 1fr;gap:.75rem">
+            <div>
+              <label style="font-size:.78rem;color:var(--muted);display:block;margin-bottom:.3rem">Logo emoji</label>
+              <input id="sf-emoji" placeholder="🍜" style="width:100%;padding:.5rem;border:0.5px solid var(--border);border-radius:8px;background:var(--warm);color:var(--ink);font-size:1.5rem;text-align:center">
+            </div>
+            <div>
+              <label style="font-size:.78rem;color:var(--muted);display:block;margin-bottom:.3rem">Business name</label>
+              <input id="sf-name" placeholder="My Restaurant" oninput="sfUpdatePreview()" style="width:100%;padding:.5rem;border:0.5px solid var(--border);border-radius:8px;background:var(--warm);color:var(--ink)">
+            </div>
+          </div>
+          <div>
+            <label style="font-size:.78rem;color:var(--muted);display:block;margin-bottom:.3rem">Tagline</label>
+            <input id="sf-tagline" placeholder="Authentic flavors, delivered fresh" oninput="sfUpdatePreview()" style="width:100%;padding:.5rem;border:0.5px solid var(--border);border-radius:8px;background:var(--warm);color:var(--ink)">
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:.75rem">
+            <div>
+              <label style="font-size:.78rem;color:var(--muted);display:block;margin-bottom:.3rem">Phone</label>
+              <input id="sf-phone" placeholder="09xxxxxxxxx" style="width:100%;padding:.5rem;border:0.5px solid var(--border);border-radius:8px;background:var(--warm);color:var(--ink)">
+            </div>
+            <div>
+              <label style="font-size:.78rem;color:var(--muted);display:block;margin-bottom:.3rem">Address</label>
+              <input id="sf-address" placeholder="Yangon" style="width:100%;padding:.5rem;border:0.5px solid var(--border);border-radius:8px;background:var(--warm);color:var(--ink)">
+            </div>
+          </div>
+        </div>
       </div>
-    </div>
+
+      <!-- Theme / Appearance -->
+      <div class="card" style="padding:1.25rem">
+        <div style="font-weight:600;font-size:.88rem;margin-bottom:1rem;color:var(--muted)">🎨 Theme & appearance</div>
+
+        <!-- Color presets -->
+        <div style="margin-bottom:1rem">
+          <label style="font-size:.78rem;color:var(--muted);display:block;margin-bottom:.5rem">Color theme</label>
+          <div style="display:flex;gap:.5rem;flex-wrap:wrap" id="sf-color-presets">
+            <button onclick="sfSetColor('#E84C2B')" style="width:32px;height:32px;border-radius:50%;background:#E84C2B;border:2px solid transparent;cursor:pointer" title="Coral Red"></button>
+            <button onclick="sfSetColor('#7C3AED')" style="width:32px;height:32px;border-radius:50%;background:#7C3AED;border:2px solid transparent;cursor:pointer" title="Purple"></button>
+            <button onclick="sfSetColor('#0EA5E9')" style="width:32px;height:32px;border-radius:50%;background:#0EA5E9;border:2px solid transparent;cursor:pointer" title="Sky Blue"></button>
+            <button onclick="sfSetColor('#16A34A')" style="width:32px;height:32px;border-radius:50%;background:#16A34A;border:2px solid transparent;cursor:pointer" title="Green"></button>
+            <button onclick="sfSetColor('#EA580C')" style="width:32px;height:32px;border-radius:50%;background:#EA580C;border:2px solid transparent;cursor:pointer" title="Orange"></button>
+            <button onclick="sfSetColor('#DB2777')" style="width:32px;height:32px;border-radius:50%;background:#DB2777;border:2px solid transparent;cursor:pointer" title="Pink"></button>
+            <button onclick="sfSetColor('#0F766E')" style="width:32px;height:32px;border-radius:50%;background:#0F766E;border:2px solid transparent;cursor:pointer" title="Teal"></button>
+            <button onclick="sfSetColor('#1D4ED8')" style="width:32px;height:32px;border-radius:50%;background:#1D4ED8;border:2px solid transparent;cursor:pointer" title="Blue"></button>
+            <button onclick="sfSetColor('#92400E')" style="width:32px;height:32px;border-radius:50%;background:#92400E;border:2px solid transparent;cursor:pointer" title="Brown"></button>
+            <div style="display:flex;align-items:center;gap:.4rem">
+              <input type="color" id="sf-color" value="#E84C2B" oninput="sfSetColor(this.value)" style="width:32px;height:32px;border-radius:50%;border:2px solid var(--border);cursor:pointer;padding:0">
+              <span style="font-size:.75rem;color:var(--muted)">Custom</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Font -->
+        <div style="margin-bottom:1rem">
+          <label style="font-size:.78rem;color:var(--muted);display:block;margin-bottom:.5rem">Font style</label>
+          <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:.5rem" id="sf-font-presets">
+            <button onclick="sfSetFont('default')" id="sfont-default" class="sf-font-btn" style="padding:.5rem;border:1px solid var(--border);border-radius:8px;font-size:.8rem;cursor:pointer;background:var(--warm)">Default</button>
+            <button onclick="sfSetFont('rounded')" id="sfont-rounded" class="sf-font-btn" style="padding:.5rem;border:1px solid var(--border);border-radius:8px;font-size:.8rem;cursor:pointer;background:var(--warm);font-family:system-ui">Modern</button>
+            <button onclick="sfSetFont('serif')" id="sfont-serif" class="sf-font-btn" style="padding:.5rem;border:1px solid var(--border);border-radius:8px;font-size:.8rem;cursor:pointer;background:var(--warm);font-family:Georgia,serif">Classic</button>
+            <button onclick="sfSetFont('mono')" id="sfont-mono" class="sf-font-btn" style="padding:.5rem;border:1px solid var(--border);border-radius:8px;font-size:.8rem;cursor:pointer;background:var(--warm);font-family:monospace">Tech</button>
+          </div>
+        </div>
+
+        <!-- Layout -->
+        <div style="margin-bottom:.5rem">
+          <label style="font-size:.78rem;color:var(--muted);display:block;margin-bottom:.5rem">Menu layout</label>
+          <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:.5rem">
+            <button onclick="sfSetLayout('grid')" id="slayout-grid" class="sf-layout-btn" style="padding:.5rem;border:1px solid var(--border);border-radius:8px;font-size:.8rem;cursor:pointer;background:var(--warm)">⊞ Grid</button>
+            <button onclick="sfSetLayout('list')" id="slayout-list" class="sf-layout-btn" style="padding:.5rem;border:1px solid var(--border);border-radius:8px;font-size:.8rem;cursor:pointer;background:var(--warm)">☰ List</button>
+            <button onclick="sfSetLayout('card')" id="slayout-card" class="sf-layout-btn" style="padding:.5rem;border:1px solid var(--border);border-radius:8px;font-size:.8rem;cursor:pointer;background:var(--warm)">▣ Cards</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Background -->
+      <div class="card" style="padding:1.25rem">
+        <div style="font-weight:600;font-size:.88rem;margin-bottom:1rem;color:var(--muted)">🖼 Background & style</div>
+        <div style="display:grid;gap:.75rem">
+          <div>
+            <label style="font-size:.78rem;color:var(--muted);display:block;margin-bottom:.5rem">Background style</label>
+            <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:.5rem">
+              <button onclick="sfSetBg('warm')" id="sbg-warm" class="sf-bg-btn" style="padding:.5rem;border:1px solid var(--border);border-radius:8px;font-size:.78rem;cursor:pointer;background:#fdf8f3">🌅 Warm</button>
+              <button onclick="sfSetBg('dark')" id="sbg-dark" class="sf-bg-btn" style="padding:.5rem;border:1px solid var(--border);border-radius:8px;font-size:.78rem;cursor:pointer;background:#1a1a2e;color:#fff">🌙 Dark</button>
+              <button onclick="sfSetBg('light')" id="sbg-light" class="sf-bg-btn" style="padding:.5rem;border:1px solid var(--border);border-radius:8px;font-size:.78rem;cursor:pointer;background:#f8fafc">☀️ Light</button>
+              <button onclick="sfSetBg('gradient')" id="sbg-gradient" class="sf-bg-btn" style="padding:.5rem;border:1px solid var(--border);border-radius:8px;font-size:.78rem;cursor:pointer;background:linear-gradient(135deg,#667eea,#764ba2);color:#fff">✨ Vivid</button>
+            </div>
+          </div>
+          <div>
+            <label style="font-size:.78rem;color:var(--muted);display:block;margin-bottom:.3rem">Header banner message</label>
+            <input id="sf-banner" placeholder="Open daily 9am–10pm • Free delivery over 15,000 Ks" style="width:100%;padding:.5rem;border:0.5px solid var(--border);border-radius:8px;background:var(--warm);color:var(--ink);font-size:.85rem">
+          </div>
+          <div>
+            <label style="font-size:.78rem;color:var(--muted);display:block;margin-bottom:.3rem">Footer message</label>
+            <input id="sf-footer" placeholder="Thank you for ordering! 🙏" style="width:100%;padding:.5rem;border:0.5px solid var(--border);border-radius:8px;background:var(--warm);color:var(--ink);font-size:.85rem">
+          </div>
+        </div>
+      </div>
+
+      <!-- Currency + Settings -->
+      <div class="card" style="padding:1.25rem">
+        <div style="font-weight:600;font-size:.88rem;margin-bottom:1rem;color:var(--muted)">⚙️ Store settings</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:.75rem">
+          <div>
+            <label style="font-size:.78rem;color:var(--muted);display:block;margin-bottom:.3rem">Currency</label>
+            <select id="sf-currency" style="width:100%;padding:.5rem;border:0.5px solid var(--border);border-radius:8px;background:var(--warm);color:var(--ink)">
+              <option value="MMK">MMK (Kyat)</option>
+              <option value="USD">USD ($)</option>
+              <option value="THB">THB (฿)</option>
+              <option value="SGD">SGD (S$)</option>
+            </select>
+          </div>
+          <div>
+            <label style="font-size:.78rem;color:var(--muted);display:block;margin-bottom:.3rem">Min. order amount</label>
+            <input id="sf-min-order" type="number" placeholder="0" style="width:100%;padding:.5rem;border:0.5px solid var(--border);border-radius:8px;background:var(--warm);color:var(--ink)">
+          </div>
+        </div>
+        <div style="display:flex;gap:1rem;margin-top:.75rem;flex-wrap:wrap">
+          <label style="display:flex;align-items:center;gap:.5rem;font-size:.85rem;cursor:pointer">
+            <input type="checkbox" id="sf-show-photos" checked style="width:16px;height:16px">
+            Show item photos
+          </label>
+          <label style="display:flex;align-items:center;gap:.5rem;font-size:.85rem;cursor:pointer">
+            <input type="checkbox" id="sf-show-desc" checked style="width:16px;height:16px">
+            Show descriptions
+          </label>
+          <label style="display:flex;align-items:center;gap:.5rem;font-size:.85rem;cursor:pointer">
+            <input type="checkbox" id="sf-allow-notes" checked style="width:16px;height:16px">
+            Allow order notes
+          </label>
+        </div>
+      </div>
+
+    </div><!-- end left -->
+
+    <!-- RIGHT: Live Preview -->
+    <div style="position:sticky;top:1rem;height:fit-content">
+      <div class="card" style="overflow:hidden">
+        <div style="padding:.75rem 1rem;border-bottom:0.5px solid var(--border);display:flex;align-items:center;justify-content:space-between">
+          <span style="font-size:.82rem;font-weight:600">Live Preview</span>
+          <span style="font-size:.7rem;color:var(--muted)">Mobile view</span>
+        </div>
+        <!-- Phone mockup -->
+        <div style="padding:1rem;background:var(--warm)">
+          <div id="sf-preview" style="width:100%;border-radius:16px;overflow:hidden;box-shadow:0 8px 32px rgba(0,0,0,.15);font-family:sans-serif">
+            <!-- Header -->
+            <div id="sfp-header" style="padding:1.5rem 1rem 1rem;background:#E84C2B;color:#fff;text-align:center">
+              <div id="sfp-emoji" style="font-size:2.5rem;margin-bottom:.25rem">🍜</div>
+              <div id="sfp-name" style="font-size:1.1rem;font-weight:700">My Restaurant</div>
+              <div id="sfp-tagline" style="font-size:.78rem;opacity:.85;margin-top:.2rem">Authentic flavors</div>
+            </div>
+            <!-- Banner -->
+            <div id="sfp-banner" style="background:rgba(0,0,0,.06);padding:.4rem 1rem;text-align:center;font-size:.72rem;color:#555;display:none"></div>
+            <!-- Menu sample -->
+            <div style="background:#fff;padding:.75rem">
+              <div style="font-size:.72rem;font-weight:600;color:#888;text-transform:uppercase;letter-spacing:.05em;margin-bottom:.5rem">Menu</div>
+              <!-- Sample item -->
+              <div id="sfp-item" style="display:flex;align-items:center;gap:.75rem;padding:.6rem;border:1px solid #f0f0f0;border-radius:10px;margin-bottom:.5rem">
+                <div style="width:44px;height:44px;border-radius:8px;background:#fde8e4;display:flex;align-items:center;justify-content:center;font-size:1.4rem">🍜</div>
+                <div style="flex:1">
+                  <div style="font-size:.83rem;font-weight:600;color:#1a1a1a">Mohinga Special</div>
+                  <div style="font-size:.72rem;color:#888">Classic Myanmar breakfast</div>
+                  <div id="sfp-price" style="font-size:.82rem;font-weight:700;color:#E84C2B;margin-top:.15rem">2,500 Ks</div>
+                </div>
+                <button style="background:#E84C2B;color:#fff;border:none;border-radius:20px;padding:.3rem .75rem;font-size:.78rem;cursor:pointer">Add</button>
+              </div>
+              <div id="sfp-item2" style="display:flex;align-items:center;gap:.75rem;padding:.6rem;border:1px solid #f0f0f0;border-radius:10px">
+                <div style="width:44px;height:44px;border-radius:8px;background:#e8f5e9;display:flex;align-items:center;justify-content:center;font-size:1.4rem">🫖</div>
+                <div style="flex:1">
+                  <div style="font-size:.83rem;font-weight:600;color:#1a1a1a">Laphet Thoke</div>
+                  <div id="sfp-price2" style="font-size:.82rem;font-weight:700;color:#E84C2B;margin-top:.25rem">1,800 Ks</div>
+                </div>
+                <button style="background:#E84C2B;color:#fff;border:none;border-radius:20px;padding:.3rem .75rem;font-size:.78rem;cursor:pointer">Add</button>
+              </div>
+            </div>
+            <!-- Cart bar -->
+            <div style="background:#fff;padding:.75rem 1rem;border-top:1px solid #f0f0f0;display:flex;align-items:center;justify-content:space-between">
+              <div style="font-size:.78rem;color:#888">🛒 2 items</div>
+              <button id="sfp-checkout" style="background:#E84C2B;color:#fff;border:none;border-radius:20px;padding:.4rem 1rem;font-size:.8rem;font-weight:600;cursor:pointer">Checkout →</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div><!-- end right -->
   </div>
 </div>
+
 
 <div id="page-upgrade" class="page" style="display:none">
   <div class="content">
@@ -2200,36 +2366,163 @@ async function downloadBackup(){
 }
 
 /* ── Storefront ── */
-async function loadStorefront(){
-  // Set order URL
-  const slug = window.__TENANT_SLUG || (window._currentTenant ? 'tenant' : 'demo');
-  const branchParam = window._currentBranch ? '&branch=' + window._currentBranch : '';
-  const url = location.origin + '/index.html?t=' + slug + branchParam;
+async // ── Storefront state
+let _sfData = {};
+
+function loadStorefront(){
+  const slug = window.__TENANT_SLUG || 'demo';
+  const url = location.origin + '/index.html?t=' + slug;
   const urlEl = document.getElementById('sf-order-url');
   const linkEl = document.getElementById('sf-order-link');
-  const previewBtn = document.getElementById('sf-preview-btn');
   if(urlEl) urlEl.textContent = url;
-  if(linkEl) linkEl.href = url;
-  if(previewBtn) previewBtn.href = url;
+  if(linkEl){ linkEl.href = url; }
 
-  // Load existing settings from tenant settings JSON
-  const d = await fetch(`tenant.php?api=get_payment_settings`,{credentials:'include'}).then(r=>r.json()).catch(()=>({ok:false}));
-  if(d.ok && d.settings){
-    const s = d.settings;
-    const set=(id,v)=>{const el=document.getElementById(id);if(el&&v)el.value=v;};
-    set('sf-name',    s.store_name);
-    set('sf-tagline', s.store_tagline);
-    set('sf-phone',   s.store_phone);
-    set('sf-address', s.store_address);
-    set('sf-emoji',   s.store_emoji);
-    set('sf-color',   s.brand_color||'#e84c2b');
-    set('sf-color-hex', s.brand_color||'#e84c2b');
+  // Load saved settings
+  fetch(`tenant_api.php?action=get_storefront&tenant_id=${window.__TENANT_ID}`,{credentials:'include'})
+    .then(r=>r.json()).then(d=>{
+      if(!d.ok) return;
+      const s = d.settings || {};
+      _sfData = s;
+      const set = (id,v) => { const el=document.getElementById(id); if(el) el.value=v||''; };
+      set('sf-name', s.store_name);
+      set('sf-tagline', s.tagline);
+      set('sf-phone', s.phone);
+      set('sf-address', s.address);
+      set('sf-emoji', s.emoji || '🍜');
+      set('sf-banner', s.banner_msg);
+      set('sf-footer', s.footer_msg);
+      set('sf-min-order', s.min_order_amount || 0);
+      if(s.primary_color){ sfSetColor(s.primary_color, false); }
+      if(s.font_style){ sfSetFont(s.font_style, false); }
+      if(s.bg_style){ sfSetBg(s.bg_style, false); }
+      if(s.layout){ sfSetLayout(s.layout, false); }
+      if(s.currency){
+        const cur = document.getElementById('sf-currency');
+        if(cur) cur.value = s.currency;
+      }
+      // Checkboxes
+      const cb = (id,v) => { const el=document.getElementById(id); if(el) el.checked = v!=='0' && v!==false; };
+      cb('sf-show-photos', s.show_photos !== '0');
+      cb('sf-show-desc', s.show_desc !== '0');
+      cb('sf-allow-notes', s.allow_notes !== '0');
+      sfUpdatePreview();
+    }).catch(()=>{});
+}
+
+function sfSetColor(hex, update=true){
+  _sfData.primary_color = hex;
+  const picker = document.getElementById('sf-color');
+  if(picker) picker.value = hex;
+  // Update preview
+  document.querySelectorAll('[id^="sfp-"]').forEach(el => {});
+  const header = document.getElementById('sfp-header');
+  if(header) header.style.background = hex;
+  document.querySelectorAll('#sf-preview button').forEach(b => b.style.background = hex);
+  document.querySelectorAll('#sfp-price, #sfp-price2').forEach(p => p.style.color = hex);
+  document.getElementById('sfp-checkout').style.background = hex;
+  // Highlight selected preset
+  document.querySelectorAll('#sf-color-presets button').forEach(b => {
+    b.style.border = b.onclick?.toString().includes(hex) ? '3px solid #000' : '2px solid transparent';
+  });
+  if(update) sfUpdatePreview();
+}
+
+function sfSetFont(font, update=true){
+  _sfData.font_style = font;
+  const fontMap = {default:'inherit', rounded:'system-ui', serif:'Georgia,serif', mono:'monospace'};
+  const preview = document.getElementById('sf-preview');
+  if(preview) preview.style.fontFamily = fontMap[font] || 'inherit';
+  document.querySelectorAll('.sf-font-btn').forEach(b => {
+    b.style.background = b.id === 'sfont-'+font ? 'var(--ink)' : 'var(--warm)';
+    b.style.color = b.id === 'sfont-'+font ? '#fff' : 'inherit';
+  });
+  if(update) sfUpdatePreview();
+}
+
+function sfSetLayout(layout, update=true){
+  _sfData.layout = layout;
+  document.querySelectorAll('.sf-layout-btn').forEach(b => {
+    b.style.background = b.id === 'slayout-'+layout ? 'var(--ink)' : 'var(--warm)';
+    b.style.color = b.id === 'slayout-'+layout ? '#fff' : 'inherit';
+  });
+}
+
+function sfSetBg(bg, update=true){
+  _sfData.bg_style = bg;
+  const bgMap = {
+    warm: {bg:'#fdf8f3', itemBg:'#fff'},
+    dark: {bg:'#1a1a2e', itemBg:'#2d2d44'},
+    light: {bg:'#f8fafc', itemBg:'#fff'},
+    gradient: {bg:'linear-gradient(135deg,#667eea,#764ba2)', itemBg:'rgba(255,255,255,.95)'},
+  };
+  const bgEl = document.getElementById('sf-preview');
+  if(bgEl && bgMap[bg]){
+    const previewContent = bgEl.querySelector('[style*="background:#fff"]');
   }
+  document.querySelectorAll('.sf-bg-btn').forEach(b => {
+    b.style.fontWeight = b.id === 'sbg-'+bg ? '700' : '400';
+    b.style.border = b.id === 'sbg-'+bg ? '2px solid var(--ink)' : '1px solid var(--border)';
+  });
+}
+
+function sfUpdatePreview(){
+  const name = document.getElementById('sf-name')?.value || 'My Restaurant';
+  const tagline = document.getElementById('sf-tagline')?.value || '';
+  const emoji = document.getElementById('sf-emoji')?.value || '🍜';
+  const banner = document.getElementById('sf-banner')?.value || '';
+  const set = (id,v) => { const el=document.getElementById(id); if(el) el.textContent=v; };
+  set('sfp-name', name);
+  set('sfp-tagline', tagline);
+  set('sfp-emoji', emoji);
+  const bannerEl = document.getElementById('sfp-banner');
+  if(bannerEl){ bannerEl.textContent = banner; bannerEl.style.display = banner ? 'block' : 'none'; }
+}
+
+function sfPreview(){
+  const slug = window.__TENANT_SLUG || 'demo';
+  window.open('/index.html?t=' + slug, '_blank');
 }
 
 function copyOrderUrl(){
-  const url = document.getElementById('sf-order-url')?.textContent;
-  if(url) navigator.clipboard.writeText(url).then(()=>toast('✅ URL copied','ok'));
+  const url = document.getElementById('sf-order-url')?.textContent || '';
+  navigator.clipboard.writeText(url).then(()=>toast('✅ Copied!','ok')).catch(()=>{
+    const ta = document.createElement('textarea');
+    ta.value = url; document.body.appendChild(ta); ta.select();
+    document.execCommand('copy'); ta.remove(); toast('✅ Copied!','ok');
+  });
+}
+
+async function saveStorefront(){
+  const data = {
+    store_name:    document.getElementById('sf-name')?.value || '',
+    tagline:       document.getElementById('sf-tagline')?.value || '',
+    phone:         document.getElementById('sf-phone')?.value || '',
+    address:       document.getElementById('sf-address')?.value || '',
+    emoji:         document.getElementById('sf-emoji')?.value || '🍜',
+    primary_color: _sfData.primary_color || '#E84C2B',
+    font_style:    _sfData.font_style || 'default',
+    bg_style:      _sfData.bg_style || 'warm',
+    layout:        _sfData.layout || 'grid',
+    currency:      document.getElementById('sf-currency')?.value || 'MMK',
+    min_order_amount: parseInt(document.getElementById('sf-min-order')?.value) || 0,
+    banner_msg:    document.getElementById('sf-banner')?.value || '',
+    footer_msg:    document.getElementById('sf-footer')?.value || '',
+    show_photos:   document.getElementById('sf-show-photos')?.checked ? '1' : '0',
+    show_desc:     document.getElementById('sf-show-desc')?.checked ? '1' : '0',
+    allow_notes:   document.getElementById('sf-allow-notes')?.checked ? '1' : '0',
+  };
+
+  try {
+    const r = await fetch(`tenant_api.php?action=save_storefront`, {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      credentials: 'include',
+      body: JSON.stringify({tenant_id: window.__TENANT_ID, settings: data})
+    });
+    const d = await r.json();
+    if(d.ok){ toast('✅ Storefront saved!','ok'); }
+    else toast('❌ ' + d.msg,'err');
+  } catch(e){ toast('❌ ' + e.message,'err'); }
 }
 
 async function saveStorefront(){

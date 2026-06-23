@@ -470,3 +470,80 @@ if ($action === 'delete' && $_SERVER['REQUEST_METHOD'] === 'POST') {
     // Clean up menu items + orders optional
     ok(['message' => 'Tenant deleted']);
 }
+
+/* ════════════════════════════════════════════
+   STOREFRONT SETTINGS
+   GET  ?action=get_storefront&tenant_id=
+   POST ?action=save_storefront  {tenant_id, settings:{}}
+════════════════════════════════════════════ */
+if ($action === 'get_storefront') {
+    $tid = (int)($_GET['tenant_id'] ?? 0);
+    if (!$tid) fail('tenant_id required');
+
+    // Load all storefront-related site_settings for this tenant
+    // site_settings is global but we store per-tenant via tenant.settings JSON
+    $stmt = $pdo->prepare("SELECT settings FROM tenants WHERE id=?");
+    $stmt->execute([$tid]);
+    $row = $stmt->fetch(PDO::FETCH_ASSOC);
+    if (!$row) fail('Tenant not found');
+
+    $settings = json_decode($row['settings'] ?? '{}', true) ?: [];
+    // Also load from site_settings global fields if not in tenant JSON
+    $global = $pdo->query("SELECT setting_key,setting_value FROM site_settings WHERE setting_key IN ('store_name','store_emoji','footer_phone','footer_address','primary_color','currency')")->fetchAll(PDO::FETCH_KEY_PAIR);
+
+    $result = array_merge([
+        'store_name'   => $global['store_name'] ?? '',
+        'emoji'        => $global['store_emoji'] ?? '🍜',
+        'phone'        => $global['footer_phone'] ?? '',
+        'address'      => $global['footer_address'] ?? '',
+        'primary_color'=> $global['primary_color'] ?? '#E84C2B',
+        'currency'     => $global['currency'] ?? 'MMK',
+        'font_style'   => 'default',
+        'bg_style'     => 'warm',
+        'layout'       => 'grid',
+    ], $settings['storefront'] ?? []);
+
+    ok(['settings' => $result]);
+}
+
+if ($action === 'save_storefront' && $_SERVER['REQUEST_METHOD'] === 'POST') {
+    $body = json_decode(file_get_contents('php://input'), true) ?? [];
+    $tid  = (int)($body['tenant_id'] ?? 0);
+    $sf   = $body['settings'] ?? [];
+    if (!$tid) fail('tenant_id required');
+    if (!$sf)  fail('settings required');
+
+    // Sanitize
+    $allowed = ['store_name','tagline','phone','address','emoji','primary_color',
+                'font_style','bg_style','layout','currency','min_order_amount',
+                'banner_msg','footer_msg','show_photos','show_desc','allow_notes'];
+    $clean = array_intersect_key($sf, array_flip($allowed));
+
+    // Load existing tenant settings JSON
+    $stmt = $pdo->prepare("SELECT settings FROM tenants WHERE id=?");
+    $stmt->execute([$tid]);
+    $row = $stmt->fetch(PDO::FETCH_ASSOC);
+    if (!$row) fail('Tenant not found');
+    $existing = json_decode($row['settings'] ?? '{}', true) ?: [];
+    $existing['storefront'] = $clean;
+
+    // Update tenant settings JSON
+    $pdo->prepare("UPDATE tenants SET settings=? WHERE id=?")->execute([json_encode($existing), $tid]);
+
+    // Also update global site_settings for POS terminal access
+    $keyMap = [
+        'store_name'    => 'store_name',
+        'emoji'         => 'store_emoji',
+        'phone'         => 'footer_phone',
+        'address'       => 'footer_address',
+        'primary_color' => 'primary_color',
+        'currency'      => 'currency',
+    ];
+    foreach ($keyMap as $sfKey => $settingKey) {
+        if (isset($clean[$sfKey])) {
+            $pdo->prepare("INSERT INTO site_settings (setting_key,setting_value,label) VALUES (?,?,?) ON DUPLICATE KEY UPDATE setting_value=?")->execute([$settingKey, $clean[$sfKey], $sfKey, $clean[$sfKey]]);
+        }
+    }
+
+    ok(['msg' => 'Storefront saved']);
+}
