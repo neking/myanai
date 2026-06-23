@@ -1,0 +1,35 @@
+name: Deploy to Production
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: PHP Lint Check
+        run: |
+          sudo apt-get install -y php-cli 2>/dev/null | tail -1
+          ERROR=0
+          for f in $(find . -name '*.php' -not -path '*/vendor/*'); do
+            php -l "$f" > /dev/null 2>&1 || { echo "❌ $f"; ERROR=1; }
+          done
+          if [ $ERROR -eq 1 ]; then exit 1; fi
+          echo "✅ All PHP files passed"
+
+      - name: Critical files check
+        run: |
+          for f in admin.php tenant.php db_connect.php webhook.php manifest.json sw.js; do
+            [ -f "$f" ] || { echo "❌ Missing: $f"; exit 1; }
+          done
+          echo "✅ All critical files present"
+
+      - name: Deploy status
+        run: |
+          echo "✅ All checks passed"
+          echo "Commit: ${{ github.sha }}"
+          echo "By: ${{ github.actor }}"
