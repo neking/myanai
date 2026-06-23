@@ -2366,8 +2366,8 @@ async function downloadBackup(){
 }
 
 /* ── Storefront ── */
-async // ── Storefront state
-let _sfData = {};
+// ── Storefront state
+var _sfData = {};
 
 function loadStorefront(){
   const slug = window.__TENANT_SLUG || 'demo';
