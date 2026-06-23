@@ -1637,6 +1637,9 @@ async function doLogin() {
 
       <!-- SYSTEM -->
       <div class="nav-sect">System</div>
+      <div class="nav-item" id="nav-logs" onclick="showPage('logs')">
+        <span class="nav-icon">📋</span> Error Logs
+      </div>
       <div class="nav-item" id="nav-saas" onclick="showPage('saas')">
         <span class="nav-icon">🌐</span> SaaS dashboard
       </div>
@@ -2012,7 +2015,7 @@ window.exportSL=function(){window.open("stock_log_api.php?action=export_csv&date
 /* ══ STAFF MANAGEMENT ══ */
 const ALL_PAGES = [
   'dashboard','tenants','revenue','upgrades','plans',
-  'landing','demo','announce','saas','settings'
+  'landing','demo','announce','logs','saas','settings'
 ];
 async function loadStaff(){
   const el=document.getElementById('staff-list');
@@ -2457,6 +2460,48 @@ document.addEventListener('DOMContentLoaded', function() {
     </div>
 
   </div>
+
+<!-- ═══ LOG VIEWER ═══ -->
+<div id="page-logs" style="display:none">
+  <div class="page-head">
+    <div style="display:flex;align-items:center;gap:.5rem">
+      <button class="hamburger" onclick="openSidebar()">☰</button>
+      <div class="page-title">📋 Error Logs</div>
+    </div>
+    <div style="display:flex;gap:.5rem">
+      <button class="btn btn-ghost btn-sm" onclick="loadLogs()">🔄 Refresh</button>
+      <button class="btn btn-sm" onclick="clearLogs()" style="background:#dc2626;color:#fff">🗑 Clear</button>
+    </div>
+  </div>
+  <div class="content">
+    <!-- Stats row -->
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:1rem;margin-bottom:1.2rem">
+      <div class="stat-card"><div class="stat-val" id="log-total">—</div><div class="stat-lbl">Total Entries</div></div>
+      <div class="stat-card" style="border-color:rgba(220,38,38,.3)"><div class="stat-val" id="log-errors" style="color:#dc2626">—</div><div class="stat-lbl">Errors</div></div>
+      <div class="stat-card" style="border-color:rgba(217,119,6,.3)"><div class="stat-val" id="log-warnings" style="color:#d97706">—</div><div class="stat-lbl">Warnings</div></div>
+      <div class="stat-card"><div class="stat-val" id="log-size">—</div><div class="stat-lbl">Log Size</div></div>
+    </div>
+
+    <!-- Filter -->
+    <div style="display:flex;gap:.5rem;margin-bottom:1rem;flex-wrap:wrap">
+      <select id="log-level-filter" onchange="loadLogs()" style="padding:.4rem .7rem;border:0.5px solid var(--border);border-radius:8px;background:var(--warm);color:var(--ink)">
+        <option value="">All Levels</option>
+        <option value="error">❌ Errors</option>
+        <option value="warning">⚠️ Warnings</option>
+        <option value="info">ℹ️ Info</option>
+      </select>
+      <input type="text" id="log-search" placeholder="Search logs..." oninput="filterLogsLocal()" style="flex:1;min-width:200px;padding:.4rem .7rem;border:0.5px solid var(--border);border-radius:8px;background:var(--warm);color:var(--ink)">
+    </div>
+
+    <!-- Log entries -->
+    <div class="table-wrap">
+      <div id="log-entries" style="font-family:monospace;font-size:.78rem;background:var(--warm)">
+        <div style="text-align:center;padding:2rem;color:var(--muted)">Loading...</div>
+      </div>
+    </div>
+  </div>
+</div>
+
 </div>
 
 <!-- ═══ ANNOUNCEMENTS ═══ -->
@@ -2882,6 +2927,74 @@ function toggleTheme(){
   const btn = document.getElementById('theme-toggle-btn');
   if(btn) btn.textContent = next === 'dark' ? '🌙' : '☀️';
 }
+// ══ LOG VIEWER ══
+let _allLogEntries = [];
+
+async function loadLogs() {
+  const level = document.getElementById('log-level-filter')?.value || '';
+
+  // Load stats
+  const s = await fetch(`log_api.php?action=stats`, {credentials:'include'}).then(r=>r.json()).catch(()=>({ok:false}));
+  if (s.ok) {
+    const sv = (id,v) => { const el=document.getElementById(id); if(el) el.textContent=v; };
+    sv('log-total', s.total);
+    sv('log-errors', s.errors);
+    sv('log-warnings', s.warnings);
+    sv('log-size', s.size_kb + ' KB');
+  }
+
+  // Load entries
+  const d = await fetch(`log_api.php?action=list&limit=100&level=${level}`, {credentials:'include'}).then(r=>r.json()).catch(()=>({ok:false}));
+  const container = document.getElementById('log-entries');
+  if (!container) return;
+
+  if (!d.ok || !d.entries?.length) {
+    container.innerHTML = '<div style="text-align:center;padding:2rem;color:var(--muted)">No log entries</div>';
+    _allLogEntries = [];
+    return;
+  }
+
+  _allLogEntries = d.entries;
+  renderLogEntries(d.entries);
+}
+
+function renderLogEntries(entries) {
+  const container = document.getElementById('log-entries');
+  if (!container) return;
+  const colors = { error:'#dc2626', warning:'#d97706', info:'#2563eb' };
+  const icons  = { error:'❌', warning:'⚠️', info:'ℹ️' };
+  container.innerHTML = entries.map(e => `
+    <div style="padding:.5rem .75rem;border-bottom:0.5px solid var(--border);display:flex;gap:.75rem;align-items:flex-start">
+      <span style="flex-shrink:0;color:${colors[e.level]||'#888'};font-size:.85rem">${icons[e.level]||'•'}</span>
+      <span style="color:var(--muted);font-size:.72rem;flex-shrink:0;white-space:nowrap">${e.timestamp||''}</span>
+      <span style="color:var(--ink);word-break:break-word">${escH(e.message)}</span>
+    </div>
+  `).join('') || '<div style="text-align:center;padding:2rem;color:var(--muted)">No entries</div>';
+}
+
+function filterLogsLocal() {
+  const q = document.getElementById('log-search')?.value?.toLowerCase() || '';
+  if (!q) { renderLogEntries(_allLogEntries); return; }
+  renderLogEntries(_allLogEntries.filter(e => e.message.toLowerCase().includes(q)));
+}
+
+async function clearLogs() {
+  if (!confirm('Clear all error logs?')) return;
+  await fetch('log_api.php?action=clear', {method:'POST', credentials:'include'});
+  loadLogs();
+}
+
+// Load logs when page opens
+document.addEventListener('DOMContentLoaded', () => {
+  const orig = window.showPage;
+  if (orig) {
+    window.showPage = function(p) {
+      orig(p);
+      if (p === 'logs') setTimeout(loadLogs, 100);
+    };
+  }
+});
+
 </script>
 <!-- ── UPGRADE PAGE ── -->
 

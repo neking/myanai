@@ -3,9 +3,11 @@ require_once __DIR__ . '/db_connect.php';
 session_start();
 if (empty($_SESSION['admin'])) { header('HTTP/1.1 403 Forbidden'); echo 'Unauthorized'; exit; }
 
-$pdo  = getPDO();
-$date = $_GET['date'] ?? date('Y-m-d');
+$pdo   = getPDO();
+$date  = $_GET['date'] ?? date('Y-m-d');
+$tid   = (int)($_GET['tenant_id'] ?? 0); // ★ tenant filter
 $dateLabel = date('d M Y', strtotime($date));
+$tWhere = $tid ? ' AND tenant_id=' . $tid : '';
 
 $summary = $pdo->prepare("
     SELECT COUNT(*) as total_orders,
@@ -14,7 +16,7 @@ $summary = $pdo->prepare("
            COUNT(CASE WHEN status='cancelled' THEN 1 END) as cancelled,
            COUNT(CASE WHEN order_type='dine_in' THEN 1 END) as dine_in,
            COUNT(CASE WHEN order_type!='dine_in' THEN 1 END) as delivery
-    FROM orders WHERE DATE(created_at)=? AND deleted_at IS NULL
+    FROM orders WHERE DATE(created_at)=? AND deleted_at IS NULL{$tWhere}
 ");
 $summary->execute([$date]);
 $s = $summary->fetch(PDO::FETCH_ASSOC);
