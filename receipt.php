@@ -8,23 +8,26 @@ if (!$order_id) { echo 'No order ID'; exit; }
 
 $pdo = getPDO();
 
-// Fetch branch name if branch_id provided
+// Fetch branch name
 if ($branchId > 0) {
-    $br = $pdo->prepare("SELECT name FROM branches WHERE id = ?");
+    $br = $pdo->prepare("SELECT name FROM branches WHERE id=?");
     $br->execute([$branchId]);
     $branchName = $br->fetchColumn() ?: '';
 }
 
-$order = $pdo->prepare("SELECT o.*,
+// ★ Fetch order — verify belongs to correct branch if branch_id provided ★
+$where = $branchId > 0 ? "AND o.branch_id=?" : "";
+$stmt  = $pdo->prepare("SELECT o.*,
     COALESCE(o.customer_name,'') as customer_name,
     COALESCE(o.customer_phone,'') as customer_phone,
     COALESCE(o.delivery_address,'') as delivery_address,
     COALESCE(o.township,'') as township,
     COALESCE(o.table_id,'') as table_id,
     COALESCE(o.order_type,'delivery') as order_type
-    FROM orders o WHERE o.id=?");
-$order->execute([$order_id]);
-$o = $order->fetch(PDO::FETCH_ASSOC);
+    FROM orders o WHERE o.id=? AND o.deleted_at IS NULL $where");
+$params = $branchId > 0 ? [$order_id, $branchId] : [$order_id];
+$stmt->execute($params);
+$o = $stmt->fetch(PDO::FETCH_ASSOC);
 if (!$o) { echo 'Order not found'; exit; }
 
 $items = $pdo->prepare("
@@ -37,21 +40,30 @@ $items = $pdo->prepare("
 $items->execute([$order_id]);
 $items = $items->fetchAll(PDO::FETCH_ASSOC);
 
+// ★ Get tenant-specific settings via tenant_id from order ★
+$tid = (int)($o['tenant_id'] ?? 0);
 $settings = $pdo->query("SELECT setting_key,setting_value FROM site_settings WHERE setting_key IN ('store_name','store_emoji','footer_phone','footer_address','loyalty_stamps_required')")->fetchAll(PDO::FETCH_KEY_PAIR);
 
-$store_name = $settings['store_name'] ?? 'MyanAi POS';
+// Try tenant-specific overrides if available
+if ($tid) {
+    $tSettings = $pdo->prepare("SELECT setting_key,setting_value FROM site_settings WHERE setting_key IN ('store_name','store_emoji','footer_phone','footer_address') AND tenant_id=?");
+    $tSettings->execute([$tid]);
+    $tRows = $tSettings->fetchAll(PDO::FETCH_KEY_PAIR);
+    if ($tRows) $settings = array_merge($settings, $tRows);
+}
+
+$store_name  = $settings['store_name'] ?? 'MyanAi POS';
 $store_emoji = $settings['store_emoji'] ?? '🍜';
 $store_phone = $settings['footer_phone'] ?? '';
 $store_addr  = $settings['footer_address'] ?? '';
 
-$subtotal  = array_sum(array_map(fn($i)=>$i['qty']*$i['unit_price'], $items));
-$discount  = 0;
-$delivery  = (float)($o['delivery_fee'] ?? 0);
-$total     = (float)$o['total_amount'];
+$subtotal   = array_sum(array_map(fn($i) => $i['qty'] * $i['unit_price'], $items));
+$delivery   = (float)($o['delivery_fee'] ?? 0);
+$total      = (float)$o['total_amount'];
 $pay_method = strtoupper($o['payment_method'] ?? '');
-$ref       = str_pad($o['id'], 6, '0', STR_PAD_LEFT);
-$date      = date('d M Y H:i', strtotime($o['created_at']));
-$is_dine   = $o['order_type'] === 'dine_in';
+$ref        = str_pad($o['id'], 6, '0', STR_PAD_LEFT);
+$date       = date('d M Y H:i', strtotime($o['created_at']));
+$is_dine    = $o['order_type'] === 'dine_in';
 ?><!DOCTYPE html>
 <html>
 <head>
@@ -59,7 +71,7 @@ $is_dine   = $o['order_type'] === 'dine_in';
 <title>Receipt #<?= $ref ?></title>
 <style>
   * { margin:0; padding:0; box-sizing:border-box; }
-  body { font-family: 'Courier New', monospace; font-size: 12px; width: 80mm; max-width: 80mm; padding: 4mm 4mm; background:#fff; color:#000; }
+  body { font-family:'Courier New',monospace; font-size:12px; width:80mm; max-width:80mm; padding:4mm 4mm; background:#fff; color:#000; }
   .center { text-align:center; }
   .bold { font-weight:bold; }
   .lg { font-size:15px; }
@@ -93,9 +105,10 @@ $is_dine   = $o['order_type'] === 'dine_in';
 <div class="row"><span>Table:</span><span class="bold"><?= htmlspecialchars($o['table_id']) ?></span></div>
 <?php else: ?>
 <div class="row"><span>Customer:</span><span><?= htmlspecialchars($o['customer_name']) ?></span></div>
-<div class="row"><span>Phone:</span><span><?= htmlspecialchars($o['customer_phone']) ?></span></div>
+<?php if($o['customer_phone']): ?><div class="row"><span>Phone:</span><span><?= htmlspecialchars($o['customer_phone']) ?></span></div><?php endif; ?>
 <?php if($o['township']): ?><div class="row"><span>Area:</span><span><?= htmlspecialchars($o['township']) ?></span></div><?php endif; ?>
 <?php endif; ?>
+<?php if($branchName): ?><div class="row"><span>Branch:</span><span><?= htmlspecialchars($branchName) ?></span></div><?php endif; ?>
 
 <div class="divider"></div>
 <div class="bold" style="margin-bottom:4px">ITEMS</div>
@@ -114,9 +127,6 @@ $is_dine   = $o['order_type'] === 'dine_in';
 
 <div class="divider"></div>
 <div class="row"><span>Subtotal</span><span><?= number_format($subtotal) ?> Ks</span></div>
-<?php if($discount > 0): ?>
-<div class="row"><span>Discount <?= '' ?></span><span>-<?= number_format($discount) ?> Ks</span></div>
-<?php endif; ?>
 <?php if($delivery > 0): ?>
 <div class="row"><span>Delivery</span><span><?= number_format($delivery) ?> Ks</span></div>
 <?php endif; ?>
@@ -125,18 +135,15 @@ $is_dine   = $o['order_type'] === 'dine_in';
 
 <div class="divider"></div>
 <div class="center">
-  <div class="barcode"><?= '|||' . $ref . '|||' ?></div>
+  <div class="barcode"><?= '|||'.$ref.'|||' ?></div>
   <div style="font-size:10px">Order #<?= $ref ?></div>
 </div>
 <div class="divider"></div>
 <div class="center" style="font-size:11px">
   <div>မှာယူပေးသောကြောင့် ကျေးဇူးတင်ပါသည်</div>
   <div>Thank you for your order!</div>
-  <?php
-  $req = (int)($settings['loyalty_stamps_required'] ?? 10);
-  if($o['customer_phone']):
-  ?>
-  <div style="margin-top:4px;font-size:10px">⭐ Loyalty stamp <?= $req ?> ကြိမ်ဆို reward ရမည်</div>
+  <?php if($o['customer_phone']): ?>
+  <div style="margin-top:4px;font-size:10px">⭐ Loyalty stamp <?= (int)($settings['loyalty_stamps_required']??10) ?> ကြိမ်ဆို reward ရမည်</div>
   <?php endif; ?>
 </div>
 <br><br>

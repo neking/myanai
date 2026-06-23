@@ -5,7 +5,7 @@ require_once __DIR__ . '/db_connect.php';
 // KDS: no session (SSE session locking ဖြစ်မည်) - GET param only
 $tenantId  = max(1, (int)($_GET['tenant_id'] ?? 1));
 $branchId     = (int)($_GET['branch_id'] ?? 0);
-$branchFilter = $branchId > 0 ? "AND kq.branch_id = $branchId" : '';
+$branchFilter = $branchId > 0 ? "AND kq.branch_id = " . (int)$branchId : ''; // ★ cast prevents SQL injection
 $pdo = getPDO();
 
 

@@ -10,8 +10,9 @@ $action = $_GET['action'] ?? '';
 $tid = (int)($_SESSION['tenant_id'] ?? $_GET['tenant_id'] ?? 0);
 
 function loyaltyConfig(PDO $pdo, int $tid): array {
-    $stmt = $pdo->prepare("SELECT setting_key,setting_value FROM site_settings WHERE setting_key IN ('loyalty_enabled','loyalty_stamps_required','loyalty_reward_label') AND tenant_id=?");
-    $stmt->execute([$tid]);
+    // site_settings is global (no tenant_id column)
+    $stmt = $pdo->prepare("SELECT setting_key,setting_value FROM site_settings WHERE setting_key IN ('loyalty_enabled','loyalty_stamps_required','loyalty_reward_label')");
+    $stmt->execute();
     return $stmt->fetchAll(PDO::FETCH_KEY_PAIR) ?: [];
 }
 
