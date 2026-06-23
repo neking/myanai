@@ -1989,7 +1989,7 @@ async function saveNewTable(){
 function viewTable(id, status){ toast(`Table #${id} — ${status}`); }
 
 /* ── Stock ── */
-var _stockItems = [];
+window._stockItems = window._stockItems || [];
 async function stockLoad(){
   let bid = window._currentBranch;
   if(!bid){
