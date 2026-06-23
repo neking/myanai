@@ -389,11 +389,8 @@ td{padding:.65rem .9rem;color:var(--ink)}
   </div>
 </div>
 
-<!-- IMPERSONATION BANNER -->
-<div id="impersonate-banner" style="display:none;position:fixed;top:0;left:0;right:0;z-index:9999;background:#dc2626;color:#fff;padding:.5rem 1rem;font-size:.82rem;font-weight:600;text-align:center;display:flex;align-items:center;justify-content:center;gap:1rem">
-  <span>👤 Admin mode — viewing as tenant</span>
-  <button onclick="exitImpersonate()" style="background:rgba(255,255,255,.2);border:none;color:#fff;padding:.2rem .75rem;border-radius:6px;cursor:pointer;font-size:.8rem">✕ Exit</button>
-</div>
+<!-- IMPERSONATION BANNER (moved to header) -->
+<div id="impersonate-banner" style="display:none"></div>
 
 <!-- SIDEBAR OVERLAY -->
 <div class="sidebar-overlay" id="sb-overlay" onclick="closeSidebar()"></div>
@@ -505,9 +502,13 @@ td{padding:.65rem .9rem;color:var(--ink)}
     <div class="hamburger-bar" style="display:flex;align-items:center;gap:.75rem;padding:.7rem 1.2rem;background:var(--topbar-bg);backdrop-filter:var(--topbar-blur);border-bottom:0.5px solid var(--border);position:sticky;top:0;z-index:10" id="topbar">
       <button class="hamburger" onclick="openSidebar()">☰</button>
       <span id="topbar-title" style="font-size:.95rem;font-weight:600;letter-spacing:-.2px">Dashboard</span>
-      <div style="margin-left:auto;display:flex;gap:.5rem;align-items:center">
+      <div style="margin-left:auto;display:flex;gap:.75rem;align-items:center">
         <span id="topbar-plan-badge" class="plan-badge"></span>
         <span id="topbar-biz" style="font-size:.78rem;color:var(--muted)"></span>
+        <div id="admin-mode-badge" style="display:none;background:#dc2626;color:#fff;padding:.3rem .6rem;border-radius:6px;font-size:.75rem;font-weight:600;white-space:nowrap;display:flex;align-items:center;gap:.4rem">
+          <span>👤 Admin</span>
+          <button onclick="exitImpersonate()" style="background:rgba(255,255,255,.3);border:none;color:#fff;padding:0 .3rem;border-radius:4px;cursor:pointer;font-size:.7rem;line-height:1">✕</button>
+        </div>
         <div id="topbar-action"></div>
       </div>
     </div>
@@ -1802,12 +1803,11 @@ if(window.__IS_TENANT && window.__TENANT_ID > 0){
   showPage('dashboard');
 }
 
-/* ── Impersonation banner ── */
+/* ── Impersonation indicator (in header badge) ── */
 if(window.__IMPERSONATING){
-  const ban = document.getElementById('impersonate-banner');
-  if(ban){
-    ban.style.display='flex';
-    document.body.style.paddingTop='36px';
+  const badge = document.getElementById('admin-mode-badge');
+  if(badge){
+    badge.style.display='flex';
   }
 }
 function exitImpersonate(){
