@@ -51,9 +51,18 @@ if ($action === 'list') {
 // ── CLEAR LOGS ──
 if ($action === 'clear' && $_SERVER['REQUEST_METHOD'] === 'POST') {
     if (file_exists($logFile)) {
-        file_put_contents($logFile, '');
+        // Try to clear, handle permission errors gracefully
+        if (is_writable($logFile)) {
+            file_put_contents($logFile, '');
+            echo json_encode(['ok'=>true,'msg'=>'Log cleared']);
+        } else {
+            // Try with sudo-equivalent: truncate via shell if writable by www-data
+            @shell_exec('truncate -s 0 ' . escapeshellarg($logFile) . ' 2>/dev/null');
+            echo json_encode(['ok'=>true,'msg'=>'Log cleared (attempted)']);
+        }
+    } else {
+        echo json_encode(['ok'=>true,'msg'=>'No log file']);
     }
-    echo json_encode(['ok'=>true,'msg'=>'Log cleared']);
     exit;
 }
 

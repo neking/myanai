@@ -521,7 +521,7 @@ if (isset($_GET['api'])) { // GET+POST both handled
 
     /* saas tenant list */
     if ($_GET['api'] === 'saas_tenants') {
-        requireAdmin();
+        if (empty($_SESSION['admin'])) { echo json_encode(['ok'=>false,'msg'=>'Unauthorized']); exit; }
         // ★ Optimized: JOIN instead of correlated subqueries ★
         $tenants = db()->query("
             SELECT t.*,
