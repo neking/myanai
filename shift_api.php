@@ -77,3 +77,110 @@ if($action==='delete' && $_SERVER['REQUEST_METHOD']==='POST'){
 }
 
 echo json_encode(['ok'=>false,'msg'=>'Unknown action']);
+
+/* ─── CURRENT SHIFT (open/closed status) ─── */
+if ($action === 'current') {
+    $bid = (int)($_GET['branch_id'] ?? $_SESSION['branch_id'] ?? 0);
+    // Find open shift for this branch
+    $stmt = $bid
+        ? $pdo->prepare("SELECT s.*, st.name as staff_name FROM shifts s LEFT JOIN staff st ON st.id=s.staff_id WHERE s.branch_id=? AND s.status='open' ORDER BY s.id DESC LIMIT 1")
+        : $pdo->prepare("SELECT s.*, st.name as staff_name FROM shifts s LEFT JOIN staff st ON st.id=s.staff_id WHERE s.status='open' ORDER BY s.id DESC LIMIT 1");
+    $bid ? $stmt->execute([$bid]) : $stmt->execute();
+    $shift = $stmt->fetch(PDO::FETCH_ASSOC);
+
+    if (!$shift) {
+        echo json_encode(['ok'=>true,'is_open'=>false,'shift'=>null,'stats'=>null]);
+        exit;
+    }
+
+    // Get stats for open shift
+    $statsStmt = $pdo->prepare("
+        SELECT COUNT(*) as total_orders,
+               COALESCE(SUM(total_amount),0) as total_revenue,
+               COALESCE(SUM(CASE WHEN payment_method='cash' THEN total_amount END),0) as cash_revenue,
+               COALESCE(SUM(CASE WHEN payment_method!='cash' THEN total_amount END),0) as digital_revenue
+        FROM orders WHERE branch_id=? AND created_at >= ? AND deleted_at IS NULL AND status!='cancelled'
+    ");
+    $statsStmt->execute([$shift['branch_id'], $shift['opened_at']]);
+    $stats = $statsStmt->fetch(PDO::FETCH_ASSOC);
+
+    echo json_encode(['ok'=>true,'is_open'=>true,'shift'=>$shift,'stats'=>$stats]);
+    exit;
+}
+
+/* ─── SHIFT HISTORY ─── */
+if ($action === 'history') {
+    $bid = (int)($_GET['branch_id'] ?? 0);
+    $per = min(50, (int)($_GET['per'] ?? 20));
+    $where = $bid ? "WHERE s.branch_id=?" : "WHERE 1=1";
+    $params = $bid ? [$bid] : [];
+    $stmt = $pdo->prepare("
+        SELECT s.*, st.name as staff_name,
+            TIMESTAMPDIFF(MINUTE, s.opened_at, COALESCE(s.closed_at, NOW())) as duration_min,
+            (s.closing_cash - s.opening_cash) as cash_difference
+        FROM shifts s LEFT JOIN staff st ON st.id=s.staff_id
+        $where ORDER BY s.id DESC LIMIT $per
+    ");
+    $stmt->execute($params);
+    echo json_encode(['ok'=>true,'shifts'=>$stmt->fetchAll(PDO::FETCH_ASSOC)]);
+    exit;
+}
+
+/* ─── OPEN SHIFT ─── */
+if ($action === 'open' && $_SERVER['REQUEST_METHOD'] === 'POST') {
+    $d    = json_decode(file_get_contents('php://input'), true) ?? [];
+    $pin  = trim($d['pin'] ?? '');
+    $cash = (int)($d['opening_cash'] ?? 0);
+    $bid  = (int)($d['branch_id'] ?? $_SESSION['branch_id'] ?? 0);
+    if (!$pin) { echo json_encode(['ok'=>false,'msg'=>'PIN required']); exit; }
+    // Verify PIN
+    $staff = $pdo->prepare("SELECT id,name FROM staff WHERE pin=? AND is_active=1".($bid?" AND branch_id=$bid":""));
+    $staff->execute([$pin]);
+    $st = $staff->fetch(PDO::FETCH_ASSOC);
+    if (!$st) { echo json_encode(['ok'=>false,'msg'=>'Invalid PIN']); exit; }
+    // Check no open shift
+    $open = $pdo->prepare("SELECT id FROM shifts WHERE branch_id=? AND status='open'");
+    $open->execute([$bid ?: 1]);
+    if ($open->fetchColumn()) { echo json_encode(['ok'=>false,'msg'=>'Shift already open']); exit; }
+    // Create shift
+    $pdo->prepare("INSERT INTO shifts (branch_id, staff_id, opening_cash, status, opened_at) VALUES (?,?,?,'open',NOW())")
+        ->execute([$bid ?: 1, $st['id'], $cash]);
+    echo json_encode(['ok'=>true,'msg'=>'Shift opened','staff_name'=>$st['name']]);
+    exit;
+}
+
+/* ─── CLOSE SHIFT ─── */
+if ($action === 'close' && $_SERVER['REQUEST_METHOD'] === 'POST') {
+    $d        = json_decode(file_get_contents('php://input'), true) ?? [];
+    $shiftId  = (int)($d['shift_id'] ?? 0);
+    $cash     = (int)($d['closing_cash'] ?? 0);
+    $notes    = trim($d['notes'] ?? '');
+    if (!$shiftId) { echo json_encode(['ok'=>false,'msg'=>'shift_id required']); exit; }
+    $shift = $pdo->prepare("SELECT * FROM shifts WHERE id=? AND status='open'");
+    $shift->execute([$shiftId]);
+    $s = $shift->fetch(PDO::FETCH_ASSOC);
+    if (!$s) { echo json_encode(['ok'=>false,'msg'=>'Shift not found or already closed']); exit; }
+    $diff = $cash - (int)$s['opening_cash'];
+    $pdo->prepare("UPDATE shifts SET status='closed', closing_cash=?, cash_difference=?, close_notes=?, closed_at=NOW() WHERE id=?")
+        ->execute([$cash, $diff, $notes, $shiftId]);
+    echo json_encode(['ok'=>true,'msg'=>'Shift closed','cash_diff'=>$diff]);
+    exit;
+}
+
+/* ─── SHIFT DETAIL ─── */
+if ($action === 'detail') {
+    $sid = (int)($_GET['shift_id'] ?? 0);
+    if (!$sid) { echo json_encode(['ok'=>false,'msg'=>'shift_id required']); exit; }
+    $stmt = $pdo->prepare("SELECT s.*, st.name as staff_name FROM shifts s LEFT JOIN staff st ON st.id=s.staff_id WHERE s.id=?");
+    $stmt->execute([$sid]);
+    $shift = $stmt->fetch(PDO::FETCH_ASSOC);
+    if (!$shift) { echo json_encode(['ok'=>false,'msg'=>'Shift not found']); exit; }
+    // Orders in this shift
+    $orders = $pdo->prepare("SELECT id, total_amount, payment_method, GROUP_CONCAT(oi.item_name SEPARATOR ', ') as items FROM orders o LEFT JOIN order_items oi ON oi.order_id=o.id WHERE o.branch_id=? AND o.created_at>=? AND (o.closed_at<=? OR o.status!='cancelled') AND o.deleted_at IS NULL GROUP BY o.id ORDER BY o.id DESC LIMIT 50");
+    $orders->execute([$shift['branch_id'], $shift['opened_at'], $shift['closed_at'] ?? date('Y-m-d H:i:s')]);
+    $stats = ['total_orders'=>0,'total_revenue'=>0];
+    $orderList = $orders->fetchAll(PDO::FETCH_ASSOC);
+    foreach ($orderList as $o) { $stats['total_orders']++; $stats['total_revenue'] += $o['total_amount']; }
+    echo json_encode(['ok'=>true,'shift'=>$shift,'stats'=>$stats,'orders'=>$orderList]);
+    exit;
+}
