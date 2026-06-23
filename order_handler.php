@@ -147,7 +147,12 @@ try {
 
     // ★★★ CRITICAL: PRE-VALIDATE ALL STOCK BEFORE ANY DEDUCTION ★★★
     // This prevents partial stock deduction if later items fail
-    $stockCheck = $pdo->prepare("SELECT id, name, stock_qty FROM menu_items WHERE id=:id");
+    // Using FOR UPDATE lock to prevent concurrent race conditions
+    $stockCheck = $pdo->prepare("
+        SELECT id, name, stock_qty FROM menu_items 
+        WHERE id=:id 
+        FOR UPDATE  -- ★ Lock this row until transaction commits ★
+    ");
     foreach ($items as $item) {
         $itemId = (int)$item['item_id'];
         $qty    = (int)$item['qty'];
@@ -167,6 +172,7 @@ try {
         }
     }
     // ★★★ Stock validation passed - now safe to deduct ★★★
+    // FOR UPDATE lock ensures no other transaction can modify these items
 
     foreach ($items as $item) {
         $itemId   = (int)$item['item_id'];
