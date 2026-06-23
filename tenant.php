@@ -138,19 +138,30 @@ if (isset($_GET['api'])) {
         $bWhere = $bid ? "AND o.branch_id=:bid" : "";
         $params = [':tid' => $tid];
         if ($bid) $params[':bid'] = $bid;
-        // ★ Include items_summary via GROUP_CONCAT to prevent N+1 queries ★
+        // ★ Pagination + status filter + items_summary ★
+        $offset       = max(0, (int)($_GET['offset'] ?? 0));
+        $statusFilter = trim($_GET['status_filter'] ?? '');
+        $validStatus  = ['pending','confirmed','preparing','ready','out_for_delivery','delivered','cancelled'];
+        $sWhere = (in_array($statusFilter, $validStatus)) ? " AND o.status=:status" : "";
+        if ($sWhere) $params[':status'] = $statusFilter;
+
+        // Total count
+        $cStmt = $pdo->prepare("SELECT COUNT(DISTINCT o.id) FROM orders o WHERE o.tenant_id=:tid AND o.deleted_at IS NULL $bWhere $sWhere");
+        $cStmt->execute($params);
+        $total = (int)$cStmt->fetchColumn();
+
         $stmt = $pdo->prepare("
             SELECT o.*,
                 COALESCE(GROUP_CONCAT(oi.item_name,'×',oi.qty ORDER BY oi.id SEPARATOR ', '),'—') AS items_summary
             FROM orders o
             LEFT JOIN order_items oi ON oi.order_id = o.id
-            WHERE o.tenant_id=:tid AND o.deleted_at IS NULL $bWhere
+            WHERE o.tenant_id=:tid AND o.deleted_at IS NULL $bWhere $sWhere
             GROUP BY o.id
             ORDER BY o.id DESC
-            LIMIT $limit
+            LIMIT $limit OFFSET $offset
         ");
         $stmt->execute($params);
-        echo json_encode(['ok'=>true,'orders'=>$stmt->fetchAll(PDO::FETCH_ASSOC)]);
+        echo json_encode(['ok'=>true,'orders'=>$stmt->fetchAll(PDO::FETCH_ASSOC),'total'=>$total]);
         exit;
     }
 
@@ -208,7 +219,7 @@ $texpires = $_SESSION['tenant_plan_expires']?? null;
 <html lang="en" data-theme="light">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>MyanAi POS — Business Admin</title>
 <link rel="manifest" href="manifest.json">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -374,6 +385,24 @@ td{padding:.65rem .9rem;color:var(--ink)}
 
 /* HIDDEN - controlled by JS inline style */
 .page{}
+
+/* ★ Mobile UX Improvements ★ */
+@media(max-width:600px){
+  .btn{min-height:40px;padding:.5rem .9rem}
+  .btn-sm{min-height:34px;font-size:.78rem}
+  .stat-card{padding:.8rem}
+  .stat-val{font-size:1.4rem}
+  table{font-size:.78rem}
+  th,td{padding:6px 8px}
+  .page-head{padding:.75rem 1rem}
+  #low-stock-list{gap:.3rem}
+  #orders-pagination{font-size:.75rem}
+}
+/* Touch-friendly tap targets */
+button,select,input[type=checkbox]{
+  touch-action:manipulation;
+  -webkit-tap-highlight-color:transparent;
+}
 </style>
 </head>
 <body>
@@ -543,6 +572,15 @@ td{padding:.65rem .9rem;color:var(--ink)}
         <div style="padding:.75rem 1rem;font-size:.82rem;font-weight:600;border-bottom:0.5px solid var(--border)">Recent orders</div>
         <table><thead><tr><th>#</th><th>Customer</th><th>Amount</th><th>Status</th><th>Time</th></tr></thead>
         <tbody id="recent-orders-body"><tr><td colspan="5" style="text-align:center;padding:1.5rem;color:var(--muted)">Loading...</td></tr></tbody></table>
+      </div>
+
+      <!-- ★ Low Stock Alert Widget ★ -->
+      <div id="low-stock-widget" style="display:none;margin-top:1rem;background:rgba(220,38,38,.06);border:1px solid rgba(220,38,38,.2);border-radius:12px;padding:1rem">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.75rem">
+          <h3 style="margin:0;font-size:.9rem;font-weight:600;color:#dc2626">⚠️ Low Stock Alert</h3>
+          <button onclick="showPage('stock')" style="font-size:.75rem;color:#dc2626;background:none;border:1px solid #dc2626;border-radius:6px;padding:2px 8px;cursor:pointer">Stock ကြည့်</button>
+        </div>
+        <div id="low-stock-list" style="display:flex;flex-wrap:wrap;gap:.4rem"></div>
       </div>
     </div>
   </div>
@@ -1196,6 +1234,24 @@ async function loadStats(){
   sv('stat-revenue', (parseInt(d.revenue||0)).toLocaleString()+' K');
   sv('stat-pending', d.pending||0);
   sv('stat-low', d.low||0);
+
+  // ★ Low stock alert widget ★
+  if ((d.low||0) > 0) {
+    const r = await fetch(`stock_alert_api.php?action=check&tenant_id=${window.__TENANT_ID}&threshold=5`, {credentials:'include'});
+    const s = await r.json().catch(()=>({ok:false}));
+    if (s.ok && s.total_alerts > 0) {
+      const widget = document.getElementById('low-stock-widget');
+      const list   = document.getElementById('low-stock-list');
+      if (widget && list) {
+        widget.style.display = 'block';
+        list.innerHTML = [...(s.out_of_stock||[]), ...(s.low_stock||[])].map(i =>
+          `<span style="font-size:.75rem;padding:3px 8px;border-radius:99px;background:${i.stock_qty===0?'rgba(220,38,38,.15)':'rgba(217,119,6,.12)'};color:${i.stock_qty===0?'#dc2626':'#d97706'};border:1px solid ${i.stock_qty===0?'rgba(220,38,38,.3)':'rgba(217,119,6,.3)'}">
+            ${i.emoji||''} ${i.name} (${i.stock_qty===0?'OUT':i.stock_qty})
+          </span>`
+        ).join('');
+      }
+    }
+  }
 }
 
 async function loadRecentOrders(){
@@ -1285,17 +1341,33 @@ async function loadStaff(){
 }
 
 /* ── Orders ── */
-async function loadOrders(){
-  const d=await api('orders',`branch_id=${window._currentBranch}&limit=50`);
-  const tbody=document.getElementById('orders-tbody');
-  if(!tbody) return;
-  if(!d.ok||!d.orders?.length){tbody.innerHTML='<tr><td colspan="6" style="text-align:center;padding:2rem;color:var(--muted)">Orders မရှိသေး</td></tr>';return;}
-  const statusColors={pending:'#d97706',confirmed:'#2563eb',preparing:'#7c3aed',ready:'#059669',out_for_delivery:'#0891b2',delivered:'#6b7280',cancelled:'#dc2626'};
-  const nextStatus={pending:'confirmed',confirmed:'preparing',preparing:'ready',ready:'out_for_delivery',out_for_delivery:'delivered'};
-  const nextLabel={pending:'✓ Confirm',confirmed:'👨‍🍳 Prepare',preparing:'✅ Ready',ready:'🛵 Send',out_for_delivery:'📦 Delivered'};
-  tbody.innerHTML=d.orders.map(o=>`<tr>
+// ★ Pagination state ★
+window._orderPage = 1;
+window._orderLimit = 25;
+window._orderStatus = '';
+
+async function loadOrders(page=1){
+  window._orderPage = page;
+  const status = window._orderStatus ? `&status_filter=${window._orderStatus}` : '';
+  const offset  = (page - 1) * window._orderLimit;
+  const d = await api('orders', `branch_id=${window._currentBranch}&limit=${window._orderLimit}&offset=${offset}${status}`);
+  const tbody = document.getElementById('orders-tbody');
+  if (!tbody) return;
+  if (!d.ok || !d.orders?.length) {
+    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:2rem;color:var(--muted)">Orders မရှိသေး</td></tr>';
+    renderOrderPagination(0, page);
+    return;
+  }
+  const statusColors = {pending:'#d97706',confirmed:'#2563eb',preparing:'#7c3aed',ready:'#059669',out_for_delivery:'#0891b2',delivered:'#6b7280',cancelled:'#dc2626'};
+  const nextStatus   = {pending:'confirmed',confirmed:'preparing',preparing:'ready',ready:'out_for_delivery',out_for_delivery:'delivered'};
+  const nextLabel    = {pending:'✓ Confirm',confirmed:'👨‍🍳 Prepare',preparing:'✅ Ready',ready:'🛵 Send',out_for_delivery:'📦 Delivered'};
+  tbody.innerHTML = d.orders.map(o => `<tr>
     <td style="font-weight:600">#${o.id}<div style="font-size:.7rem;color:var(--muted)">${o.created_at?.slice(11,16)||''}</div></td>
-    <td>${escH(o.customer_name||'Walk-in')}<div style="font-size:.72rem;color:var(--muted)">${o.order_type==='dine_in'?'🪑 Dine-in':'🛵 Delivery'}</div></td>
+    <td>
+      ${escH(o.customer_name||'Walk-in')}
+      <div style="font-size:.72rem;color:var(--muted)">${o.order_type==='dine_in'?'🪑 Dine-in':'🛵 Delivery'}</div>
+      ${o.items_summary?`<div style="font-size:.68rem;color:var(--muted);max-width:160px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${escH(o.items_summary)}</div>`:''}
+    </td>
     <td style="font-weight:600">${parseInt(o.total_amount||0).toLocaleString()} MMK</td>
     <td style="font-size:.8rem">${o.payment_method?.toUpperCase()||'-'}</td>
     <td><span style="font-size:.72rem;padding:2px 8px;border-radius:99px;background:${statusColors[o.status]||'#888'}22;color:${statusColors[o.status]||'#888'};font-weight:600">${o.status}</span></td>
@@ -1304,6 +1376,33 @@ async function loadOrders(){
       ${o.status!=='cancelled'&&o.status!=='delivered'?`<button class="btn btn-ghost btn-sm" onclick="updateOrderStatus(${o.id},'cancelled')" style="color:#dc2626">✗</button>`:''}
     </td>
   </tr>`).join('');
+  renderOrderPagination(d.total || d.orders.length, page);
+}
+
+function renderOrderPagination(total, page) {
+  let el = document.getElementById('orders-pagination');
+  if (!el) {
+    el = document.createElement('div');
+    el.id = 'orders-pagination';
+    el.style.cssText = 'display:flex;align-items:center;justify-content:space-between;padding:.75rem 1rem;border-top:1px solid var(--border);font-size:.82rem;flex-wrap:wrap;gap:.5rem';
+    document.getElementById('orders-tbody')?.closest('table')?.after(el);
+  }
+  const totalPages = Math.max(1, Math.ceil(total / window._orderLimit));
+  el.innerHTML = `
+    <span style="color:var(--muted)">စုစုပေါင်း ${total} orders</span>
+    <div style="display:flex;gap:.4rem;align-items:center">
+      <button onclick="loadOrders(${page-1})" ${page<=1?'disabled':''} style="padding:4px 10px;border-radius:6px;border:1px solid var(--border);background:var(--card);cursor:pointer;opacity:${page<=1?'.4':'1'}">‹</button>
+      <span style="padding:4px 10px;background:var(--accent);color:#fff;border-radius:6px">${page} / ${totalPages}</span>
+      <button onclick="loadOrders(${page+1})" ${page>=totalPages?'disabled':''} style="padding:4px 10px;border-radius:6px;border:1px solid var(--border);background:var(--card);cursor:pointer;opacity:${page>=totalPages?'.4':'1'}">›</button>
+    </div>
+    <select onchange="window._orderStatus=this.value;loadOrders(1)" style="padding:4px 8px;border-radius:6px;border:1px solid var(--border);font-size:.8rem">
+      <option value="">Status အားလုံး</option>
+      <option value="pending" ${window._orderStatus==='pending'?'selected':''}>Pending</option>
+      <option value="preparing" ${window._orderStatus==='preparing'?'selected':''}>Preparing</option>
+      <option value="delivered" ${window._orderStatus==='delivered'?'selected':''}>Delivered</option>
+      <option value="cancelled" ${window._orderStatus==='cancelled'?'selected':''}>Cancelled</option>
+    </select>
+  `;
 }
 
 async function updateOrderStatus(orderId, status){
