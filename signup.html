@@ -129,15 +129,14 @@ async function doSignup() {
     msg.className = 'msg ok';
     msg.innerHTML = `
       <strong>🎉 Account Created!</strong><br><br>
-      🏢 Business: <strong>${d.slug}</strong><br>
-      📧 Login Email: <strong>${d.login_email}</strong><br>
-      🔑 Use your password to login<br><br>
-      <a href="admin.php" style="background:#e84c2b;color:#fff;padding:.5rem 1.2rem;border-radius:8px;text-decoration:none;font-weight:600">
-        → Go to Admin Panel
+      📧 A welcome email has been sent to <strong>${d.login_email}</strong><br>
+      🎯 Check your inbox for setup instructions<br><br>
+      <a href="onboarding.html" style="background:#e84c2b;color:#fff;padding:.5rem 1.2rem;border-radius:8px;text-decoration:none;font-weight:600">
+        → Start Setup Guide
       </a>
     `;
     msg.style.display = 'block';
-    setTimeout(()=>{ location.href='admin.php'; }, 5000);
+    setTimeout(()=>{ location.href='onboarding.html'; }, 5000);
   } catch(e) {
     msg.className = 'msg err'; msg.textContent = '❌ ' + e.message;
     msg.style.display = 'block';

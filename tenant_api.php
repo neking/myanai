@@ -5,6 +5,7 @@
  */
 declare(strict_types=1);
 require_once __DIR__ . '/db_connect.php';
+require_once __DIR__ . '/mailer.php';
 header('Content-Type: application/json; charset=utf-8');
 header('Access-Control-Allow-Origin: *');
 header('Access-Control-Allow-Methods: GET, POST, OPTIONS');
@@ -146,6 +147,15 @@ if ($action === 'signup' && $_SERVER['REQUEST_METHOD'] === 'POST') {
     // Set trial expiry: 14 days from now
     $pdo->prepare("UPDATE tenants SET plan_expires = DATE_ADD(NOW(), INTERVAL 14 DAY) WHERE id=?")
         ->execute([$tenantId]);
+
+    // 📧 Send welcome email (async-friendly)
+    try {
+        sendWelcomeEmail($email, $owner, $slug);
+        error_log("✓ Welcome email sent to {$email} for tenant {$slug}");
+    } catch (Exception $e) {
+        error_log("⚠️ Email send failed: " . $e->getMessage());
+        // Don't fail signup if email fails
+    }
 
     ok([
         'tenant_id'  => $tenantId,
