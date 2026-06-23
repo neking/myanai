@@ -1988,54 +1988,10 @@ async function saveNewTable(){
 
 function viewTable(id, status){ toast(`Table #${id} — ${status}`); }
 
-/* ── Stock ── */
+/* ── Stock ── (functions handled by admin_modules.js) */
 window._stockItems = window._stockItems || [];
-async function stockLoad(){
-  let bid = window._currentBranch;
-  if(!bid){
-    const br = await api('branches');
-    if(br.ok && br.branches?.length) bid = br.branches[0].id;
-  }
-  const d = await fetch(`stock_api.php?action=overview&tenant_id=${window.__TENANT_ID}&branch_id=${bid||0}`,{credentials:'include'}).then(r=>r.json());
-  if(!d.ok) return;
-  _stockItems = d.items || [];
-
-  // Summary
-  const lowItems = _stockItems.filter(i=>i.stock_qty<=5);
-  const sumEl = document.getElementById('stock-summary');
-  if(sumEl) sumEl.innerHTML = `
-    <div class="stat-card"><div class="stat-val">${_stockItems.length}</div><div class="stat-lbl">Total items</div></div>
-    <div class="stat-card" style="${lowItems.length?'border-color:#dc2626':''}" onclick="filterStockLow()">
-      <div class="stat-val" style="color:${lowItems.length?'#dc2626':'inherit'}">${lowItems.length}</div>
-      <div class="stat-lbl">Low stock (≤5)</div>
-    </div>`;
-
-  renderStock(_stockItems);
-}
-
-function renderStock(items){
-  const tbody = document.getElementById('stock-tbody');
-  if(!tbody) return;
-  if(!items.length){ tbody.innerHTML='<tr><td colspan="5" style="text-align:center;padding:2rem;color:var(--muted)">No items</td></tr>'; return; }
-  tbody.innerHTML = items.map(it=>`<tr>
-    <td style="font-weight:500">${escH(it.name)}</td>
-    <td style="color:var(--muted);font-size:.8rem">${escH(it.category||'—')}</td>
-    <td style="font-weight:600;color:${it.stock_qty<=5?'#dc2626':it.stock_qty<=15?'#d97706':'inherit'}">${it.stock_qty}</td>
-    <td><span style="font-size:.72rem;padding:2px 7px;border-radius:99px;background:${it.stock_qty<=5?'rgba(220,38,38,.1)':it.stock_qty<=15?'rgba(217,119,6,.1)':'rgba(5,150,105,.1)'};color:${it.stock_qty<=5?'#dc2626':it.stock_qty<=15?'#d97706':'#065f46'}">${it.stock_qty<=5?'⚠️ Low':it.stock_qty<=15?'Medium':'OK'}</span></td>
-    <td><button class="btn btn-ghost btn-sm" onclick="openStockAdj(${it.id},'${escH(it.name)}')">Adjust</button></td>
-  </tr>`).join('');
-}
-
-function filterStock(){ const q=document.getElementById('stock-search')?.value?.toLowerCase()||''; renderStock(_stockItems.filter(i=>!q||i.name?.toLowerCase().includes(q))); }
-function filterStockLow(){ renderStock(_stockItems.filter(i=>i.stock_qty<=5)); }
-
-function openStockAdj(id, name){
-  document.getElementById('adj-item-id').value = id;
-  document.getElementById('adj-title').textContent = `Adjust: ${name}`;
-  document.getElementById('adj-qty').value = '';
-  document.getElementById('adj-reason').value = '';
-  openModal('modal-stock-adj');
-}
+function filterStock(){ const q=document.getElementById('stock-search')?.value?.toLowerCase()||''; if(typeof stockRenderTable==='function') stockRenderTable(window._stockItems.filter(i=>!q||i.name?.toLowerCase().includes(q))); }
+function filterStockLow(){ if(typeof stockRenderTable==='function') stockRenderTable(window._stockItems.filter(i=>i.stock_qty<=5)); }
 
 async function submitStockAdj(){
   const id  = document.getElementById('adj-item-id').value;
