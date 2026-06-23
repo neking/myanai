@@ -520,7 +520,7 @@ if (isset($_GET['api'])) { // GET+POST both handled
     }
 
     /* saas tenant list */
-    if ($api === 'saas_tenants') {
+    if ($_GET['api'] === 'saas_tenants') {
         requireAdmin();
         // ★ Optimized: JOIN instead of correlated subqueries ★
         $tenants = db()->query("
