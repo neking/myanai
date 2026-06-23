@@ -2,6 +2,7 @@
 session_start();
 require_once __DIR__ . '/db_connect.php';
 require_once __DIR__ . '/auth_helper.php';
+require_once __DIR__ . '/admin_audit.php';
 $pdo = getPDO();
 $csrfToken = generateCsrfToken();
 
@@ -209,6 +210,17 @@ if (isset($_GET['api'])) { // GET+POST both handled
 
     /* logout — auth check မတိုင်မီ စစ် */
     if ($_GET['api'] === 'logout') {
+        // ★ Log exit impersonate if applicable ★
+        if (!empty($_SESSION['impersonating'])) {
+            $adminUser = $_SESSION['impersonate_admin'] ?? 'unknown';
+            $tenantName = $_SESSION['tenant_name'] ?? 'unknown';
+            logAdminAction($pdo, 'exit_impersonate', [
+                'tenant_id' => $_SESSION['tenant_id'] ?? null,
+                'tenant_name' => $tenantName,
+                'duration_seconds' => (int)(time() - ($_SESSION['impersonate_started'] ?? time())),
+            ], $adminUser);
+        }
+        
         $_SESSION = [];
         if (ini_get('session.use_cookies')) {
             $p = session_get_cookie_params();
@@ -946,6 +958,14 @@ if (isset($_GET['api'])) { // GET+POST both handled
         $_SESSION['impersonating']     = true;
         $_SESSION['impersonate_admin'] = $_SESSION['admin']['user'] ?? 'admin';
         $_SESSION['impersonate_started']= time();
+
+        // ★ Log admin action ★
+        $adminUser = $_SESSION['admin']['user'] ?? 'unknown';
+        logAdminAction($pdo, 'impersonate_tenant', [
+            'tenant_id' => $tid,
+            'tenant_name' => $tenant['name'],
+            'tenant_slug' => $tenant['slug'],
+        ], $adminUser);
 
         // Log access
         try {
