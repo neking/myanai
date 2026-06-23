@@ -4,3 +4,8 @@
 config.local.php
 uploads/*
 !uploads/.gitkeep
+
+# Ignore local files
+backups/
+test_functions.php
+*.bundle
