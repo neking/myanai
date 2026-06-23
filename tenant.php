@@ -867,10 +867,25 @@ button,select,input[type=checkbox]{
     </div>
   </div>
   <div class="content">
-    <div id="delivery-content">
+    <!-- Stats -->
+    <div id="del-stats" style="display:grid;grid-template-columns:repeat(4,1fr);gap:.75rem;margin-bottom:1rem"></div>
+    <!-- Active deliveries -->
+    <div class="card" style="margin-bottom:1rem;padding:1.25rem">
+      <h3 style="margin:0 0 1rem;font-size:.95rem;font-weight:600">🛵 Active Deliveries</h3>
       <div class="table-wrap">
-        <table><thead><tr><th>#</th><th>Customer</th><th>Address</th><th>Driver</th><th>Amount</th><th>Status</th><th>Action</th></tr></thead>
-        <tbody id="delivery-tbody"><tr><td colspan="7" style="text-align:center;padding:2rem;color:var(--muted)">Loading...</td></tr></tbody></table>
+        <table><thead><tr><th>Order</th><th>Customer</th><th>Items</th><th>Amount</th><th>Status</th><th>Driver</th><th>Action</th></tr></thead>
+        <tbody id="del-active-tbody"><tr><td colspan="7" style="text-align:center;padding:2rem;color:var(--muted)">Loading...</td></tr></tbody></table>
+      </div>
+    </div>
+    <!-- Drivers + Zones -->
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem">
+      <div class="card" style="padding:1.25rem">
+        <h3 style="margin:0 0 1rem;font-size:.95rem;font-weight:600">🧑‍✈️ Drivers</h3>
+        <div id="del-drivers"><div style="text-align:center;padding:1rem;color:var(--muted)">Loading...</div></div>
+      </div>
+      <div class="card" style="padding:1.25rem">
+        <h3 style="margin:0 0 1rem;font-size:.95rem;font-weight:600">📍 Zones</h3>
+        <div id="del-zones"><div style="text-align:center;padding:1rem;color:var(--muted)">Loading...</div></div>
       </div>
     </div>
   </div>
