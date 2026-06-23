@@ -1079,8 +1079,10 @@ window._applyThemeLoaded = true;
         window._TENANT_ID = _td.tenant_id;
         window._TENANT_NAME = _td.name;
         window._TENANT_BIZ  = _td.business_type || 'restaurant';
-        document.title = _td.name + ' — Online Order';
+        document.title = (_td.storefront?.store_name || _td.name) + ' — Online Order';
         applyTheme(window._TENANT_BIZ);
+        // Apply storefront branding immediately
+        if (_td.storefront) applyStorefront(_td.storefront);
       }
     } catch(e) {}
   }
@@ -1952,6 +1954,115 @@ function applySettings() {
   }
   // Store promo codes for applyPromo()
   window._SITE_SETTINGS = s;
+}
+
+/* ═══════════════════════════════════════
+   STOREFRONT BRANDING
+═══════════════════════════════════════ */
+function applyStorefront(sf) {
+  if (!sf) return;
+
+  // ── Primary color ──
+  if (sf.primary_color) {
+    const r = document.documentElement;
+    r.style.setProperty('--accent', sf.primary_color);
+    // Darken for accent2 (approx)
+    r.style.setProperty('--accent2', sf.primary_color);
+    // Update meta theme-color
+    let meta = document.querySelector('meta[name=theme-color]');
+    if (!meta) { meta = document.createElement('meta'); meta.name='theme-color'; document.head.appendChild(meta); }
+    meta.content = sf.primary_color;
+  }
+
+  // ── Font ──
+  const fontMap = {
+    default: "'DM Sans','Noto Sans Myanmar',sans-serif",
+    rounded: "system-ui,'Noto Sans Myanmar',sans-serif",
+    serif:   "'Cormorant Garamond','Playfair Display','Noto Sans Myanmar',serif",
+    mono:    "'DM Mono',monospace",
+  };
+  if (sf.font_style && fontMap[sf.font_style]) {
+    document.documentElement.style.fontFamily = fontMap[sf.font_style];
+    document.body.style.fontFamily = fontMap[sf.font_style];
+  }
+
+  // ── Logo / name ──
+  const le = document.getElementById('logo-emoji');
+  const lt = document.getElementById('logo-text');
+  if (le && sf.emoji) le.textContent = sf.emoji;
+  if (lt && sf.store_name) lt.textContent = sf.store_name;
+
+  // ── Hero title ──
+  const ht = document.getElementById('hero-title');
+  if (ht) {
+    if (sf.store_name) ht.innerHTML = sf.store_name + (sf.tagline ? '<span>' + sf.tagline + '</span>' : '');
+  }
+  const hsub = document.getElementById('hero-subtitle');
+  if (hsub && sf.tagline) hsub.textContent = sf.tagline;
+
+  // ── Background ──
+  const bgMap = {
+    warm:     { body: '#f5efe6', header: '', hero: '' },
+    dark:     { body: '#1a1a2e', header: '#0f0f1a', hero: '#0f0f1a' },
+    light:    { body: '#f8fafc', header: '#ffffff', hero: '#f1f5f9' },
+    gradient: { body: '#f0f0ff', header: '', hero: 'linear-gradient(135deg,#667eea,#764ba2)' },
+  };
+  if (sf.bg_style && bgMap[sf.bg_style]) {
+    const bg = bgMap[sf.bg_style];
+    if (bg.body)   document.body.style.background = bg.body;
+    if (bg.header) { const hdr = document.querySelector('header'); if(hdr) hdr.style.background = bg.header; }
+    if (bg.hero)   { const hero = document.getElementById('hero'); if(hero) hero.style.background = bg.hero; }
+    // Dark mode text adjustments
+    if (sf.bg_style === 'dark') {
+      document.body.style.color = '#e2e8f0';
+      const cards = document.querySelectorAll('.menu-card, .card');
+      cards.forEach(c => { c.style.background = '#2d2d44'; c.style.color = '#e2e8f0'; });
+    }
+  }
+
+  // ── Layout ──
+  const menuGrid = document.getElementById('menu-grid') || document.querySelector('.menu-grid');
+  if (menuGrid && sf.layout) {
+    if (sf.layout === 'list') {
+      menuGrid.style.gridTemplateColumns = '1fr';
+    } else if (sf.layout === 'card') {
+      menuGrid.style.gridTemplateColumns = 'repeat(auto-fill,minmax(280px,1fr))';
+    } else {
+      menuGrid.style.gridTemplateColumns = 'repeat(auto-fill,minmax(160px,1fr))';
+    }
+    window._SF_LAYOUT = sf.layout;
+  }
+
+  // ── Banner message ──
+  const ann = document.getElementById('ann-banner');
+  if (ann && sf.banner_msg) {
+    ann.textContent = sf.banner_msg;
+    ann.style.background = sf.primary_color || '#e84c2b';
+    ann.classList.add('on');
+  }
+
+  // ── Footer ──
+  const fp = document.getElementById('footer-phone');
+  const fa = document.getElementById('footer-address');
+  const fn = document.getElementById('footer-store-name');
+  if (fp && sf.phone)       fp.textContent = sf.phone;
+  if (fa && sf.address)     fa.textContent = sf.address;
+  if (fn && sf.store_name)  fn.textContent = sf.store_name;
+
+  // ── Currency ──
+  if (sf.currency) window._CURRENCY = sf.currency;
+
+  // ── Footer message ──
+  if (sf.footer_msg) {
+    const fc = document.getElementById('footer-copyright');
+    if (fc) fc.textContent = sf.footer_msg;
+  }
+
+  // ── Page title ──
+  if (sf.store_name) document.title = sf.store_name + ' — Online Order';
+
+  // Store for other functions
+  window._SF = sf;
 }
 
 /* ═══════════════════════════════════════

@@ -272,12 +272,48 @@ if ($action === 'stats') {
 if ($action === 'resolve' && $_SERVER['REQUEST_METHOD'] === 'GET') {
     $slug = trim($_GET['slug'] ?? '');
     if (!$slug) fail('Slug required');
-    $row = $pdo->prepare("SELECT t.id, t.name, t.plan, t.is_active, t.business_type, b.id as branch_id, b.code as branch_code FROM tenants t LEFT JOIN branches b ON b.tenant_id = t.id WHERE t.slug=? LIMIT 1");
+    $row = $pdo->prepare("SELECT t.id, t.name, t.plan, t.is_active, t.business_type, t.settings, b.id as branch_id, b.code as branch_code FROM tenants t LEFT JOIN branches b ON b.tenant_id = t.id WHERE t.slug=? LIMIT 1");
     $row->execute([$slug]);
     $t = $row->fetch(PDO::FETCH_ASSOC);
     if (!$t) fail('Tenant not found', 404);
     if (!$t['is_active']) fail('Account suspended', 403);
-    ok(['tenant_id'=>(int)$t['id'], 'name'=>$t['name'], 'plan'=>$t['plan'], 'business_type'=>$t['business_type'] ?? 'restaurant', 'branch_id'=>(int)($t['branch_id'] ?? 1), 'branch_code'=>$t['branch_code'] ?? 'MAIN']);
+
+    // Merge storefront settings from tenant JSON + site_settings
+    $tenantJson = json_decode($t['settings'] ?? '{}', true) ?: [];
+    $sf = $tenantJson['storefront'] ?? [];
+
+    // Load site_settings for this tenant
+    $siteSettings = $pdo->query("SELECT setting_key,setting_value FROM site_settings")->fetchAll(\PDO::FETCH_KEY_PAIR);
+
+    // Build storefront config (tenant JSON overrides site_settings)
+    $storefront = [
+        'store_name'     => $sf['store_name']    ?? $siteSettings['store_name']     ?? $t['name'],
+        'emoji'          => $sf['emoji']          ?? $siteSettings['store_emoji']    ?? '🍜',
+        'tagline'        => $sf['tagline']        ?? $siteSettings['tagline']        ?? '',
+        'primary_color'  => $sf['primary_color']  ?? $siteSettings['primary_color']  ?? '#E84C2B',
+        'font_style'     => $sf['font_style']     ?? 'default',
+        'bg_style'       => $sf['bg_style']       ?? 'warm',
+        'layout'         => $sf['layout']         ?? 'grid',
+        'currency'       => $sf['currency']       ?? $siteSettings['currency']       ?? 'MMK',
+        'banner_msg'     => $sf['banner_msg']     ?? $siteSettings['announcement_text'] ?? '',
+        'footer_msg'     => $sf['footer_msg']     ?? '',
+        'phone'          => $sf['phone']          ?? $siteSettings['footer_phone']   ?? '',
+        'address'        => $sf['address']        ?? $siteSettings['footer_address'] ?? '',
+        'min_order_amount'=> (int)($sf['min_order_amount'] ?? 0),
+        'show_photos'    => $sf['show_photos']    ?? '1',
+        'show_desc'      => $sf['show_desc']      ?? '1',
+        'allow_notes'    => $sf['allow_notes']    ?? '1',
+    ];
+
+    ok([
+        'tenant_id'    => (int)$t['id'],
+        'name'         => $t['name'],
+        'plan'         => $t['plan'],
+        'business_type'=> $t['business_type'] ?? 'restaurant',
+        'branch_id'    => (int)($t['branch_id'] ?? 1),
+        'branch_code'  => $t['branch_code'] ?? 'MAIN',
+        'storefront'   => $storefront,
+    ]);
 }
 
 /* ── UPDATE TENANT (super-admin) ── */
