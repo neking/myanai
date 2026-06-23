@@ -100,53 +100,67 @@ if ($action === 'signup' && $_SERVER['REQUEST_METHOD'] === 'POST') {
     $p = $planRow->fetch(PDO::FETCH_ASSOC);
     if (!$p) $p = ['max_branches'=>1,'max_staff'=>3,'max_menu_items'=>20];
 
-    // Create tenant
-    $pdo->prepare("INSERT INTO tenants (name,slug,owner_name,owner_email,owner_phone,plan,max_branches,max_staff,max_menu_items,business_type) VALUES (?,?,?,?,?,?,?,?,?,?)")
-        ->execute([$name,$slug,$owner,$email,$phone,$plan,(int)$p['max_branches'],(int)$p['max_staff'],(int)$p['max_menu_items'],$bizType]);
-    $tenantId = (int)$pdo->lastInsertId();
+    // ★★★ BEGIN ATOMIC TRANSACTION ★★★
+    try {
+        $pdo->beginTransaction();
 
-    // Auto-provision: create first branch + admin staff + save password hash
-    $pdo->prepare("INSERT INTO branches (tenant_id,name,code) VALUES (?,?,?)")
-        ->execute([$tenantId, $name . ' (Main)', strtoupper($slug)]);
-    $branchId = (int)$pdo->lastInsertId();
+        // Create tenant
+        $pdo->prepare("INSERT INTO tenants (name,slug,owner_name,owner_email,owner_phone,plan,max_branches,max_staff,max_menu_items,business_type) VALUES (?,?,?,?,?,?,?,?,?,?)")
+            ->execute([$name,$slug,$owner,$email,$phone,$plan,(int)$p['max_branches'],(int)$p['max_staff'],(int)$p['max_menu_items'],$bizType]);
+        $tenantId = (int)$pdo->lastInsertId();
 
-    // Create admin staff with PIN (last 4 digits of phone)
-    $pin = substr(preg_replace('/[^0-9]/', '', $phone), -4) ?: '0000';
-    $pdo->prepare("INSERT INTO staff (branch_id,name,pin,role,is_active) VALUES (?,?,?,'manager',1)")
-        ->execute([$branchId, $owner, $pin]);
+        // Auto-provision: create first branch + admin staff + save password hash
+        $pdo->prepare("INSERT INTO branches (tenant_id,name,code) VALUES (?,?,?)")
+            ->execute([$tenantId, $name . ' (Main)', strtoupper($slug)]);
+        $branchId = (int)$pdo->lastInsertId();
 
-    // Save password hash + admin credentials in tenant settings
-    $passHash = password_hash($pass, PASSWORD_BCRYPT);
-    $settings = json_encode([
-        'admin_email' => $email,
-        'admin_pass_hash' => $passHash,
-        'onboarded' => false,
-    ]);
-    $pdo->prepare("UPDATE tenants SET settings=? WHERE id=?")->execute([$settings, $tenantId]);
+        // Create admin staff with PIN (last 4 digits of phone)
+        $pin = substr(preg_replace('/[^0-9]/', '', $phone), -4) ?: '0000';
+        $pdo->prepare("INSERT INTO staff (branch_id,name,pin,role,is_active) VALUES (?,?,?,'manager',1)")
+            ->execute([$branchId, $owner, $pin]);
 
-    // Seed default menu items from template (optional)
-    // ── Seed default menu items based on business type ──────────────
-    $seedMenu = [
-        ['Mohinga',         'Soups',    4500, '🍜'],
-        ['Shan Noodles',    'Noodles',  3500, '🍝'],
-        ['Fried Rice',      'Rice',     4000, '🍚'],
-        ['Green Tea',       'Drinks',   500,  '🍵'],
-        ['Mango Juice',     'Drinks',   1500, '🥭'],
-        ['Spring Rolls',    'Starters', 2500, '🥟'],
-        ['Coconut Rice',    'Rice',     3500, '🥥'],
-        ['Lychee Soda',     'Drinks',   1800, '🧃'],
-    ];
-    $menuStmt = $pdo->prepare(
-        "INSERT INTO menu_items (tenant_id,name,category,price,emoji,stock_qty,is_active) VALUES (?,?,?,?,?,99,1)"
-    );
-    foreach ($seedMenu as [$mName,$mCat,$mPrice,$mEmoji]) {
-        try { $menuStmt->execute([$tenantId,$mName,$mCat,$mPrice,$mEmoji]); }
-        catch(Exception $e) { /* skip if column mismatch */ }
+        // Save password hash + admin credentials in tenant settings
+        $passHash = password_hash($pass, PASSWORD_BCRYPT);
+        $settings = json_encode([
+            'admin_email' => $email,
+            'admin_pass_hash' => $passHash,
+            'onboarded' => false,
+        ]);
+        $pdo->prepare("UPDATE tenants SET settings=? WHERE id=?")->execute([$settings, $tenantId]);
+
+        // Seed default menu items from template (optional)
+        // ── Seed default menu items based on business type ──────────────
+        $seedMenu = [
+            ['Mohinga',         'Soups',    4500, '🍜'],
+            ['Shan Noodles',    'Noodles',  3500, '🍝'],
+            ['Fried Rice',      'Rice',     4000, '🍚'],
+            ['Green Tea',       'Drinks',   500,  '🍵'],
+            ['Mango Juice',     'Drinks',   1500, '🥭'],
+            ['Spring Rolls',    'Starters', 2500, '🥟'],
+            ['Coconut Rice',    'Rice',     3500, '🥥'],
+            ['Lychee Soda',     'Drinks',   1800, '🧃'],
+        ];
+        $menuStmt = $pdo->prepare(
+            "INSERT INTO menu_items (tenant_id,name,category,price,emoji,stock_qty,is_active) VALUES (?,?,?,?,?,99,1)"
+        );
+        foreach ($seedMenu as [$mName,$mCat,$mPrice,$mEmoji]) {
+            try { $menuStmt->execute([$tenantId,$mName,$mCat,$mPrice,$mEmoji]); }
+            catch(Exception $e) { /* skip if column mismatch */ }
+        }
+
+        // Set trial expiry: 14 days from now
+        $pdo->prepare("UPDATE tenants SET plan_expires = DATE_ADD(NOW(), INTERVAL 14 DAY) WHERE id=?")
+            ->execute([$tenantId]);
+
+        // ★ COMMIT - All operations succeeded ★
+        $pdo->commit();
+
+    } catch (Exception $e) {
+        // ★ ROLLBACK - Any error cancels entire transaction ★
+        $pdo->rollBack();
+        error_log("Signup transaction failed: " . $e->getMessage());
+        fail('Account creation failed. Please try again. Error: ' . $e->getMessage());
     }
-
-    // Set trial expiry: 14 days from now
-    $pdo->prepare("UPDATE tenants SET plan_expires = DATE_ADD(NOW(), INTERVAL 14 DAY) WHERE id=?")
-        ->execute([$tenantId]);
 
     // 📧 Send welcome email (async-friendly)
     try {
