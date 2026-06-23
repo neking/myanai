@@ -96,23 +96,23 @@ if (isset($_GET['api'])) {
         $params = [':tid' => $tid];
         if ($bid) $params[':bid'] = $bid;
 
-        $stmt = $pdo->prepare("SELECT COUNT(*) FROM orders o WHERE o.tenant_id=:tid AND DATE(o.created_at)=CURDATE() $bWhere");
+        // ★ 4 queries → 1 query (performance optimization) ★
+        $stmt = $pdo->prepare("
+            SELECT
+                COUNT(*)                                                        AS today,
+                COALESCE(SUM(CASE WHEN status!='cancelled' THEN total_amount END),0) AS revenue,
+                COUNT(CASE WHEN status='pending' THEN 1 END)                   AS pending
+            FROM orders o
+            WHERE o.tenant_id=:tid AND DATE(o.created_at)=CURDATE() AND o.deleted_at IS NULL $bWhere
+        ");
         $stmt->execute($params);
-        $today = (int)$stmt->fetchColumn();
+        $row = $stmt->fetch(PDO::FETCH_ASSOC);
 
-        $stmt2 = $pdo->prepare("SELECT COALESCE(SUM(total_amount),0) FROM orders o WHERE o.tenant_id=:tid AND DATE(o.created_at)=CURDATE() AND o.status!='cancelled' $bWhere");
-        $stmt2->execute($params);
-        $revenue = (float)$stmt2->fetchColumn();
+        $stmt2 = $pdo->prepare("SELECT COUNT(*) FROM menu_items WHERE tenant_id=:tid AND stock_qty<=5 AND is_active=1");
+        $stmt2->execute([':tid' => $tid]);
+        $low = (int)$stmt2->fetchColumn();
 
-        $stmt3 = $pdo->prepare("SELECT COUNT(*) FROM orders o WHERE o.tenant_id=:tid AND o.status='pending' $bWhere");
-        $stmt3->execute($params);
-        $pending = (int)$stmt3->fetchColumn();
-
-        $stmt4 = $pdo->prepare("SELECT COUNT(*) FROM branch_stock bs JOIN branches b ON b.id=bs.branch_id WHERE b.tenant_id=:tid AND bs.stock_qty<=5");
-        $stmt4->execute([':tid' => $tid]);
-        $low = (int)$stmt4->fetchColumn();
-
-        echo json_encode(['ok'=>true,'today'=>$today,'revenue'=>$revenue,'pending'=>$pending,'low'=>$low]);
+        echo json_encode(['ok'=>true,'today'=>(int)$row['today'],'revenue'=>(float)$row['revenue'],'pending'=>(int)$row['pending'],'low'=>$low]);
         exit;
     }
 
@@ -135,10 +135,20 @@ if (isset($_GET['api'])) {
     if ($_GET['api'] === 'orders') {
         $bid   = (int)($_GET['branch_id'] ?? 0);
         $limit = (int)($_GET['limit'] ?? 50);
-        $bWhere = $bid ? "AND branch_id=:bid" : "";
+        $bWhere = $bid ? "AND o.branch_id=:bid" : "";
         $params = [':tid' => $tid];
         if ($bid) $params[':bid'] = $bid;
-        $stmt = $pdo->prepare("SELECT * FROM orders WHERE tenant_id=:tid $bWhere ORDER BY id DESC LIMIT $limit");
+        // ★ Include items_summary via GROUP_CONCAT to prevent N+1 queries ★
+        $stmt = $pdo->prepare("
+            SELECT o.*,
+                COALESCE(GROUP_CONCAT(oi.item_name,'×',oi.qty ORDER BY oi.id SEPARATOR ', '),'—') AS items_summary
+            FROM orders o
+            LEFT JOIN order_items oi ON oi.order_id = o.id
+            WHERE o.tenant_id=:tid AND o.deleted_at IS NULL $bWhere
+            GROUP BY o.id
+            ORDER BY o.id DESC
+            LIMIT $limit
+        ");
         $stmt->execute($params);
         echo json_encode(['ok'=>true,'orders'=>$stmt->fetchAll(PDO::FETCH_ASSOC)]);
         exit;
