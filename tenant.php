@@ -714,12 +714,53 @@ button,select,input[type=checkbox]{
 <div id="page-reserve" class="page" style="display:none">
   <div class="page-head">
     <div style="display:flex;align-items:center;gap:.75rem"><button class="hamburger" onclick="openSidebar()">☰</button><span style="font-size:.95rem;font-weight:600">Reservations</span></div>
-    <button class="btn btn-primary btn-sm" onclick="openAddReserve()">+ New reservation</button>
+    <button class="btn btn-primary btn-sm" onclick="resOpenNew()">+ New reservation</button>
   </div>
   <div class="content">
+    <div style="display:flex;gap:.5rem;align-items:center;margin-bottom:.75rem;flex-wrap:wrap">
+      <input type="date" id="res-date" onchange="resLoad()" style="padding:.4rem .7rem;border:0.5px solid var(--border);border-radius:8px;background:var(--warm);color:var(--ink);font-size:.82rem">
+      <select id="res-status-filter" onchange="resLoad()" style="padding:.4rem .7rem;border:0.5px solid var(--border);border-radius:8px;background:var(--warm);color:var(--ink);font-size:.82rem">
+        <option value="">All Status</option>
+        <option value="pending">Pending</option>
+        <option value="confirmed">Confirmed</option>
+        <option value="seated">Seated</option>
+        <option value="completed">Completed</option>
+        <option value="cancelled">Cancelled</option>
+      </select>
+      <span id="res-count" style="font-size:.82rem;color:var(--muted)"></span>
+    </div>
     <div class="table-wrap">
-      <table><thead><tr><th>Name</th><th>Phone</th><th>Date/Time</th><th>Party</th><th>Table</th><th>Status</th></tr></thead>
-      <tbody id="reserve-tbody"><tr><td colspan="6" style="text-align:center;padding:2rem;color:var(--muted)">Loading...</td></tr></tbody></table>
+      <table><thead><tr><th>Time</th><th>Name</th><th>Party</th><th>Table</th><th>Status</th><th>Notes</th><th>Action</th></tr></thead>
+      <tbody id="res-tbody"><tr><td colspan="7" style="text-align:center;padding:2rem;color:var(--muted)">Loading...</td></tr></tbody></table>
+    </div>
+  </div>
+  <!-- Reserve modal -->
+  <div id="res-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:999;display:flex;align-items:center;justify-content:center" onclick="if(event.target===this)this.style.display='none'">
+    <div style="background:var(--card);border-radius:16px;padding:1.5rem;width:90%;max-width:480px;max-height:90vh;overflow-y:auto">
+      <h3 style="margin:0 0 1rem">📅 New Reservation</h3>
+      <div style="display:grid;gap:.75rem">
+        <input id="res-name" type="text" placeholder="Customer name" style="padding:.6rem;border:0.5px solid var(--border);border-radius:8px;background:var(--warm);color:var(--ink)">
+        <input id="res-phone" type="tel" placeholder="Phone" style="padding:.6rem;border:0.5px solid var(--border);border-radius:8px;background:var(--warm);color:var(--ink)">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:.5rem">
+          <input id="res-date-input" type="date" style="padding:.6rem;border:0.5px solid var(--border);border-radius:8px;background:var(--warm);color:var(--ink)">
+          <input id="res-time" type="time" style="padding:.6rem;border:0.5px solid var(--border);border-radius:8px;background:var(--warm);color:var(--ink)">
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:.5rem">
+          <select id="res-party" style="padding:.6rem;border:0.5px solid var(--border);border-radius:8px;background:var(--warm);color:var(--ink)">
+            <option value="1">1 person</option><option value="2" selected>2 persons</option>
+            <option value="3">3</option><option value="4">4</option><option value="5">5</option><option value="6">6+</option>
+          </select>
+          <select id="res-table" style="padding:.6rem;border:0.5px solid var(--border);border-radius:8px;background:var(--warm);color:var(--ink)">
+            <option value="">Auto-assign</option>
+          </select>
+        </div>
+        <input id="res-duration" type="number" placeholder="Duration (min)" value="90" style="padding:.6rem;border:0.5px solid var(--border);border-radius:8px;background:var(--warm);color:var(--ink)">
+        <textarea id="res-notes" placeholder="Notes..." rows="2" style="padding:.6rem;border:0.5px solid var(--border);border-radius:8px;background:var(--warm);color:var(--ink)"></textarea>
+      </div>
+      <div style="display:flex;gap:.5rem;margin-top:1rem">
+        <button onclick="document.getElementById('res-modal').style.display='none'" class="btn btn-ghost" style="flex:1">Cancel</button>
+        <button onclick="resCreate()" class="btn btn-primary" style="flex:1">Save</button>
+      </div>
     </div>
   </div>
 </div>
@@ -736,14 +777,27 @@ button,select,input[type=checkbox]{
     </div>
   </div>
   <!-- Adjust Modal -->
-  <div class="modal-overlay" id="modal-stock-adj">
+  <div class="modal-overlay" id="stock-modal">
     <div class="modal">
-      <div class="modal-head"><span class="modal-title" id="adj-title">Adjust stock</span><button class="modal-close" onclick="closeModal('modal-stock-adj')">✕</button></div>
-      <input type="hidden" id="adj-item-id">
-      <div class="field" style="margin-bottom:.75rem"><label>Change qty (+/-)</label><input id="adj-qty" type="number" placeholder="-5 or +10"></div>
-      <div class="field" style="margin-bottom:.75rem"><label>Reason</label><input id="adj-reason" placeholder="Sale / Waste / Restock"></div>
+      <div class="modal-head"><span class="modal-title" id="stock-modal-title">Adjust stock</span><button class="modal-close" onclick="document.getElementById('stock-modal').style.display='none'">✕</button></div>
+      <input type="hidden" id="stock-adj-id">
+      <div class="field" style="margin-bottom:.75rem"><label>Change qty (+/-)</label><input id="stock-adj-qty" type="number" placeholder="-5 or +10"></div>
+      <div class="field" style="margin-bottom:.75rem">
+          <label style="font-size:.82rem;color:var(--muted);display:block;margin-bottom:.3rem">Reason</label>
+          <select id="stock-adj-reason" style="width:100%;padding:.6rem;border:0.5px solid var(--border);border-radius:8px;background:var(--warm);color:var(--ink)">
+            <option value="restock">📥 Restock</option>
+            <option value="manual_adjust">✏️ Manual adjust</option>
+            <option value="waste">🗑 Waste</option>
+            <option value="returned">↩ Returned</option>
+            <option value="correction">🔧 Correction</option>
+          </select>
+        </div>
+        <div class="field" style="margin-bottom:.75rem">
+          <label style="font-size:.82rem;color:var(--muted);display:block;margin-bottom:.3rem">Note</label>
+          <input id="stock-adj-note" type="text" placeholder="Optional note..." style="width:100%;padding:.6rem;border:0.5px solid var(--border);border-radius:8px;background:var(--warm);color:var(--ink)">
+        </div>
       <div style="display:flex;gap:.5rem;justify-content:flex-end">
-        <button class="btn btn-ghost" onclick="closeModal('modal-stock-adj')">Cancel</button>
+        <button class="btn btn-ghost" onclick="document.getElementById('stock-modal').style.display='none'">Cancel</button>
         <button class="btn btn-primary" onclick="submitStockAdj()">Save</button>
       </div>
     </div>
@@ -751,27 +805,73 @@ button,select,input[type=checkbox]{
 </div>
 <div id="page-stocklog" class="page" style="display:none"><div class="content"><div id="stocklog-content"><div style="color:var(--muted)">Loading...</div></div></div></div>
 <div id="page-shift" class="page" style="display:none">
+  <div class="page-head">
+    <div style="display:flex;align-items:center;gap:.75rem"><button class="hamburger" onclick="openSidebar()">☰</button><span style="font-size:.95rem;font-weight:600">Shifts</span></div>
+  </div>
   <div class="content">
-    <div class="table-wrap">
-      <div class="table-toolbar" style="padding:.6rem 1rem;border-bottom:0.5px solid var(--border);display:flex;gap:.5rem;align-items:center">
-        <input id="shift-date-filter" type="date" style="padding:.4rem .6rem;border:0.5px solid var(--border);border-radius:8px;background:var(--warm);color:var(--ink);font-size:.82rem" onchange="loadShifts()">
-        <span style="font-size:.82rem;color:var(--muted)">Filter by date</span>
-        <button class="btn btn-primary btn-sm" style="margin-left:auto" onclick="openAddShift()">+ Add shift</button>
+    <!-- Current shift status -->
+    <div class="card" style="margin-bottom:1rem;padding:1.25rem">
+      <div id="shift-status-body"><div style="text-align:center;padding:1rem;color:var(--muted)">Loading shift...</div></div>
+      <!-- Open shift form -->
+      <div id="shift-open-form" style="display:none;margin-top:1rem">
+        <div style="display:flex;gap:.5rem;align-items:flex-end;flex-wrap:wrap">
+          <div style="flex:1;min-width:140px">
+            <label style="font-size:.78rem;color:var(--muted);display:block;margin-bottom:.3rem">Staff PIN</label>
+            <input id="shift-pin" type="password" maxlength="6" placeholder="••••" style="width:100%;padding:.6rem;border:0.5px solid var(--border);border-radius:8px;background:var(--warm);color:var(--ink)">
+          </div>
+          <div style="flex:1;min-width:140px">
+            <label style="font-size:.78rem;color:var(--muted);display:block;margin-bottom:.3rem">Opening cash (MMK)</label>
+            <input id="shift-opening-cash" type="number" placeholder="0" value="0" style="width:100%;padding:.6rem;border:0.5px solid var(--border);border-radius:8px;background:var(--warm);color:var(--ink)">
+          </div>
+          <button onclick="shiftOpen()" class="btn btn-primary">🟢 Open Shift</button>
+        </div>
       </div>
-      <table><thead><tr><th>Staff</th><th>Date</th><th>Shift</th><th>Time</th><th>Notes</th><th>Action</th></tr></thead>
-      <tbody id="shifts-tbody"><tr><td colspan="6" style="text-align:center;padding:2rem;color:var(--muted)">Loading...</td></tr></tbody></table>
+      <!-- Close shift form -->
+      <div id="shift-close-form" style="display:none;margin-top:1rem">
+        <div style="display:flex;gap:.5rem;align-items:flex-end;flex-wrap:wrap">
+          <div style="flex:1;min-width:140px">
+            <label style="font-size:.78rem;color:var(--muted);display:block;margin-bottom:.3rem">Closing cash (MMK)</label>
+            <input id="shift-closing-cash" type="number" placeholder="0" value="0" style="width:100%;padding:.6rem;border:0.5px solid var(--border);border-radius:8px;background:var(--warm);color:var(--ink)">
+          </div>
+          <div style="flex:2;min-width:200px">
+            <label style="font-size:.78rem;color:var(--muted);display:block;margin-bottom:.3rem">Notes</label>
+            <input id="shift-close-notes" type="text" placeholder="End of shift notes..." style="width:100%;padding:.6rem;border:0.5px solid var(--border);border-radius:8px;background:var(--warm);color:var(--ink)">
+          </div>
+          <button onclick="shiftClose()" class="btn" style="background:#dc2626;color:#fff">🔴 Close Shift</button>
+        </div>
+      </div>
+    </div>
+    <!-- Shift history -->
+    <div class="card" style="padding:1.25rem">
+      <h3 style="margin:0 0 1rem;font-size:.95rem;font-weight:600">Shift History</h3>
+      <div class="table-wrap">
+        <table><thead><tr><th>Staff</th><th>Opened</th><th>Duration</th><th>Orders</th><th>Revenue</th><th>Cash Diff</th><th>Status</th><th></th></tr></thead>
+        <tbody id="shift-history-tbody"><tr><td colspan="8" style="text-align:center;padding:2rem;color:var(--muted)">Loading...</td></tr></tbody></table>
+      </div>
+    </div>
+  </div>
+  <!-- Shift detail modal -->
+  <div id="shift-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:999;align-items:center;justify-content:center" onclick="if(event.target===this)this.style.display='none'">
+    <div style="background:var(--card);border-radius:16px;padding:1.5rem;width:90%;max-width:500px;max-height:90vh;overflow-y:auto">
+      <div id="shift-modal-body"></div>
+      <button onclick="document.getElementById('shift-modal').style.display='none'" class="btn btn-ghost" style="width:100%;margin-top:1rem">Close</button>
     </div>
   </div>
 </div>
 <div id="page-delivery" class="page" style="display:none">
   <div class="page-head">
     <div style="display:flex;align-items:center;gap:.75rem"><button class="hamburger" onclick="openSidebar()">☰</button><span style="font-size:.95rem;font-weight:600">Delivery</span></div>
-    <a href="driver.html" target="_blank" class="btn btn-ghost btn-sm">🛵 Driver app</a>
+    <div style="display:flex;gap:.5rem">
+      <button class="btn btn-ghost btn-sm" onclick="delLoad()">🔄 Refresh</button>
+      <a href="driver.html" target="_blank" class="btn btn-ghost btn-sm">🛵 Driver app</a>
+    </div>
   </div>
   <div class="content">
-    <div class="table-wrap">
-      <table><thead><tr><th>#</th><th>Customer</th><th>Address</th><th>Amount</th><th>Status</th><th>Action</th></tr></thead>
-      <tbody id="delivery-tbody"><tr><td colspan="6" style="text-align:center;padding:2rem;color:var(--muted)">Loading...</td></tr></tbody></table>
+    <div id="delivery-content">
+      <div class="table-wrap">
+        <table><thead><tr><th>#</th><th>Customer</th><th>Address</th><th>Driver</th><th>Amount</th><th>Status</th><th>Action</th></tr></thead>
+        <tbody id="delivery-tbody"><tr><td colspan="7" style="text-align:center;padding:2rem;color:var(--muted)">Loading...</td></tr></tbody></table>
+      </div>
     </div>
   </div>
 </div>
@@ -811,21 +911,80 @@ button,select,input[type=checkbox]{
 <div id="page-promos" class="page" style="display:none">
   <div class="page-head">
     <div style="display:flex;align-items:center;gap:.75rem"><button class="hamburger" onclick="openSidebar()">☰</button><span style="font-size:.95rem;font-weight:600">Promotions</span></div>
-    <button class="btn btn-primary btn-sm" onclick="openAddPromo()">+ Add promo</button>
+    <button class="btn btn-primary btn-sm" onclick="promoOpenNew()">+ Add promo</button>
   </div>
   <div class="content">
+    <div id="promo-stats" style="display:flex;gap:.75rem;margin-bottom:1rem;flex-wrap:wrap"></div>
     <div class="table-wrap">
-      <table><thead><tr><th>Code</th><th>Discount</th><th>Min order</th><th>Valid</th><th>Status</th></tr></thead>
-      <tbody id="promos-tbody"><tr><td colspan="5" style="text-align:center;padding:2rem;color:var(--muted)">Loading...</td></tr></tbody></table>
+      <table><thead><tr><th>Name</th><th>Type</th><th>Code</th><th>Value</th><th>Conditions</th><th>Used</th><th>Status</th><th>Action</th></tr></thead>
+      <tbody id="promo-tbody"><tr><td colspan="8" style="text-align:center;padding:2rem;color:var(--muted)">Loading...</td></tr></tbody></table>
+    </div>
+  </div>
+  <!-- Promo modal -->
+  <div id="promo-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:999;align-items:center;justify-content:center" onclick="if(event.target===this)this.style.display='none'">
+    <div style="background:var(--card);border-radius:16px;padding:1.5rem;width:90%;max-width:520px;max-height:90vh;overflow-y:auto">
+      <h3 id="promo-modal-title" style="margin:0 0 1rem">🎁 New Promotion</h3>
+      <input type="hidden" id="promo-edit-id">
+      <div style="display:grid;gap:.75rem">
+        <input id="promo-name" type="text" placeholder="Promotion name" style="padding:.6rem;border:0.5px solid var(--border);border-radius:8px;background:var(--warm);color:var(--ink)">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:.5rem">
+          <select id="promo-type" style="padding:.6rem;border:0.5px solid var(--border);border-radius:8px;background:var(--warm);color:var(--ink)">
+            <option value="percent_off">% Off</option><option value="fixed_off">Fixed Off</option>
+            <option value="bogo">BOGO</option><option value="free_item">Free Item</option>
+          </select>
+          <input id="promo-value" type="number" placeholder="Value" value="10" style="padding:.6rem;border:0.5px solid var(--border);border-radius:8px;background:var(--warm);color:var(--ink)">
+        </div>
+        <input id="promo-code" type="text" placeholder="Promo code (optional)" style="padding:.6rem;border:0.5px solid var(--border);border-radius:8px;background:var(--warm);color:var(--ink)">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:.5rem">
+          <input id="promo-min" type="number" placeholder="Min order" value="0" style="padding:.6rem;border:0.5px solid var(--border);border-radius:8px;background:var(--warm);color:var(--ink)">
+          <input id="promo-max" type="number" placeholder="Max discount" style="padding:.6rem;border:0.5px solid var(--border);border-radius:8px;background:var(--warm);color:var(--ink)">
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:.5rem">
+          <input id="promo-start" type="date" placeholder="Start date" style="padding:.6rem;border:0.5px solid var(--border);border-radius:8px;background:var(--warm);color:var(--ink)">
+          <input id="promo-end" type="date" placeholder="End date" style="padding:.6rem;border:0.5px solid var(--border);border-radius:8px;background:var(--warm);color:var(--ink)">
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:.5rem">
+          <input id="promo-hh-start" type="time" placeholder="Happy hour start" style="padding:.6rem;border:0.5px solid var(--border);border-radius:8px;background:var(--warm);color:var(--ink)">
+          <input id="promo-hh-end" type="time" placeholder="Happy hour end" style="padding:.6rem;border:0.5px solid var(--border);border-radius:8px;background:var(--warm);color:var(--ink)">
+        </div>
+        <input id="promo-days" type="text" placeholder="Days (e.g. Mon,Tue)" style="padding:.6rem;border:0.5px solid var(--border);border-radius:8px;background:var(--warm);color:var(--ink)">
+      </div>
+      <div style="display:flex;gap:.5rem;margin-top:1rem">
+        <button onclick="document.getElementById('promo-modal').style.display='none'" class="btn btn-ghost" style="flex:1">Cancel</button>
+        <button onclick="promoSave()" class="btn btn-primary" style="flex:1">Save</button>
+      </div>
     </div>
   </div>
 </div>
 <div id="page-branches" class="page" style="display:none">
   <div class="page-head">
     <div style="display:flex;align-items:center;gap:.75rem"><button class="hamburger" onclick="openSidebar()">☰</button><span style="font-size:.95rem;font-weight:600">My branches</span></div>
+    <button class="btn btn-primary btn-sm" onclick="branchOpenNew()">+ Add branch</button>
   </div>
   <div class="content">
-    <div id="branches-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:1rem"></div>
+    <div id="branch-dashboard" style="margin-bottom:1rem"></div>
+    <div id="branch-list" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:1rem"></div>
+  </div>
+  <!-- Branch modal -->
+  <div id="branch-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:999;align-items:center;justify-content:center" onclick="if(event.target===this)this.style.display='none'">
+    <div style="background:var(--card);border-radius:16px;padding:1.5rem;width:90%;max-width:440px">
+      <h3 id="branch-modal-title" style="margin:0 0 1rem">🏢 New Branch</h3>
+      <input type="hidden" id="branch-edit-id">
+      <div style="display:grid;gap:.75rem">
+        <input id="branch-name" type="text" placeholder="Branch name" style="padding:.6rem;border:0.5px solid var(--border);border-radius:8px;background:var(--warm);color:var(--ink)">
+        <input id="branch-code" type="text" placeholder="Branch code (e.g. MAIN)" style="padding:.6rem;border:0.5px solid var(--border);border-radius:8px;background:var(--warm);color:var(--ink)">
+        <input id="branch-address" type="text" placeholder="Address" style="padding:.6rem;border:0.5px solid var(--border);border-radius:8px;background:var(--warm);color:var(--ink)">
+        <input id="branch-phone" type="tel" placeholder="Phone" style="padding:.6rem;border:0.5px solid var(--border);border-radius:8px;background:var(--warm);color:var(--ink)">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:.5rem">
+          <input id="branch-open" type="time" value="10:00" style="padding:.6rem;border:0.5px solid var(--border);border-radius:8px;background:var(--warm);color:var(--ink)">
+          <input id="branch-close" type="time" value="23:00" style="padding:.6rem;border:0.5px solid var(--border);border-radius:8px;background:var(--warm);color:var(--ink)">
+        </div>
+      </div>
+      <div style="display:flex;gap:.5rem;margin-top:1rem">
+        <button onclick="document.getElementById('branch-modal').style.display='none'" class="btn btn-ghost" style="flex:1">Cancel</button>
+        <button onclick="branchSave()" class="btn btn-primary" style="flex:1">Save</button>
+      </div>
+    </div>
   </div>
 </div>
 <div id="page-schedule" class="page" style="display:none">
