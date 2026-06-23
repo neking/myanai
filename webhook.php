@@ -1,26 +1,77 @@
 <?php
-// MyanAi GitHub Webhook
+/**
+ * MyanAi GitHub Webhook
+ * Auto-deploy on push to main branch
+ * GitHub → Settings → Webhooks → https://myanai.net/webhook.php
+ * Secret: myanai_webhook_2026
+ */
 $secret = 'myanai_webhook_2026';
 $sig    = $_SERVER['HTTP_X_HUB_SIGNATURE_256'] ?? '';
 $body   = file_get_contents('php://input');
+$logFile = '/tmp/webhook_myanai.log';
 
+function wlog(string $msg): void {
+    global $logFile;
+    file_put_contents($logFile, date('[Y-m-d H:i:s] ').$msg."\n", FILE_APPEND);
+}
+
+// Verify signature
 if (!$sig) { http_response_code(403); die('no sig'); }
-
 if (!hash_equals('sha256='.hash_hmac('sha256',$body,$secret), $sig)) {
-    http_response_code(403);
-    die('invalid signature');
+    wlog("❌ Invalid signature");
+    http_response_code(403); die('invalid signature');
 }
 
 $payload = json_decode($body, true);
-if (($payload['ref'] ?? '') !== 'refs/heads/main') {
+$ref     = $payload['ref'] ?? '';
+$pusher  = $payload['pusher']['name'] ?? 'unknown';
+$commits = count($payload['commits'] ?? []);
+$head    = $payload['head_commit']['message'] ?? '';
+
+// Only deploy on main branch push
+if ($ref !== 'refs/heads/main') {
+    wlog("Skipped: ref={$ref}");
     echo 'skipped: not main'; exit;
 }
 
+wlog("🚀 Deploy triggered by {$pusher} ({$commits} commits: {$head})");
+
+// Pull latest code
 chdir('/var/www/myanai');
 $home = posix_getpwuid(posix_getuid())['dir'] ?? '/var/www';
 @file_put_contents($home.'/.gitconfig', "[safe]\n\tdirectory = /var/www/myanai\n");
-$out = shell_exec('HOME='.$home.' git pull origin main 2>&1');
-$log = date('Y-m-d H:i:s')."\n".$out."\n---\n";
-@file_put_contents('/tmp/webhook_myanai.log', $log, FILE_APPEND);
+
+$pull = shell_exec("HOME={$home} git pull origin main 2>&1");
+wlog("Git pull: ".trim($pull));
+
+// Fix permissions
+shell_exec("chmod -R 755 /var/www/myanai 2>&1");
+
+// Restart PHP-FPM (if sudo allowed)
+$restart = shell_exec("sudo systemctl restart php8.3-fpm 2>&1");
+wlog("PHP restart: ".trim($restart ?: 'done'));
+
+// Check for new migrations and run them
+$migrations = glob('/var/www/myanai/migrations/*.sql');
+$dbUser = 'myanai_user';
+$dbPass = 'i0It2cUUSHiIbr3v1wZquVWOIZaHuudY';
+$dbName = 'noodlehaus';
+
+foreach ($migrations as $migration) {
+    $fname = basename($migration);
+    $ran   = @file_get_contents('/tmp/myanai_migrations.log');
+    if (strpos($ran, $fname) !== false) continue; // Already ran
+    
+    $result = shell_exec("mysql -h localhost -u{$dbUser} -p{$dbPass} {$dbName} < {$migration} 2>&1");
+    if (empty(trim($result))) {
+        wlog("✅ Migration: {$fname}");
+        file_put_contents('/tmp/myanai_migrations.log', $fname."\n", FILE_APPEND);
+    } else {
+        wlog("⚠️ Migration {$fname}: ".trim($result));
+    }
+}
+
+$summary = "✅ Deploy complete: {$commits} commits by {$pusher}";
+wlog($summary);
 http_response_code(200);
-echo 'ok';
+echo $summary;

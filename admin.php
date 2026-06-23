@@ -139,6 +139,8 @@ if (isset($_GET['api'])) { // GET+POST both handled
       echo json_encode(['ok'=>true,'count'=>$count,'type'=>$type]);exit;
     }
     if ($_GET['api'] === 'login') {
+        require_once __DIR__ . '/rate_limit.php';
+        rateLimitLogin(); // ★ Max 5 logins per 5 min per IP
         $b = json_decode(file_get_contents('php://input'), true);
         $inputUser = $b['user'] ?? '';
         $inputPass = $b['pass'] ?? '';
@@ -1754,6 +1756,13 @@ async function doLogin() {
         </div>
       </div>
     </div>
+  <!-- ★ 2FA Security Widget ★ -->
+  <div style="margin:0 1rem 1rem;padding:1rem;background:var(--card);border-radius:12px;border:0.5px solid var(--border)">
+    <div style="display:flex;align-items:center;justify-content:space-between">
+      <span style="font-weight:600;font-size:.9rem">🔐 Admin 2FA</span>
+      <span id="2fa-status-widget" style="font-size:.82rem">Loading...</span>
+    </div>
+  </div>
   <!-- ★ System Health Widget ★ -->
   <div id="admin-health-widget" style="margin:1rem;padding:1rem;background:var(--card);border-radius:12px;border:0.5px solid var(--border)">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.75rem">
@@ -3053,7 +3062,67 @@ document.addEventListener('DOMContentLoaded', () => {
   }
   // Load health on initial page load
   setTimeout(loadAdminHealth, 500);
+  setTimeout(load2FAStatus, 600);
 });
+
+
+// ══ 2FA MANAGEMENT ══
+async function load2FAStatus() {
+  const r = await fetch('two_factor.php?action=status', {credentials:'include'}).then(r=>r.json()).catch(()=>({ok:false}));
+  const el = document.getElementById('2fa-status-widget');
+  if (!el) return;
+  if (r.ok) {
+    el.innerHTML = r.enabled
+      ? '<span style="color:var(--green);font-weight:600">✅ Enabled</span> <button onclick="disable2FA()" style="font-size:.72rem;padding:2px 8px;border-radius:6px;border:1px solid var(--border);cursor:pointer;margin-left:.5rem;color:#dc2626">Disable</button>'
+      : '<span style="color:var(--text-muted)">Not enabled</span> <button onclick="setup2FA()" style="font-size:.72rem;padding:2px 8px;border-radius:6px;background:var(--accent);color:#fff;border:none;cursor:pointer;margin-left:.5rem">Enable 2FA</button>';
+  }
+}
+
+async function setup2FA() {
+  const r = await fetch('two_factor.php?action=setup', {credentials:'include'}).then(r=>r.json());
+  if (!r.ok) { alert(r.msg); return; }
+
+  const modal = document.createElement('div');
+  modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:9999;display:flex;align-items:center;justify-content:center';
+  modal.innerHTML = `
+    <div style="background:var(--card);border-radius:16px;padding:2rem;max-width:400px;width:90%;text-align:center">
+      <h3 style="margin:0 0 1rem;font-size:1.1rem">🔐 Enable 2FA</h3>
+      <p style="font-size:.85rem;color:var(--text-muted);margin-bottom:1rem">Scan this QR code with Google Authenticator or Authy:</p>
+      <img src="${r.qr_url}" style="width:200px;height:200px;border:4px solid var(--border);border-radius:8px">
+      <p style="font-size:.75rem;color:var(--text-muted);margin:.75rem 0">Or enter manually: <strong>${r.secret}</strong></p>
+      <input id="otp-verify-input" type="text" placeholder="Enter 6-digit code" maxlength="6"
+        style="width:100%;padding:.6rem;border:1px solid var(--border);border-radius:8px;text-align:center;font-size:1.2rem;letter-spacing:.3rem;margin:.5rem 0">
+      <div style="display:flex;gap:.5rem;margin-top:.75rem">
+        <button onclick="this.closest('div[style]').remove()" style="flex:1;padding:.6rem;border:1px solid var(--border);border-radius:8px;background:var(--warm);cursor:pointer">Cancel</button>
+        <button onclick="verify2FASetup('${r.secret}')" style="flex:1;padding:.6rem;border:none;border-radius:8px;background:var(--accent);color:#fff;cursor:pointer;font-weight:600">Verify & Enable</button>
+      </div>
+    </div>`;
+  document.body.appendChild(modal);
+}
+
+async function verify2FASetup(secret) {
+  const code = document.getElementById('otp-verify-input')?.value;
+  if (!code || code.length !== 6) { alert('Enter 6-digit code'); return; }
+  const r = await fetch('two_factor.php?action=enable', {
+    method:'POST', credentials:'include',
+    headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({code})
+  }).then(r=>r.json());
+  alert(r.msg);
+  if (r.ok) {
+    document.querySelector('div[style*="rgba(0,0,0,.6)"]')?.remove();
+    load2FAStatus();
+  }
+}
+
+async function disable2FA() {
+  if (!confirm('Disable 2FA? This reduces your account security.')) return;
+  const r = await fetch('two_factor.php?action=disable', {
+    method:'POST', credentials:'include'
+  }).then(r=>r.json());
+  alert(r.msg);
+  load2FAStatus();
+}
 
 </script>
 <!-- ── UPGRADE PAGE ── -->

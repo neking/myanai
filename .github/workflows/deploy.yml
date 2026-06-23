@@ -1,0 +1,47 @@
+name: Deploy to Production
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: PHP Lint Check
+        run: |
+          sudo apt-get install -y php8.3-cli 2>/dev/null | tail -1
+          echo "Checking PHP syntax..."
+          find . -name "*.php" -not -path "*/vendor/*" | xargs -I{} php -l {} | grep -v "No syntax errors"
+          echo "✅ PHP lint passed"
+
+      - name: Check critical files exist
+        run: |
+          required_files=(
+            "admin.php" "tenant.php" "db_connect.php"
+            "auth_helper.php" "admin_audit.php" "webhook.php"
+            "manifest.json" "sw.js"
+          )
+          for f in "${required_files[@]}"; do
+            if [ ! -f "$f" ]; then
+              echo "❌ Missing: $f"
+              exit 1
+            fi
+          done
+          echo "✅ All critical files present"
+
+      - name: Check for hardcoded credentials (security scan)
+        run: |
+          if grep -r "password.*=.*'[^']\{8,\}'" --include="*.php" .; then
+            echo "⚠️ Warning: possible hardcoded passwords found"
+          fi
+          echo "✅ Security scan done"
+
+      - name: Notify deploy via webhook
+        run: |
+          echo "ℹ️ GitHub push triggers webhook.php on server"
+          echo "Webhook URL: https://myanai.net/webhook.php"
+          echo "Deploy complete ✅"

@@ -75,6 +75,8 @@ if ($action === 'check_limits') {
 
 /* ── SIGNUP (public) ── */
 if ($action === 'signup' && $_SERVER['REQUEST_METHOD'] === 'POST') {
+    require_once __DIR__ . '/rate_limit.php';
+    rateLimitSignup(); // ★ Max 3 signups per 10 min per IP
     $d = json_decode(file_get_contents('php://input'), true) ?? [];
     $name  = trim($d['name'] ?? '');
     $slug  = strtolower(preg_replace('/[^a-z0-9]/', '', trim($d['slug'] ?? '')));
