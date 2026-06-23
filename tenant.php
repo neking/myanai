@@ -2094,6 +2094,7 @@ async function saveStorefront(){
   else toast(d.msg||'Error','err');
 }
 </script>
+<script src="/session-timeout.js"></script>
 <script>
 if('serviceWorker' in navigator){
   window.addEventListener('load', () => {
