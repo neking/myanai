@@ -2280,6 +2280,7 @@ async function saveStorefront(){
 }
 </script>
 <script src="/session-timeout.js"></script>
+<script src="admin_modules.js?v=<?= time() ?>"></script>
 <script>
 if('serviceWorker' in navigator){
   window.addEventListener('load', () => {
