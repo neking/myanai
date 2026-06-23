@@ -404,7 +404,7 @@ button,select,input[type=checkbox]{
   -webkit-tap-highlight-color:transparent;
 }
 </style>
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
 <link rel="manifest" href="/manifest.json">
 <meta name="theme-color" content="#E8593C">
 <meta name="mobile-web-app-capable" content="yes">
