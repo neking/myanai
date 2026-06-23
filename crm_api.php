@@ -385,7 +385,7 @@ if ($action === 'reorder_template' && $_SERVER['REQUEST_METHOD'] === 'GET') {
 }
 
 
-fail('Unknown action');
+// Unknown action handled below
 
 
 /* ════════════════════════════════════════════════════════════════
@@ -469,3 +469,5 @@ if ($action === 'auto_tag' && $_SERVER['REQUEST_METHOD'] === 'POST') {
 
     ok(['msg' => 'Customer tags updated']);
 }
+
+fail('Unknown action');
