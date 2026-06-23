@@ -44,13 +44,7 @@ $items = $items->fetchAll(PDO::FETCH_ASSOC);
 $tid = (int)($o['tenant_id'] ?? 0);
 $settings = $pdo->query("SELECT setting_key,setting_value FROM site_settings WHERE setting_key IN ('store_name','store_emoji','footer_phone','footer_address','loyalty_stamps_required')")->fetchAll(PDO::FETCH_KEY_PAIR);
 
-// Try tenant-specific overrides if available
-if ($tid) {
-    $tSettings = $pdo->prepare("SELECT setting_key,setting_value FROM site_settings WHERE setting_key IN ('store_name','store_emoji','footer_phone','footer_address') AND tenant_id=?");
-    $tSettings->execute([$tid]);
-    $tRows = $tSettings->fetchAll(PDO::FETCH_KEY_PAIR);
-    if ($tRows) $settings = array_merge($settings, $tRows);
-}
+// site_settings is global — no tenant_id column
 
 $store_name  = $settings['store_name'] ?? 'MyanAi POS';
 $store_emoji = $settings['store_emoji'] ?? '🍜';
