@@ -63,7 +63,7 @@ if ($action === 'export') {
     $backup['data']['tables']       = $fetch("SELECT * FROM restaurant_tables WHERE tenant_id=?", [$tid]);
     $backup['data']['orders']       = $fetch("SELECT * FROM orders WHERE tenant_id=? ORDER BY id DESC LIMIT 500", [$tid]);
     $backup['data']['order_items']  = $fetch("SELECT oi.* FROM order_items oi JOIN orders o ON o.id=oi.order_id WHERE o.tenant_id=? ORDER BY oi.id DESC LIMIT 2000", [$tid]);
-    $backup['data']['crm_customers']= $fetch("SELECT * FROM crm_customers WHERE tenant_id=? LIMIT 1000", [$tid]);
+    $backup['data']['customers']= $fetch("SELECT * FROM customers WHERE phone IN (SELECT DISTINCT customer_phone FROM orders WHERE tenant_id=? AND customer_phone IS NOT NULL) LIMIT 1000", [$tid]);
     $backup['data']['expenses']     = $fetch("SELECT * FROM expenses WHERE tenant_id=? ORDER BY id DESC LIMIT 500", [$tid]);
 
     // Counts summary
