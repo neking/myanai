@@ -386,3 +386,86 @@ if ($action === 'reorder_template' && $_SERVER['REQUEST_METHOD'] === 'GET') {
 
 
 fail('Unknown action');
+
+
+/* ════════════════════════════════════════════════════════════════
+   CUSTOMER SEGMENTATION
+   GET  segment?tenant_id=&type=vip|regular|at_risk|new|churned
+   ════════════════════════════════════════════════════════════════ */
+if ($action === 'segment') {
+    requireAdmin();
+    $tenantId = (int)($_GET['tenant_id'] ?? 0);
+    $type     = trim($_GET['type'] ?? 'all');
+    if (!$tenantId) fail('tenant_id required');
+
+    // Build segment conditions
+    $segmentWhere = match($type) {
+        'vip'     => "c.tag='vip' OR c.total_spent >= 100000 OR c.total_orders >= 10",
+        'regular' => "c.total_orders BETWEEN 3 AND 9 AND c.tag != 'vip'",
+        'new'     => "c.total_orders < 3 AND c.created_at >= DATE_SUB(NOW(), INTERVAL 30 DAY)",
+        'at_risk' => "c.last_order_at < DATE_SUB(NOW(), INTERVAL 21 DAY) AND c.total_orders >= 3",
+        'churned' => "c.last_order_at < DATE_SUB(NOW(), INTERVAL 60 DAY)",
+        'blocked' => "c.tag = 'blocked'",
+        default   => "1=1",
+    };
+
+    $stmt = $pdo->prepare("
+        SELECT c.phone, c.name, c.tag, c.total_orders, c.total_spent,
+               c.last_order_at, lc.stamps,
+               DATEDIFF(NOW(), c.last_order_at) AS days_since_order
+        FROM customers c
+        LEFT JOIN loyalty_cards lc ON lc.phone=c.phone AND lc.tenant_id=?
+        WHERE EXISTS (
+            SELECT 1 FROM orders o WHERE o.customer_phone=c.phone AND o.tenant_id=?
+        ) AND ($segmentWhere)
+        ORDER BY c.total_spent DESC
+        LIMIT 100
+    ");
+    $stmt->execute([$tenantId, $tenantId]);
+    $customers = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+    // Summary stats per segment
+    $stats = $pdo->prepare("
+        SELECT
+            COUNT(CASE WHEN c.tag='vip' OR c.total_spent>=100000 OR c.total_orders>=10 THEN 1 END) AS vip,
+            COUNT(CASE WHEN c.total_orders BETWEEN 3 AND 9 AND c.tag!='vip' THEN 1 END)            AS regular,
+            COUNT(CASE WHEN c.total_orders < 3 AND c.created_at >= DATE_SUB(NOW(), INTERVAL 30 DAY) THEN 1 END) AS new_customers,
+            COUNT(CASE WHEN c.last_order_at < DATE_SUB(NOW(), INTERVAL 21 DAY) AND c.total_orders>=3 THEN 1 END) AS at_risk,
+            COUNT(CASE WHEN c.last_order_at < DATE_SUB(NOW(), INTERVAL 60 DAY) THEN 1 END)         AS churned,
+            COUNT(*) AS total
+        FROM customers c
+        WHERE EXISTS (SELECT 1 FROM orders o WHERE o.customer_phone=c.phone AND o.tenant_id=?)
+    ");
+    $stats->execute([$tenantId]);
+    $summary = $stats->fetch(PDO::FETCH_ASSOC);
+
+    ok(['customers' => $customers, 'summary' => $summary, 'segment' => $type]);
+}
+
+/* ════════════════════════════════════════════════════════════════
+   AUTO-TAG customers based on behavior
+   POST  auto_tag?tenant_id=
+   ════════════════════════════════════════════════════════════════ */
+if ($action === 'auto_tag' && $_SERVER['REQUEST_METHOD'] === 'POST') {
+    requireAdmin();
+    $tenantId = (int)($_GET['tenant_id'] ?? 0);
+    if (!$tenantId) fail('tenant_id required');
+
+    // Update VIP: 10+ orders or 100k+ spent
+    $pdo->prepare("
+        UPDATE customers c SET c.tag='vip'
+        WHERE c.tag NOT IN ('blocked')
+        AND EXISTS (SELECT 1 FROM orders o WHERE o.customer_phone=c.phone AND o.tenant_id=?)
+        AND (c.total_orders >= 10 OR c.total_spent >= 100000)
+    ")->execute([$tenantId]);
+
+    // Update regular: 3-9 orders
+    $pdo->prepare("
+        UPDATE customers c SET c.tag='regular'
+        WHERE c.tag NOT IN ('vip','blocked')
+        AND EXISTS (SELECT 1 FROM orders o WHERE o.customer_phone=c.phone AND o.tenant_id=?)
+        AND c.total_orders BETWEEN 3 AND 9
+    ")->execute([$tenantId]);
+
+    ok(['msg' => 'Customer tags updated']);
+}

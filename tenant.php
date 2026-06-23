@@ -404,6 +404,13 @@ button,select,input[type=checkbox]{
   -webkit-tap-highlight-color:transparent;
 }
 </style>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#E8593C">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="MyanAi POS">
 </head>
 <body>
 
@@ -565,8 +572,16 @@ button,select,input[type=checkbox]{
     </div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem">
       <div class="table-wrap" style="padding:1rem">
-        <div style="font-size:.82rem;font-weight:600;margin-bottom:.75rem;color:var(--muted)">📊 Branch revenue (30d)</div>
-        <div id="branch-chart-area">Loading…</div>
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.75rem">
+          <div style="font-size:.82rem;font-weight:600;color:var(--muted)">📊 Revenue trend</div>
+          <select id="dash-chart-days" onchange="loadDashboardChart()" style="font-size:.75rem;padding:2px 6px;border:0.5px solid var(--border);border-radius:6px;background:var(--warm);color:var(--ink)">
+            <option value="7">7 ရက်</option>
+            <option value="30" selected>30 ရက်</option>
+            <option value="90">90 ရက်</option>
+          </select>
+        </div>
+        <div style="position:relative;height:160px"><canvas id="dash-revenue-chart"></canvas></div>
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:.5rem;margin-top:.75rem" id="dash-mini-stats"></div>
       </div>
       <div class="table-wrap" style="padding:0">
         <div style="padding:.75rem 1rem;font-size:.82rem;font-weight:600;border-bottom:0.5px solid var(--border)">Recent orders</div>
@@ -1225,7 +1240,7 @@ async function loadBranchOptions(){
 function initDashboard(){
   loadStats();
   loadRecentOrders();
-  loadCrossBranchChart();
+  loadDashboardChart();
 }
 
 async function loadStats(){
@@ -1271,30 +1286,87 @@ async function loadRecentOrders(){
   </tr>`).join('');
 }
 
-async function loadCrossBranchChart(){
-  const to=new Date().toISOString().slice(0,10);
-  const from=new Date(Date.now()-30*86400000).toISOString().slice(0,10);
-  const d=await fetch(`reports_api.php?action=branches&from=${from}&to=${to}&tenant_id=${window.__TENANT_ID}`,{credentials:'include'}).then(r=>r.json()).catch(()=>({ok:false}));
-  const area=document.getElementById('branch-chart-area');
-  if(!area) return;
-  if(!d.ok||!d.branches?.length){area.innerHTML='<div style="color:var(--muted);font-size:.82rem;padding:1rem">Branch data မရသေး</div>';return;}
-  const max=Math.max(...d.branches.map(b=>parseFloat(b.revenue)||0))||1;
-  area.innerHTML=d.branches.map((b,i)=>{
-    const pct=Math.round((parseFloat(b.revenue)||0)/max*100);
-    const colors=['#1c1409','#5c4a2a','#8a7560','#b4a99a'];
-    return `<div style="margin-bottom:.6rem">
-      <div style="display:flex;justify-content:space-between;font-size:.78rem;margin-bottom:3px">
-        <span style="color:var(--ink);font-weight:500">${b.name||b.code}</span>
-        <span style="color:var(--muted)">${parseInt(b.revenue||0).toLocaleString()} MMK</span>
-      </div>
-      <div style="height:6px;background:var(--border);border-radius:99px;overflow:hidden">
-        <div style="height:100%;width:${pct}%;background:${colors[i%colors.length]};border-radius:99px;transition:width .4s"></div>
-      </div>
-    </div>`;
-  }).join('');
-}
+async function loadDashboardChart(){
+  const days = document.getElementById('dash-chart-days')?.value || 30;
+  const from = new Date(Date.now()-days*86400000).toISOString().slice(0,10);
+  const to   = new Date().toISOString().slice(0,10);
+  const tid  = window.__TENANT_ID;
 
-/* ── Menu ── */
+  const [rev, items] = await Promise.all([
+    fetch(`analytics.php?tenant_id=${tid}&days=${days}`,{credentials:'include'}).then(r=>r.json()).catch(()=>({ok:false})),
+    fetch(`reports_api.php?action=top_items&from=${from}&to=${to}&tenant_id=${tid}`,{credentials:'include'}).then(r=>r.json()).catch(()=>({ok:false})),
+  ]);
+
+  // ── Revenue chart ──
+  const ctx = document.getElementById('dash-revenue-chart');
+  if (ctx && rev.ok && rev.revenue?.length) {
+    if (window._dashChart) window._dashChart.destroy();
+    const labels = rev.revenue.map(r=>r.date);
+    const data   = rev.revenue.map(r=>Math.round(r.revenue/1000));
+    const isDark = document.documentElement.getAttribute('data-theme')==='dark';
+    window._dashChart = new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels,
+        datasets: [{
+          data,
+          borderColor: '#E8593C',
+          backgroundColor: 'rgba(232,89,60,.08)',
+          borderWidth: 2,
+          tension: 0.4,
+          fill: true,
+          pointRadius: 3,
+          pointBackgroundColor: '#E8593C',
+        }]
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        plugins: { legend: {display:false}, tooltip: {callbacks:{label:ctx=>`${ctx.parsed.y}K MMK`}} },
+        scales: {
+          x: { grid:{display:false}, ticks:{font:{size:10}, maxTicksLimit:7, color: isDark?'#888':'#aaa'} },
+          y: { grid:{color:isDark?'rgba(255,255,255,.05)':'rgba(0,0,0,.05)'}, ticks:{font:{size:10}, color: isDark?'#888':'#aaa', callback:v=>v+'K'} }
+        }
+      }
+    });
+  }
+
+  // ── Mini stats ──
+  const mini = document.getElementById('dash-mini-stats');
+  if (mini && rev.ok && rev.summary) {
+    const s = rev.summary;
+    const fmt = n => parseInt(n||0).toLocaleString();
+    mini.innerHTML = `
+      <div style="background:var(--warm);border:0.5px solid var(--border);border-radius:8px;padding:.5rem .6rem;text-align:center">
+        <div style="font-size:.95rem;font-weight:600">${fmt(s.total_orders)}</div>
+        <div style="font-size:.68rem;color:var(--muted)">${days}ရက် orders</div>
+      </div>
+      <div style="background:var(--warm);border:0.5px solid var(--border);border-radius:8px;padding:.5rem .6rem;text-align:center">
+        <div style="font-size:.95rem;font-weight:600">${fmt(s.today_orders)}</div>
+        <div style="font-size:.68rem;color:var(--muted)">ယနေ့</div>
+      </div>
+      <div style="background:var(--warm);border:0.5px solid var(--border);border-radius:8px;padding:.5rem .6rem;text-align:center">
+        <div style="font-size:.95rem;font-weight:600">${Math.round((s.avg_order||0)/1000)}K</div>
+        <div style="font-size:.68rem;color:var(--muted)">avg order</div>
+      </div>`;
+  }
+
+  // ── Top items (if space) ──
+  if (items.ok && items.items?.length) {
+    const topDiv = document.getElementById('dash-top-items');
+    if (topDiv) {
+      topDiv.innerHTML = items.items.slice(0,5).map((it,i)=>`
+        <div style="display:flex;align-items:center;gap:.5rem;padding:.3rem 0;border-bottom:0.5px solid var(--border)">
+          <span style="font-size:.7rem;color:var(--muted);width:14px">${i+1}</span>
+          <span style="flex:1;font-size:.78rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${escH(it.item_name)}</span>
+          <span style="font-size:.75rem;font-weight:600">${it.qty}x</span>
+        </div>`).join('');
+    }
+  }
+}
+// Backward compat alias
+async function loadCrossBranchChart(){ return loadDashboardChart(); }
+
+
 async function loadMenuItems(){
   const d = await api('items');
   if(!d.ok) return;
@@ -2020,6 +2092,15 @@ async function saveStorefront(){
   }).then(r=>r.json()).catch(()=>({ok:false}));
   if(d.ok) toast('✅ Storefront saved','ok');
   else toast(d.msg||'Error','err');
+}
+</script>
+<script>
+if('serviceWorker' in navigator){
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/sw.js')
+      .then(reg => console.log('SW registered'))
+      .catch(err => console.log('SW error', err));
+  });
 }
 </script>
 </body>
