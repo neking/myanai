@@ -1501,7 +1501,7 @@ function stockLoad(){const el=document.getElementById('stock-content');if(el)el.
 function delLoad(){const el=document.getElementById('delivery-content');if(el)el.innerHTML='<div style="color:var(--muted);padding:1rem">Delivery loading...</div>';}
 function promoLoad(){const el=document.getElementById('promos-content');if(el)el.innerHTML='<div style="color:var(--muted);padding:1rem">Promos loading...</div>';}
 function branchLoad(){const el=document.getElementById('branches-content');if(el)el.innerHTML='<div style="color:var(--muted);padding:1rem">Branches loading...</div>';}
-function schedLoad(){const el=document.getElementById('schedule-content');if(el)el.innerHTML='<div style="color:var(--muted);padding:1rem">Schedule loading...</div>';}
+// schedLoad() removed - use loadSchedule() directly
 function loadTables(){const el=document.getElementById('tables-content');if(el)el.innerHTML='<div style="color:var(--muted);padding:1rem">Tables loading...</div>';}
 function openEditItem(id){toast('Edit item #'+id);}
 
