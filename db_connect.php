@@ -1,4 +1,12 @@
 <?php
+// ★ Global Security Headers ★
+if (php_sapi_name() !== 'cli') {
+    header('X-Content-Type-Options: nosniff');
+    header('X-Frame-Options: SAMEORIGIN');
+    header('Referrer-Policy: strict-origin-when-cross-origin');
+    header('X-XSS-Protection: 1; mode=block');
+}
+
 // Load .env file
 $envFile = '/etc/myanai.env';
 if (file_exists($envFile)) {

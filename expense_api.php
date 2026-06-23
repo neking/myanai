@@ -1,7 +1,9 @@
 <?php
 declare(strict_types=1);
 require_once __DIR__ . '/db_connect.php';
+require_once __DIR__ . '/auth_helper.php';
 header('Content-Type: application/json; charset=utf-8');
+if ($_SERVER['REQUEST_METHOD'] === 'POST') requireCsrf();
 header('Access-Control-Allow-Origin: *');
 header('Access-Control-Allow-Methods: GET, POST, OPTIONS');
 header('Access-Control-Allow-Headers: Content-Type, X-CSRF-Token');

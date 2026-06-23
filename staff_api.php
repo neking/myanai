@@ -1,6 +1,8 @@
 <?php
 require_once 'db_connect.php';
+require_once 'auth_helper.php';
 header('Content-Type: application/json; charset=utf-8');
+if ($_SERVER['REQUEST_METHOD'] === 'POST') requireCsrf();
 
 $action = $_REQUEST['action'] ?? '';
 $pdo = getPDO();
