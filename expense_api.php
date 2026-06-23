@@ -60,7 +60,7 @@ if ($action === 'summary') {
 }
 
 /* CREATE expense */
-if ($action === 'create' && $_SERVER['REQUEST_METHOD'] === 'POST') {
+if (($action === 'create' || $action === 'add') && $_SERVER['REQUEST_METHOD'] === 'POST') { // ★ 'add' alias for tenant.php compatibility
     requireAdmin();
     $d = json_decode(file_get_contents('php://input'), true) ?? [];
     $cat = trim($d['category'] ?? 'other');

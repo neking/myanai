@@ -1086,7 +1086,7 @@ function showPage(page){
     stocklog:'Stock log',promos:'Promotions',branches:'My branches',orders:'Orders',
     tables:'Tables',reserve:'Reservations',stock:'Stock',shift:'Shifts',
     delivery:'Delivery',expenses:'Expenses',upgrade:'Plan upgrade',
-    storefront:'Storefront',settings:'Settings',schedule:'Scheduling',backup:'My data backup',storefront:'Storefront'};
+    storefront:'Storefront',settings:'Settings',schedule:'Scheduling',backup:'My data backup'};
   const tb=document.getElementById('topbar-title');
   if(tb) tb.textContent=titles[page]||page;
 
@@ -1105,27 +1105,29 @@ function showPage(page){
   if(tbAction) tbAction.innerHTML = actions[page] || '';
 
   // Load page data
-  if(page==='dashboard')  initDashboard();
-  if(page==='menu')       loadMenuItems();
-  if(page==='staff')      loadStaff();
-  if(page==='crm')        loadCRM();
-  if(page==='stocklog')   loadStockLogs();
-  if(page==='orders')     loadOrders();
-  if(page==='tables')     loadTables();
-  if(page==='reserve')    resLoad();
-  if(page==='stock')      stockLoad();
-  if(page==='shift')      schedLoad();
-  if(page==='delivery')   delLoad();
-  if(page==='expenses')   if(typeof expLoad==='function') expLoad();
-  if(page==='promos')     promoLoad();
-  if(page==='branches')   branchLoad();
-  if(page==='upgrade')    loadUpgradePage();
-  if(page==='settings')   loadTenantSettings();
-  if(page==='schedule')   if(typeof schedLoad==='function') schedLoad();
-  if(page==='backup')     loadBackupPage();
-  if(page==='storefront') loadStorefront();
-  if(page==='shift')      loadShifts();
-  if(page==='schedule')   loadSchedule();
+  // ★ Clean page load dispatch (no duplicates) ★
+  const loaders = {
+    dashboard:  ()=> initDashboard(),
+    menu:       ()=> loadMenuItems(),
+    staff:      ()=> loadStaff(),
+    crm:        ()=> loadCRM(),
+    stocklog:   ()=> loadStockLogs(),
+    orders:     ()=> loadOrders(),
+    tables:     ()=> loadTables(),
+    reserve:    ()=> resLoad(),
+    stock:      ()=> stockLoad(),
+    shift:      ()=> loadShifts(),
+    schedule:   ()=> loadSchedule(),
+    delivery:   ()=> delLoad(),
+    expenses:   ()=> { if(typeof expLoad==='function') expLoad(); },
+    promos:     ()=> promoLoad(),
+    branches:   ()=> branchLoad(),
+    upgrade:    ()=> loadUpgradePage(),
+    settings:   ()=> loadTenantSettings(),
+    backup:     ()=> loadBackupPage(),
+    storefront: ()=> loadStorefront(),
+  };
+  if(loaders[page]) loaders[page]();
 
   closeSidebar();
 }

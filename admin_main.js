@@ -204,7 +204,7 @@ async function doLogout() {
 ═══════════════════════════════════════ */
 function showPage(page) {
   // Platform admin pages only
-  const PAGES = ['dashboard','tenants','revenue','upgrades','plans','landing','demo','announce','saas','settings'];
+  const PAGES = ['dashboard','tenants','revenue','upgrades','plans','landing','demo','announce','logs','saas','settings'];
 
   PAGES.forEach(p => {
     const pageEl = document.getElementById('page-'+p);
@@ -217,7 +217,7 @@ function showPage(page) {
   const titles = {
     dashboard:'Platform Dashboard', tenants:'Tenants', revenue:'Revenue',
     upgrades:'Upgrade Requests', plans:'Plans & Pricing', landing:'Landing Page',
-    demo:'Demo Control', announce:'Announcements', saas:'SaaS Dashboard', settings:'Settings'
+    demo:'Demo Control', announce:'Announcements',logs:'Error logs', saas:'SaaS Dashboard', settings:'Settings'
   };
   const ptEl = document.querySelector('.page-title');
   if(ptEl) ptEl.textContent = titles[page] || page;
