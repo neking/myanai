@@ -463,8 +463,6 @@ if ($action === 'set_expires') {
     ok(['tenant_id' => $tid, 'plan_expires' => $val]);
 }
 
-fail('Unknown action');
-
 // ── Manual KBZPay Payment Confirmation ──────────────────────────
 if ($action === 'confirm_payment' && $_SERVER['REQUEST_METHOD'] === 'POST') {
     requireSuperAdmin();
