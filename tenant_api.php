@@ -583,3 +583,48 @@ if ($action === 'save_storefront' && $_SERVER['REQUEST_METHOD'] === 'POST') {
 
     ok(['msg' => 'Storefront saved']);
 }
+
+/* ════════════════════════════════════════════════════════
+   PAYMENT SETTINGS — consolidated from admin.php + tenant.php
+   GET  ?action=get_payment_settings&tenant_id=
+   POST ?action=save_payment_settings  {tenant_id, ...fields}
+════════════════════════════════════════════════════════ */
+if ($action === 'get_payment_settings') {
+    $tid = (int)($_GET['tenant_id'] ?? $_SESSION['tenant_id'] ?? 0);
+    if (!$tid) fail('tenant_id required');
+    $row = $pdo->prepare("SELECT settings FROM tenants WHERE id=?");
+    $row->execute([$tid]);
+    $s = json_decode($row->fetchColumn() ?: '{}', true) ?: [];
+    ok(['settings' => [
+        'kpay_merchant_id' => $s['kpay_merchant_id'] ?? '',
+        'kpay_qr_image'    => $s['kpay_qr_image']    ?? '',
+        'wave_merchant_id' => $s['wave_merchant_id'] ?? '',
+        'wave_qr_image'    => $s['wave_qr_image']    ?? '',
+        'cash_enabled'     => $s['cash_enabled']     ?? '1',
+        'kpay_enabled'     => $s['kpay_enabled']     ?? '0',
+        'wave_enabled'     => $s['wave_enabled']     ?? '0',
+    ]]);
+}
+
+if ($action === 'save_payment_settings' && $_SERVER['REQUEST_METHOD'] === 'POST') {
+    $b   = json_decode(file_get_contents('php://input'), true) ?? [];
+    $tid = (int)($b['tenant_id'] ?? $_SESSION['tenant_id'] ?? 0);
+    if (!$tid) fail('tenant_id required');
+
+    $row = $pdo->prepare("SELECT settings FROM tenants WHERE id=?");
+    $row->execute([$tid]);
+    $existing = json_decode($row->fetchColumn() ?: '{}', true) ?: [];
+
+    $allowed = ['kpay_merchant_id','kpay_qr_image','wave_merchant_id',
+                'wave_qr_image','cash_enabled','kpay_enabled','wave_enabled'];
+    foreach ($allowed as $field) {
+        if (array_key_exists($field, $b)) {
+            $existing[$field] = is_string($b[$field]) ? htmlspecialchars(strip_tags($b[$field])) : (string)$b[$field];
+        }
+    }
+
+    $pdo->prepare("UPDATE tenants SET settings=? WHERE id=?")->execute([json_encode($existing, JSON_UNESCAPED_UNICODE), $tid]);
+    ok(['msg' => 'Payment settings saved']);
+}
+
+fail('Unknown action');

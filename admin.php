@@ -76,6 +76,20 @@ function sanitize(mixed $v): string {
 if (isset($_GET['api'])) { // GET+POST both handled
     header('Content-Type: application/json; charset=utf-8');
 
+    // ★ CSRF protection for all POST actions ★
+    if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+        $skipCsrf = ['login', 'set_demo_password', 'reset_demo', 'demo_orders'];
+        $api = $_GET['api'] ?? '';
+        if (!in_array($api, $skipCsrf)) {
+            $origin = $_SERVER['HTTP_ORIGIN'] ?? $_SERVER['HTTP_REFERER'] ?? '';
+            $host   = $_SERVER['HTTP_HOST'] ?? '';
+            if ($origin && !str_contains($origin, $host)) {
+                echo json_encode(['ok'=>false,'msg'=>'CSRF: Invalid origin']);
+                exit;
+            }
+        }
+    }
+
     /* login */
     // Demo orders (recent)
     if($_GET['api']==='demo_orders'){

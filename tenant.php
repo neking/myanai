@@ -1975,7 +1975,7 @@ function downloadQR(){
 /* ── Helpers ── */
 function closeModal(id){ document.getElementById(id).classList.remove('open'); }
 function openModal(id){ document.getElementById(id).classList.add('open'); }
-function fmtK(n){ return parseInt(n||0).toLocaleString(); }
+function fmtK(v){v=parseFloat(v||0);if(v>=1000000)return(v/1000000).toFixed(1)+'M';if(v>=1000)return(v/1000).toFixed(0)+'K';return Math.round(v).toLocaleString();}
 function escH(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 function today(){ return new Date().toISOString().slice(0,10); }
 
@@ -2525,23 +2525,6 @@ async function saveStorefront(){
   } catch(e){ toast('❌ ' + e.message,'err'); }
 }
 
-async function saveStorefront(){
-  const g=(id)=>document.getElementById(id)?.value?.trim()||'';
-  const payload = {
-    store_name:    g('sf-name'),
-    store_tagline: g('sf-tagline'),
-    store_phone:   g('sf-phone'),
-    store_address: g('sf-address'),
-    store_emoji:   g('sf-emoji')||'🍜',
-    brand_color:   document.getElementById('sf-color')?.value||'#e84c2b',
-  };
-  const d = await fetch('tenant.php?api=save_payment_settings',{
-    method:'POST', headers:{'Content-Type':'application/json'}, credentials:'include',
-    body: JSON.stringify(payload)
-  }).then(r=>r.json()).catch(()=>({ok:false}));
-  if(d.ok) toast('✅ Storefront saved','ok');
-  else toast(d.msg||'Error','err');
-}
 </script>
 <script src="/session-timeout.js"></script>
 <script src="admin_modules.js?v=<?= time() ?>"></script>
