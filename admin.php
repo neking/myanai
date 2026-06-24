@@ -1697,7 +1697,7 @@ async function doLogin() {
   <!-- MAIN CONTENT -->
   <div class="main">
     <!-- ── DASHBOARD ── -->
-    <div id="page-dashboard">
+    <div id="page-dashboard" style="display:none">
       <div class="page-head">
         <div style="display:flex;align-items:center;gap:.5rem">
           <button class="hamburger" onclick="openSidebar()">☰</button>
@@ -1790,7 +1790,8 @@ async function doLogin() {
       <div style="text-align:center"><div id="h-errors" style="font-weight:600">—</div><div style="color:var(--muted)">Errors (1h)</div></div>
     </div>
   </div>
-  <!-- Additional platform pages -->
+</div><!-- end page-dashboard -->
+
 <!-- ═══ SAAS DASHBOARD ═══ -->
 <div id="page-saas" style="display:none">
   <div class="page-head">
