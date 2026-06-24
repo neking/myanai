@@ -1558,7 +1558,7 @@ tr.drop-below{box-shadow:0 2px 0 var(--accent);}
 .lpe-spinner{width:16px;height:16px;border:2px solid rgba(0,0,0,.1);border-top-color:var(--accent);border-radius:50%;animation:lpe-spin .7s linear infinite}
 
 </style>
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script src="/chart.umd.min.js"></script>
 </head>
 <body>
 
