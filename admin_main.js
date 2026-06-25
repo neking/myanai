@@ -213,6 +213,11 @@ function showPage(page) {
     if(navEl)  navEl.classList.toggle('active', p===page);
   });
 
+  // Show/hide dashboard-specific widgets (2FA + Health) 
+  // These float outside page-dashboard in DOM, so control manually
+  const dashWidgets = document.getElementById('dashboard-widgets');
+  if (dashWidgets) dashWidgets.style.display = page === 'dashboard' ? '' : 'none';
+
   // Update page title
   const titles = {
     dashboard:'Platform Dashboard', tenants:'Tenants', revenue:'Revenue',

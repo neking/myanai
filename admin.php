@@ -1789,6 +1789,7 @@ async function doLogin() {
       <div style="text-align:center"><div id="h-disk" style="font-weight:600">—</div><div style="color:var(--muted)">Disk Free</div></div>
       <div style="text-align:center"><div id="h-errors" style="font-weight:600">—</div><div style="color:var(--muted)">Errors (1h)</div></div>
     </div>
+  </div><!-- end dashboard-widgets -->
   </div><!-- end page-dashboard -->
 <div id="page-saas" style="display:none">
   <div class="page-head">
