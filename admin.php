@@ -2307,6 +2307,8 @@ document.addEventListener('DOMContentLoaded', function() {
 <button onclick="lpeTab('contact')" id="lpe-tab-contact" class="lpe-tab">📞 Contact</button>
 <button onclick="lpeTab('demo')" id="lpe-tab-demo" class="lpe-tab">🎭 Demo</button>
 <button onclick="lpeTab('footer')" id="lpe-tab-footer" class="lpe-tab">🔻 Footer</button>
+<button onclick="lpeTab('benefits')" id="lpe-tab-benefits" class="lpe-tab">✨ Features</button>
+<button onclick="lpeTab('products')" id="lpe-tab-products" class="lpe-tab">📦 Products</button>
 </div>
 <div class="lpe-content">
 <div id="lpe-panel-hero" class="lpe-panel active"><div class="lpe-section"><div class="lpe-section-title">① Title Line 1 (ပထမကြောင်း)</div><div class="lpe-field"><label class="lpe-label"></label><input id="lp-t1" class="lpe-input" placeholder="သင့်လုပ်ငန်းကို" oninput="lpeRT('lp-t1','text',this.value)"><div class="lpe-ctrl"><span class="lpe-ctrl-lbl">Font</span><select id="lp-t1-font" class="lpe-font-sel" onchange="lpeRT('lp-t1','font',this.value)"><option value="">— Default —</option>
@@ -2426,6 +2428,124 @@ document.addEventListener('DOMContentLoaded', function() {
 <option value="'Inter',sans-serif">Inter</option>
 <option value="'DM Sans',sans-serif">DM Sans</option>
 <option value="'Poppins',sans-serif">Poppins</option></select><span class="lpe-ctrl-lbl">Size</span><div class="lpe-range-wrap"><input type="range" id="lp-foot-tagline-size" min="10" max="18" value="13" oninput="document.getElementById('lp-foot-tagline-sz-v').textContent=this.value+'px';document.getElementById('lp-foot-tagline-size-num').value=this.value;lpeRT('lp-foot-tagline','size',this.value)"><input type="number" id="lp-foot-tagline-size-num" value="13" min="10" max="18" style="width:44px;padding:.12rem .2rem;font-size:.7rem;border:1px solid #E2E8F0;border-radius:4px;text-align:center;font-family:monospace;color:#374151" oninput="let v=Math.min(Math.max(parseInt(this.value)||13,10),18);this.value=v;document.getElementById('lp-foot-tagline-size').value=v;document.getElementById('lp-foot-tagline-sz-v').textContent=v+'px';lpeRT('lp-foot-tagline','size',this.value)" onblur="let v=Math.min(Math.max(parseInt(this.value)||13,10),18);this.value=v;document.getElementById('lp-foot-tagline-size').value=v;document.getElementById('lp-foot-tagline-sz-v').textContent=v+'px';"><span style="display:none" id="lp-foot-tagline-sz-v" class="lpe-range-val">13px</span></div><span class="lpe-ctrl-lbl">Align</span><button class="lpe-al on" onclick="lpeAL('lp-foot-tagline','left',this)">⬅</button><button class="lpe-al" onclick="lpeAL('lp-foot-tagline','center',this)">↔</button><button class="lpe-al" onclick="lpeAL('lp-foot-tagline','right',this)">⮕</button><input type="hidden" id="lp-foot-tagline-align" value="left"><span class="lpe-ctrl-lbl">Color</span><div class="lpe-color-wrap"><input type="color" id="lp-foot-tagline-color" value="#64748B" oninput="lpeColorSync('lp-foot-tagline-color');lpeRT('lp-foot-tagline','color',this.value)"><input id="lp-foot-tagline-color-hex" class="lpe-input lpe-color-hex" value="#64748B" oninput="lpeHexSync('lp-foot-tagline-color');lpeRT('lp-foot-tagline','color',document.getElementById('lp-foot-tagline-color').value)"></div></div></div></div></div>
+
+<div id="lpe-panel-benefits" class="lpe-panel">
+  <div class="lpe-section">
+    <div class="lpe-section-title">✨ Feature Cards (6 cards)</div>
+    <div style="font-size:.78rem;color:var(--text-muted);margin-bottom:1rem">Landing page ရဲ့ 6 feature cards တွေကို ပြင်ဆင်ပါ</div>
+
+    <!-- Card 1 -->
+    <div style="background:var(--surface2);border-radius:8px;padding:.75rem;margin-bottom:.75rem">
+      <div style="font-size:.78rem;font-weight:600;margin-bottom:.5rem;color:var(--text-muted)">Card 1</div>
+      <div class="lpe-field"><label class="lpe-label">Icon (emoji)</label><input id="lp-feat1-icon" class="lpe-input" placeholder="🧮" oninput="lpeRT('feat1-icon','text',this.value)"></div>
+      <div class="lpe-field"><label class="lpe-label">Title</label><input id="lp-feat1-title" class="lpe-input" placeholder="Feature title" oninput="lpeRT('feat1-title','text',this.value)"></div>
+      <div class="lpe-field"><label class="lpe-label">Description</label><textarea id="lp-feat1-desc" class="lpe-input" rows="2" style="height:auto" oninput="lpeRT('feat1-desc','text',this.value)"></textarea></div>
+    </div>
+
+    <!-- Card 2 -->
+    <div style="background:var(--surface2);border-radius:8px;padding:.75rem;margin-bottom:.75rem">
+      <div style="font-size:.78rem;font-weight:600;margin-bottom:.5rem;color:var(--text-muted)">Card 2</div>
+      <div class="lpe-field"><label class="lpe-label">Icon (emoji)</label><input id="lp-feat2-icon" class="lpe-input" placeholder="📶" oninput="lpeRT('feat2-icon','text',this.value)"></div>
+      <div class="lpe-field"><label class="lpe-label">Title</label><input id="lp-feat2-title" class="lpe-input" placeholder="Feature title" oninput="lpeRT('feat2-title','text',this.value)"></div>
+      <div class="lpe-field"><label class="lpe-label">Description</label><textarea id="lp-feat2-desc" class="lpe-input" rows="2" style="height:auto" oninput="lpeRT('feat2-desc','text',this.value)"></textarea></div>
+    </div>
+
+    <!-- Card 3 -->
+    <div style="background:var(--surface2);border-radius:8px;padding:.75rem;margin-bottom:.75rem">
+      <div style="font-size:.78rem;font-weight:600;margin-bottom:.5rem;color:var(--text-muted)">Card 3</div>
+      <div class="lpe-field"><label class="lpe-label">Icon (emoji)</label><input id="lp-feat3-icon" class="lpe-input" placeholder="💳" oninput="lpeRT('feat3-icon','text',this.value)"></div>
+      <div class="lpe-field"><label class="lpe-label">Title</label><input id="lp-feat3-title" class="lpe-input" placeholder="Feature title" oninput="lpeRT('feat3-title','text',this.value)"></div>
+      <div class="lpe-field"><label class="lpe-label">Description</label><textarea id="lp-feat3-desc" class="lpe-input" rows="2" style="height:auto" oninput="lpeRT('feat3-desc','text',this.value)"></textarea></div>
+    </div>
+
+    <!-- Card 4 -->
+    <div style="background:var(--surface2);border-radius:8px;padding:.75rem;margin-bottom:.75rem">
+      <div style="font-size:.78rem;font-weight:600;margin-bottom:.5rem;color:var(--text-muted)">Card 4</div>
+      <div class="lpe-field"><label class="lpe-label">Icon (emoji)</label><input id="lp-feat4-icon" class="lpe-input" placeholder="📱" oninput="lpeRT('feat4-icon','text',this.value)"></div>
+      <div class="lpe-field"><label class="lpe-label">Title</label><input id="lp-feat4-title" class="lpe-input" placeholder="Feature title" oninput="lpeRT('feat4-title','text',this.value)"></div>
+      <div class="lpe-field"><label class="lpe-label">Description</label><textarea id="lp-feat4-desc" class="lpe-input" rows="2" style="height:auto" oninput="lpeRT('feat4-desc','text',this.value)"></textarea></div>
+    </div>
+
+    <!-- Card 5 -->
+    <div style="background:var(--surface2);border-radius:8px;padding:.75rem;margin-bottom:.75rem">
+      <div style="font-size:.78rem;font-weight:600;margin-bottom:.5rem;color:var(--text-muted)">Card 5</div>
+      <div class="lpe-field"><label class="lpe-label">Icon (emoji)</label><input id="lp-feat5-icon" class="lpe-input" placeholder="📊" oninput="lpeRT('feat5-icon','text',this.value)"></div>
+      <div class="lpe-field"><label class="lpe-label">Title</label><input id="lp-feat5-title" class="lpe-input" placeholder="Feature title" oninput="lpeRT('feat5-title','text',this.value)"></div>
+      <div class="lpe-field"><label class="lpe-label">Description</label><textarea id="lp-feat5-desc" class="lpe-input" rows="2" style="height:auto" oninput="lpeRT('feat5-desc','text',this.value)"></textarea></div>
+    </div>
+
+    <!-- Card 6 -->
+    <div style="background:var(--surface2);border-radius:8px;padding:.75rem;margin-bottom:.75rem">
+      <div style="font-size:.78rem;font-weight:600;margin-bottom:.5rem;color:var(--text-muted)">Card 6</div>
+      <div class="lpe-field"><label class="lpe-label">Icon (emoji)</label><input id="lp-feat6-icon" class="lpe-input" placeholder="👥" oninput="lpeRT('feat6-icon','text',this.value)"></div>
+      <div class="lpe-field"><label class="lpe-label">Title</label><input id="lp-feat6-title" class="lpe-input" placeholder="Feature title" oninput="lpeRT('feat6-title','text',this.value)"></div>
+      <div class="lpe-field"><label class="lpe-label">Description</label><textarea id="lp-feat6-desc" class="lpe-input" rows="2" style="height:auto" oninput="lpeRT('feat6-desc','text',this.value)"></textarea></div>
+    </div>
+
+    <!-- Section heading -->
+    <div style="background:var(--surface2);border-radius:8px;padding:.75rem;margin-bottom:.75rem">
+      <div style="font-size:.78rem;font-weight:600;margin-bottom:.5rem;color:var(--text-muted)">Section Heading</div>
+      <div class="lpe-field"><label class="lpe-label">Line 1</label><input id="lp-products-h1" class="lpe-input" placeholder="သင့်ဆိုင်ကို ပိုမိုလွယ်ကူ" oninput="lpeRT('products-heading-l1','text',this.value)"></div>
+      <div class="lpe-field"><label class="lpe-label">Line 2 (accent color)</label><input id="lp-products-h2" class="lpe-input" placeholder="စီမံနိုင်မယ့် နည်းလမ်းများ" oninput="lpeRT('products-heading-l2','text',this.value)"></div>
+    </div>
+  </div>
+</div>
+
+<div id="lpe-panel-products" class="lpe-panel">
+  <div class="lpe-section">
+    <div class="lpe-section-title">📦 Products Section</div>
+    <div style="font-size:.78rem;color:var(--text-muted);margin-bottom:1rem">MyanAi Products (POS, HR, Bot) ကို ပြင်ဆင်ပါ</div>
+
+    <!-- POS Product -->
+    <div style="background:var(--surface2);border-radius:8px;padding:.75rem;margin-bottom:.75rem">
+      <div style="font-size:.78rem;font-weight:600;margin-bottom:.5rem;color:var(--text-muted)">MyanAi POS</div>
+      <div class="lpe-field"><label class="lpe-label">Name</label><input id="lp-prod1-name" class="lpe-input" placeholder="MyanAi POS" oninput="lpeRT('prod1-name','text',this.value)"></div>
+      <div class="lpe-field"><label class="lpe-label">Description</label><textarea id="lp-prod1-desc" class="lpe-input" rows="2" style="height:auto" oninput="lpeRT('prod1-desc','text',this.value)"></textarea></div>
+      <div class="lpe-field"><label class="lpe-label">Status badge</label>
+        <select id="lp-prod1-status" class="lpe-input" onchange="lpeRT('prod1-status','text',this.value)">
+          <option value="✓ Live now">✓ Live now</option>
+          <option value="Coming soon">Coming soon</option>
+          <option value="Beta">Beta</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- HR Product -->
+    <div style="background:var(--surface2);border-radius:8px;padding:.75rem;margin-bottom:.75rem">
+      <div style="font-size:.78rem;font-weight:600;margin-bottom:.5rem;color:var(--text-muted)">MyanAi HR</div>
+      <div class="lpe-field"><label class="lpe-label">Name</label><input id="lp-prod2-name" class="lpe-input" placeholder="MyanAi HR" oninput="lpeRT('prod2-name','text',this.value)"></div>
+      <div class="lpe-field"><label class="lpe-label">Description</label><textarea id="lp-prod2-desc" class="lpe-input" rows="2" style="height:auto" oninput="lpeRT('prod2-desc','text',this.value)"></textarea></div>
+      <div class="lpe-field"><label class="lpe-label">Status badge</label>
+        <select id="lp-prod2-status" class="lpe-input" onchange="lpeRT('prod2-status','text',this.value)">
+          <option value="Coming soon">Coming soon</option>
+          <option value="✓ Live now">✓ Live now</option>
+          <option value="Beta">Beta</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Bot Product -->
+    <div style="background:var(--surface2);border-radius:8px;padding:.75rem;margin-bottom:.75rem">
+      <div style="font-size:.78rem;font-weight:600;margin-bottom:.5rem;color:var(--text-muted)">MyanAi Bot</div>
+      <div class="lpe-field"><label class="lpe-label">Name</label><input id="lp-prod3-name" class="lpe-input" placeholder="MyanAi Bot" oninput="lpeRT('prod3-name','text',this.value)"></div>
+      <div class="lpe-field"><label class="lpe-label">Description</label><textarea id="lp-prod3-desc" class="lpe-input" rows="2" style="height:auto" oninput="lpeRT('prod3-desc','text',this.value)"></textarea></div>
+      <div class="lpe-field"><label class="lpe-label">Status badge</label>
+        <select id="lp-prod3-status" class="lpe-input" onchange="lpeRT('prod3-status','text',this.value)">
+          <option value="Coming soon">Coming soon</option>
+          <option value="✓ Live now">✓ Live now</option>
+          <option value="Beta">Beta</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Pricing heading -->
+    <div style="background:var(--surface2);border-radius:8px;padding:.75rem">
+      <div style="font-size:.78rem;font-weight:600;margin-bottom:.5rem;color:var(--text-muted)">Pricing Section</div>
+      <div class="lpe-field"><label class="lpe-label">Pricing heading</label><input id="lp-pricing-h" class="lpe-input" placeholder="မြန်မာသင့်တော် နှင်းဆင်း plan" oninput="lpeRT('pricing-heading','text',this.value)"></div>
+      <div class="lpe-field"><label class="lpe-label">Pricing subtext</label><input id="lp-pricing-sub" class="lpe-input" placeholder="Trial 14 days — credit card မလိုဘဲ" oninput="lpeRT('pricing-sub','text',this.value)"></div>
+    </div>
+  </div>
+</div>
 </div>
   </div>
 

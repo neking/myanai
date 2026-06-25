@@ -3176,6 +3176,19 @@ async function lpeSave(){
     demo_email:g('lp-demo-email'), demo_password:g('lp-demo-pass'), demo_btn_text:g('lp-demo-btn'),
     // Footer
     footer_copyright:g('lp-copyright'), footer_tagline:g('lp-foot-tagline'),
+    // Feature cards
+    feat1_icon:g('lp-feat1-icon'), feat1_title:g('lp-feat1-title'), feat1_desc:g('lp-feat1-desc'),
+    feat2_icon:g('lp-feat2-icon'), feat2_title:g('lp-feat2-title'), feat2_desc:g('lp-feat2-desc'),
+    feat3_icon:g('lp-feat3-icon'), feat3_title:g('lp-feat3-title'), feat3_desc:g('lp-feat3-desc'),
+    feat4_icon:g('lp-feat4-icon'), feat4_title:g('lp-feat4-title'), feat4_desc:g('lp-feat4-desc'),
+    feat5_icon:g('lp-feat5-icon'), feat5_title:g('lp-feat5-title'), feat5_desc:g('lp-feat5-desc'),
+    feat6_icon:g('lp-feat6-icon'), feat6_title:g('lp-feat6-title'), feat6_desc:g('lp-feat6-desc'),
+    products_h1:g('lp-products-h1'), products_h2:g('lp-products-h2'),
+    // Products
+    prod1_name:g('lp-prod1-name'), prod1_desc:g('lp-prod1-desc'), prod1_status:g('lp-prod1-status'),
+    prod2_name:g('lp-prod2-name'), prod2_desc:g('lp-prod2-desc'), prod2_status:g('lp-prod2-status'),
+    prod3_name:g('lp-prod3-name'), prod3_desc:g('lp-prod3-desc'), prod3_status:g('lp-prod3-status'),
+    pricing_heading:g('lp-pricing-h'), pricing_sub:g('lp-pricing-sub'),
   };
   try{
     const res=await fetch('/site_settings.php?action=save',{
@@ -3232,6 +3245,21 @@ async function lpeLoad(){
     set('lp-demo-btn',s.demo_btn_text);
     // Footer
     set('lp-copyright',s.footer_copyright); set('lp-foot-tagline',s.footer_tagline);
+    // Feature cards
+    for(let i=1;i<=6;i++){
+      set('lp-feat'+i+'-icon', s['feat'+i+'_icon']);
+      set('lp-feat'+i+'-title', s['feat'+i+'_title']);
+      set('lp-feat'+i+'-desc', s['feat'+i+'_desc']);
+    }
+    set('lp-products-h1', s.products_h1); set('lp-products-h2', s.products_h2);
+    // Products
+    for(let i=1;i<=3;i++){
+      set('lp-prod'+i+'-name', s['prod'+i+'_name']);
+      set('lp-prod'+i+'-desc', s['prod'+i+'_desc']);
+      const sel = document.getElementById('lp-prod'+i+'-status');
+      if(sel && s['prod'+i+'_status']) sel.value = s['prod'+i+'_status'];
+    }
+    set('lp-pricing-h', s.pricing_heading); set('lp-pricing-sub', s.pricing_sub);
   }catch(e){ console.error('lpeLoad:',e); }
 }
 
