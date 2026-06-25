@@ -3245,21 +3245,47 @@ async function lpeLoad(){
     set('lp-demo-btn',s.demo_btn_text);
     // Footer
     set('lp-copyright',s.footer_copyright); set('lp-foot-tagline',s.footer_tagline);
-    // Feature cards
+    // Feature cards — show saved value OR default placeholder from landing page
+    const FEAT_DEFAULTS = [
+      {icon:'🧮', title:'စာရင်းဇယား အလိုအလျောက် တွက်ချက်', desc:'ကိုယ်တိုင် တွက်ချက်ရန် မလိုဘဲ ဝင်ငွေ၊ ကုန်ကျစရိတ်နှင့် အမြတ်ကို System က ဖော်ပြပေးသည်'},
+      {icon:'📶', title:'Internet မပါဘဲ ဆက်သုံးနိုင်', desc:'အင်တာနက် ပြတ်သွားလည်း ဆိုင်ပိတ်ရန် မလို — Order ခံ၍ ငွေကောက်ခံနိုင်သည်'},
+      {icon:'💳', title:'KBZPay · Wave Money ချိတ်ဆက်', desc:'မြန်မာ ငွေပေးချေစနစ် အားလုံး တစ်နေရာတည်းမှ လက်ခံ မှတ်တမ်းတင်နိုင်'},
+      {icon:'📱', title:'ဖုန်းဖြင့် Real-time ကြည့်ရှု', desc:'ဆိုင်မှ မနေဘဲ မည်သည့်နေရာမဆို ဝင်ငွေနှင့် အခြေအနေ စစ်ဆေးနိုင်'},
+      {icon:'📊', title:'နေ့စဉ် Report အလိုအလျောက်', desc:'ဝင်ငွေ၊ အရောင်းကောင်းသောပစ္စည်း၊ ဝန်ထမ်းစွမ်းဆောင်ရည် ပုံနှိပ်ရန်အသင့် ထုတ်'},
+      {icon:'👥', title:'ဝန်ထမ်းစီမံခန့်ခွဲမှု', desc:'ဝန်ထမ်းတစ်ဦးချင်း ရောင်းချမှုနှင့် အချိန်ဆင်းမှတ်တမ်း System က ထောက်လှမ်းပေး'},
+    ];
     for(let i=1;i<=6;i++){
-      set('lp-feat'+i+'-icon', s['feat'+i+'_icon']);
-      set('lp-feat'+i+'-title', s['feat'+i+'_title']);
-      set('lp-feat'+i+'-desc', s['feat'+i+'_desc']);
+      const def = FEAT_DEFAULTS[i-1];
+      const el_i = document.getElementById('lp-feat'+i+'-icon');
+      const el_t = document.getElementById('lp-feat'+i+'-title');
+      const el_d = document.getElementById('lp-feat'+i+'-desc');
+      if(el_i) el_i.value = s['feat'+i+'_icon'] || def.icon;
+      if(el_t) el_t.value = s['feat'+i+'_title'] || def.title;
+      if(el_d) el_d.value = s['feat'+i+'_desc'] || def.desc;
     }
-    set('lp-products-h1', s.products_h1); set('lp-products-h2', s.products_h2);
+    const ph1el = document.getElementById('lp-products-h1');
+    const ph2el = document.getElementById('lp-products-h2');
+    if(ph1el) ph1el.value = s.products_h1 || 'သင့်ဆိုင်ကို ပိုမိုလွယ်ကူ';
+    if(ph2el) ph2el.value = s.products_h2 || 'စီမံနိုင်မယ့် နည်းလမ်းများ';
     // Products
+    const PROD_DEFAULTS = [
+      {name:'MyanAi POS', desc:'Restaurant & F&B အတွက် complete POS system — orders, KDS, tables, staff, stock, delivery, CRM', status:'✓ Live now'},
+      {name:'MyanAi HR',  desc:'HR & payroll management — employee records, attendance, salary calculation, leave management', status:'Coming soon'},
+      {name:'MyanAi Bot', desc:'AI customer service bot — Myanmar language, auto-reply, order taking, FAQ handling', status:'Coming soon'},
+    ];
     for(let i=1;i<=3;i++){
-      set('lp-prod'+i+'-name', s['prod'+i+'_name']);
-      set('lp-prod'+i+'-desc', s['prod'+i+'_desc']);
-      const sel = document.getElementById('lp-prod'+i+'-status');
-      if(sel && s['prod'+i+'_status']) sel.value = s['prod'+i+'_status'];
+      const def = PROD_DEFAULTS[i-1];
+      const el_n = document.getElementById('lp-prod'+i+'-name');
+      const el_d = document.getElementById('lp-prod'+i+'-desc');
+      const el_s = document.getElementById('lp-prod'+i+'-status');
+      if(el_n) el_n.value = s['prod'+i+'_name'] || def.name;
+      if(el_d) el_d.value = s['prod'+i+'_desc'] || def.desc;
+      if(el_s) el_s.value = s['prod'+i+'_status'] || def.status;
     }
-    set('lp-pricing-h', s.pricing_heading); set('lp-pricing-sub', s.pricing_sub);
+    const prH = document.getElementById('lp-pricing-h');
+    const prS = document.getElementById('lp-pricing-sub');
+    if(prH) prH.value = s.pricing_heading || 'မြန်မာသင့်တော် နှင်းဆင်းနှင်းနှင်း plan';
+    if(prS) prS.value = s.pricing_sub || 'Trial 14 days — credit card မလိုဘဲ စမ်းသုံးနိုင်';
   }catch(e){ console.error('lpeLoad:',e); }
 }
 
