@@ -1789,10 +1789,7 @@ async function doLogin() {
       <div style="text-align:center"><div id="h-disk" style="font-weight:600">—</div><div style="color:var(--muted)">Disk Free</div></div>
       <div style="text-align:center"><div id="h-errors" style="font-weight:600">—</div><div style="color:var(--muted)">Errors (1h)</div></div>
     </div>
-  </div>
-</div><!-- end page-dashboard -->
-
-<!-- ═══ SAAS DASHBOARD ═══ -->
+  </div><!-- end page-dashboard -->
 <div id="page-saas" style="display:none">
   <div class="page-head">
     <div style="display:flex;align-items:center;gap:.5rem">
@@ -3142,5 +3139,7 @@ async function disable2FA() {
 </script>
 <!-- ── UPGRADE PAGE ── -->
 
+  </div><!-- end div.main -->
+</div><!-- end #app -->
 </body>
 </html>
