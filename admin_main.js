@@ -3176,6 +3176,24 @@ async function lpeSave(){
     demo_email:g('lp-demo-email'), demo_password:g('lp-demo-pass'), demo_btn_text:g('lp-demo-btn'),
     // Footer
     footer_copyright:g('lp-copyright'), footer_tagline:g('lp-foot-tagline'),
+    // Stats bar
+    stat1_num:g('lp-stat1-num'), stat1_lbl:g('lp-stat1-lbl'),
+    stat2_num:g('lp-stat2-num'), stat2_lbl:g('lp-stat2-lbl'),
+    stat3_num:g('lp-stat3-num'), stat3_lbl:g('lp-stat3-lbl'),
+    stat4_num:g('lp-stat4-num'), stat4_lbl:g('lp-stat4-lbl'),
+    // Trust section
+    trust_heading:g('lp-trust-heading'),
+    trust1_icon:g('lp-trust1-icon'), trust1_title:g('lp-trust1-title'), trust1_desc:g('lp-trust1-desc'),
+    trust2_icon:g('lp-trust2-icon'), trust2_title:g('lp-trust2-title'), trust2_desc:g('lp-trust2-desc'),
+    trust3_icon:g('lp-trust3-icon'), trust3_title:g('lp-trust3-title'), trust3_desc:g('lp-trust3-desc'),
+    trust4_icon:g('lp-trust4-icon'), trust4_title:g('lp-trust4-title'), trust4_desc:g('lp-trust4-desc'),
+    trust5_icon:g('lp-trust5-icon'), trust5_title:g('lp-trust5-title'), trust5_desc:g('lp-trust5-desc'),
+    trust6_icon:g('lp-trust6-icon'), trust6_title:g('lp-trust6-title'), trust6_desc:g('lp-trust6-desc'),
+    // Pricing
+    pricing_h1:g('lp-pricing-h1'), pricing_h2:g('lp-pricing-h2'), pricing_h3:g('lp-pricing-h3'),
+    pricing_sub:g('lp-pricing-sub-new'),
+    // Hero desc
+    hero_desc_text:g('lp-hero-desc'),
     // Feature cards
     feat1_icon:g('lp-feat1-icon'), feat1_title:g('lp-feat1-title'), feat1_desc:g('lp-feat1-desc'),
     feat2_icon:g('lp-feat2-icon'), feat2_title:g('lp-feat2-title'), feat2_desc:g('lp-feat2-desc'),
@@ -3245,6 +3263,39 @@ async function lpeLoad(){
     set('lp-demo-btn',s.demo_btn_text);
     // Footer
     set('lp-copyright',s.footer_copyright); set('lp-foot-tagline',s.footer_tagline);
+    // Stats bar
+    const STAT_DEFAULTS = [
+      {num:'14+', lbl:'Active businesses'}, {num:'99.9%', lbl:'Uptime'},
+      {num:'KBZPay', lbl:'+ Wave Money'}, {num:'Offline', lbl:'PWA ready'},
+    ];
+    for(let i=1;i<=4;i++){
+      const def=STAT_DEFAULTS[i-1];
+      const en=document.getElementById('lp-stat'+i+'-num'); if(en) en.value=s['stat'+i+'_num']||def.num;
+      const el=document.getElementById('lp-stat'+i+'-lbl'); if(el) el.value=s['stat'+i+'_lbl']||def.lbl;
+    }
+    // Trust section
+    const th=document.getElementById('lp-trust-heading'); if(th) th.value=s.trust_heading||'ဘာကြောင့် MyanAi ကို ယုံကြည်ကြသလဲ';
+    const TRUST_DEFAULTS=[
+      {icon:'🇲🇲',title:'မြန်မာများ ဖန်တီး',desc:'မြန်မာ့စီးပွားရေး နားလည်သောသူများ ကိုယ်တိုင်'},
+      {icon:'📞',title:'မြန်မာဘာသာ Support',desc:'အချိန်မရွေး ဖုန်းဆက် မေးနိုင်'},
+      {icon:'🎓',title:'အစအဆုံး သင်ပေး',desc:'Video + ဆရာ တကယ်သင်ပေး'},
+      {icon:'🔒',title:'Data လုံခြုံ',desc:'သင့်ဆိုင် data လုံခြုံစိတ်ချ'},
+      {icon:'💰',title:'၁၄ ရက် အခမဲ့',desc:'Credit card မလိုဘဲ စမ်းသုံးနိုင်'},
+      {icon:'⭐',title:'ဆိုင် ၁၄+ ယုံကြည်',desc:'မြန်မာတစ်နိုင်ငံလုံး လက်ရှိသုံးနေ'},
+    ];
+    for(let i=1;i<=6;i++){
+      const def=TRUST_DEFAULTS[i-1];
+      const ei=document.getElementById('lp-trust'+i+'-icon'); if(ei) ei.value=s['trust'+i+'_icon']||def.icon;
+      const et=document.getElementById('lp-trust'+i+'-title'); if(et) et.value=s['trust'+i+'_title']||def.title;
+      const ed=document.getElementById('lp-trust'+i+'-desc'); if(ed) ed.value=s['trust'+i+'_desc']||def.desc;
+    }
+    // Pricing
+    const ph1=document.getElementById('lp-pricing-h1'); if(ph1) ph1.value=s.pricing_h1||'မြန်မာဆိုင်တွေ';
+    const ph2=document.getElementById('lp-pricing-h2'); if(ph2) ph2.value=s.pricing_h2||'နိုင်နိုင်နင်းနင်း';
+    const ph3=document.getElementById('lp-pricing-h3'); if(ph3) ph3.value=s.pricing_h3||'ဝင်နိုင်တဲ့ plan';
+    const psn=document.getElementById('lp-pricing-sub-new'); if(psn) psn.value=s.pricing_sub||'Trial 14 days — credit card မလိုဘဲ စမ်းနိုင်';
+    // Hero desc
+    const hd=document.getElementById('lp-hero-desc'); if(hd) hd.value=s.hero_desc_text||'စားသောက်ဆိုင်၊ လက်လီဆိုင်၊ ဝန်ဆောင်မှုလုပ်ငန်း — မည်သည့် business မဆို ၅ မိနစ်အတွင်း စတင်နိုင်';
     // Feature cards — show saved value OR default placeholder from landing page
     const FEAT_DEFAULTS = [
       {icon:'🧮', title:'စာရင်းဇယား အလိုအလျောက် တွက်ချက်', desc:'ကိုယ်တိုင် တွက်ချက်ရန် မလိုဘဲ ဝင်ငွေ၊ ကုန်ကျစရိတ်နှင့် အမြတ်ကို System က ဖော်ပြပေးသည်'},

@@ -2309,6 +2309,8 @@ document.addEventListener('DOMContentLoaded', function() {
 <button onclick="lpeTab('footer')" id="lpe-tab-footer" class="lpe-tab">🔻 Footer</button>
 <button onclick="lpeTab('benefits')" id="lpe-tab-benefits" class="lpe-tab">✨ Features</button>
 <button onclick="lpeTab('products')" id="lpe-tab-products" class="lpe-tab">📦 Products</button>
+<button onclick="lpeTab('stats')" id="lpe-tab-stats" class="lpe-tab">📊 Stats</button>
+<button onclick="lpeTab('trust')" id="lpe-tab-trust" class="lpe-tab">🤝 Trust</button>
 </div>
 <div class="lpe-content">
 <div id="lpe-panel-hero" class="lpe-panel active"><div class="lpe-section"><div class="lpe-section-title">① Title Line 1 (ပထမကြောင်း)</div><div class="lpe-field"><label class="lpe-label"></label><input id="lp-t1" class="lpe-input" placeholder="သင့်လုပ်ငန်းကို" oninput="lpeRT('lp-t1','text',this.value)"><div class="lpe-ctrl"><span class="lpe-ctrl-lbl">Font</span><select id="lp-t1-font" class="lpe-font-sel" onchange="lpeRT('lp-t1','font',this.value)"><option value="">— Default —</option>
@@ -2329,7 +2331,7 @@ document.addEventListener('DOMContentLoaded', function() {
 <option value="'Pyidaungsu',sans-serif">Pyidaungsu</option>
 <option value="'Inter',sans-serif">Inter</option>
 <option value="'DM Sans',sans-serif">DM Sans</option>
-<option value="'Poppins',sans-serif">Poppins</option></select><span class="lpe-ctrl-lbl">Size</span><div class="lpe-range-wrap"><input type="range" id="lp-sub-size" min="12" max="32" value="16" oninput="document.getElementById('lp-sub-sz-v').textContent=this.value+'px';document.getElementById('lp-sub-size-num').value=this.value;lpeRT('lp-sub','size',this.value)"><input type="number" id="lp-sub-size-num" value="16" min="12" max="32" style="width:44px;padding:.12rem .2rem;font-size:.7rem;border:1px solid #E2E8F0;border-radius:4px;text-align:center;font-family:monospace;color:#374151" oninput="let v=Math.min(Math.max(parseInt(this.value)||16,12),32);this.value=v;document.getElementById('lp-sub-size').value=v;document.getElementById('lp-sub-sz-v').textContent=v+'px';lpeRT('lp-sub','size',this.value)" onblur="let v=Math.min(Math.max(parseInt(this.value)||16,12),32);this.value=v;document.getElementById('lp-sub-size').value=v;document.getElementById('lp-sub-sz-v').textContent=v+'px';"><span style="display:none" id="lp-sub-sz-v" class="lpe-range-val">16px</span></div><span class="lpe-ctrl-lbl">Align</span><button class="lpe-al on" onclick="lpeAL('lp-sub','left',this)">⬅</button><button class="lpe-al" onclick="lpeAL('lp-sub','center',this)">↔</button><button class="lpe-al" onclick="lpeAL('lp-sub','right',this)">⮕</button><input type="hidden" id="lp-sub-align" value="left"><span class="lpe-ctrl-lbl">Color</span><div class="lpe-color-wrap"><input type="color" id="lp-sub-color" value="#57534E" oninput="lpeColorSync('lp-sub-color');lpeRT('lp-sub','color',this.value)"><input id="lp-sub-color-hex" class="lpe-input lpe-color-hex" value="#57534E" oninput="lpeHexSync('lp-sub-color');lpeRT('lp-sub','color',document.getElementById('lp-sub-color').value)"></div><span class="lpe-ctrl-lbl">LineH</span><div class="lpe-range-wrap"><input type="range" id="lp-sub-lh" min="1.0" max="3.5" step="0.1" value="1.4" oninput="document.getElementById('lp-sub-lh-v').textContent=this.value;lpeRT('lp-sub','lh',this.value)"><span id="lp-sub-lh-v" class="lpe-range-val">1.4</span></div></div></div></div><div class="lpe-section"><div class="lpe-section-title">④ Description</div><div class="lpe-field"><label class="lpe-label"></label><textarea id="lp-desc" class="lpe-textarea" placeholder="POS, HR, Analytics…" rows="3" oninput="lpeRT('lp-desc','text',this.value)"></textarea><div class="lpe-ctrl"><span class="lpe-ctrl-lbl">Font</span><select id="lp-desc-font" class="lpe-font-sel" onchange="lpeRT('lp-desc','font',this.value)"><option value="">— Default —</option>
+<option value="'Poppins',sans-serif">Poppins</option></select><span class="lpe-ctrl-lbl">Size</span><div class="lpe-range-wrap"><input type="range" id="lp-sub-size" min="12" max="32" value="16" oninput="document.getElementById('lp-sub-sz-v').textContent=this.value+'px';document.getElementById('lp-sub-size-num').value=this.value;lpeRT('lp-sub','size',this.value)"><input type="number" id="lp-sub-size-num" value="16" min="12" max="32" style="width:44px;padding:.12rem .2rem;font-size:.7rem;border:1px solid #E2E8F0;border-radius:4px;text-align:center;font-family:monospace;color:#374151" oninput="let v=Math.min(Math.max(parseInt(this.value)||16,12),32);this.value=v;document.getElementById('lp-sub-size').value=v;document.getElementById('lp-sub-sz-v').textContent=v+'px';lpeRT('lp-sub','size',this.value)" onblur="let v=Math.min(Math.max(parseInt(this.value)||16,12),32);this.value=v;document.getElementById('lp-sub-size').value=v;document.getElementById('lp-sub-sz-v').textContent=v+'px';"><span style="display:none" id="lp-sub-sz-v" class="lpe-range-val">16px</span></div><span class="lpe-ctrl-lbl">Align</span><button class="lpe-al on" onclick="lpeAL('lp-sub','left',this)">⬅</button><button class="lpe-al" onclick="lpeAL('lp-sub','center',this)">↔</button><button class="lpe-al" onclick="lpeAL('lp-sub','right',this)">⮕</button><input type="hidden" id="lp-sub-align" value="left"><span class="lpe-ctrl-lbl">Color</span><div class="lpe-color-wrap"><input type="color" id="lp-sub-color" value="#57534E" oninput="lpeColorSync('lp-sub-color');lpeRT('lp-sub','color',this.value)"><input id="lp-sub-color-hex" class="lpe-input lpe-color-hex" value="#57534E" oninput="lpeHexSync('lp-sub-color');lpeRT('lp-sub','color',document.getElementById('lp-sub-color').value)"></div><span class="lpe-ctrl-lbl">LineH</span><div class="lpe-range-wrap"><input type="range" id="lp-sub-lh" min="1.0" max="3.5" step="0.1" value="1.4" oninput="document.getElementById('lp-sub-lh-v').textContent=this.value;lpeRT('lp-sub','lh',this.value)"><span id="lp-sub-lh-v" class="lpe-range-val">1.4</span></div></div></div></div><div class="lpe-section"><div class="lpe-section-title">⓪ Hero body text (မြန်မာ short desc)</div><div class="lpe-field"><label class="lpe-label">Body text</label><textarea id="lp-hero-desc" class="lpe-input" rows="2" style="height:auto;width:100%;font-size:.82rem" placeholder="စားသောက်ဆိုင်၊ လက်လီဆိုင်..." oninput="lpeRT('hero-desc','text',this.value)"></textarea></div></div><div class="lpe-section"><div class="lpe-section-title">④ Description</div><div class="lpe-field"><label class="lpe-label"></label><textarea id="lp-desc" class="lpe-textarea" placeholder="POS, HR, Analytics…" rows="3" oninput="lpeRT('lp-desc','text',this.value)"></textarea><div class="lpe-ctrl"><span class="lpe-ctrl-lbl">Font</span><select id="lp-desc-font" class="lpe-font-sel" onchange="lpeRT('lp-desc','font',this.value)"><option value="">— Default —</option>
 <option value="'Noto Sans Myanmar','Pyidaungsu','Padauk',sans-serif">Noto Sans Myanmar ★</option>
 <option value="'Padauk',sans-serif">Padauk</option>
 <option value="'Pyidaungsu',sans-serif">Pyidaungsu</option>
@@ -2541,8 +2543,79 @@ document.addEventListener('DOMContentLoaded', function() {
     <!-- Pricing heading -->
     <div style="background:var(--surface2);border-radius:8px;padding:.75rem">
       <div style="font-size:.78rem;font-weight:600;margin-bottom:.5rem;color:var(--text-muted)">Pricing Section</div>
-      <div class="lpe-field"><label class="lpe-label">Pricing heading</label><input id="lp-pricing-h" class="lpe-input" placeholder="မြန်မာသင့်တော် နှင်းဆင်း plan" oninput="lpeRT('pricing-heading','text',this.value)"></div>
-      <div class="lpe-field"><label class="lpe-label">Pricing subtext</label><input id="lp-pricing-sub" class="lpe-input" placeholder="Trial 14 days — credit card မလိုဘဲ" oninput="lpeRT('pricing-sub','text',this.value)"></div>
+      <div class="lpe-field"><label class="lpe-label">Pricing line 1</label><input id="lp-pricing-h1" class="lpe-input" placeholder="မြန်မာဆိုင်တွေ" oninput="lpeRT('pricing-h1','text',this.value)"></div>
+      <div class="lpe-field"><label class="lpe-label">Pricing line 2 (gold)</label><input id="lp-pricing-h2" class="lpe-input" placeholder="နိုင်နိုင်နင်းနင်း" oninput="lpeRT('pricing-h2','text',this.value)"></div>
+      <div class="lpe-field"><label class="lpe-label">Pricing line 3</label><input id="lp-pricing-h3" class="lpe-input" placeholder="ဝင်နိုင်တဲ့ plan" oninput="lpeRT('pricing-h3','text',this.value)"></div>
+      <div class="lpe-field"><label class="lpe-label">Pricing subtext</label><input id="lp-pricing-sub-new" class="lpe-input" placeholder="Trial 14 days — credit card မလိုဘဲ" oninput="lpeRT('pricing-sub','text',this.value)"></div>
+    </div>
+  </div>
+</div>
+<div id="lpe-panel-stats" class="lpe-panel">
+  <div class="lpe-section">
+    <div class="lpe-section-title">📊 Stats Bar (4 numbers)</div>
+    <div style="font-size:.78rem;color:var(--text-muted);margin-bottom:1rem">Landing page stats bar ကို ပြင်ဆင်ပါ</div>
+    <div style="background:var(--surface2);border-radius:8px;padding:.75rem;margin-bottom:.75rem">
+      <div style="font-size:.78rem;font-weight:600;margin-bottom:.5rem;color:var(--text-muted)">Stat 1</div>
+      <div class="lpe-field"><label class="lpe-label">Number/Value</label><input id="lp-stat1-num" class="lpe-input" placeholder="Stat value" oninput="lpeRT('stat1-num','text',this.value)"></div>
+      <div class="lpe-field"><label class="lpe-label">Label</label><input id="lp-stat1-lbl" class="lpe-input" placeholder="Label" oninput="lpeRT('stat1-lbl','text',this.value)"></div>
+    </div>
+    <div style="background:var(--surface2);border-radius:8px;padding:.75rem;margin-bottom:.75rem">
+      <div style="font-size:.78rem;font-weight:600;margin-bottom:.5rem;color:var(--text-muted)">Stat 2</div>
+      <div class="lpe-field"><label class="lpe-label">Number/Value</label><input id="lp-stat2-num" class="lpe-input" placeholder="Stat value" oninput="lpeRT('stat2-num','text',this.value)"></div>
+      <div class="lpe-field"><label class="lpe-label">Label</label><input id="lp-stat2-lbl" class="lpe-input" placeholder="Label" oninput="lpeRT('stat2-lbl','text',this.value)"></div>
+    </div>
+    <div style="background:var(--surface2);border-radius:8px;padding:.75rem;margin-bottom:.75rem">
+      <div style="font-size:.78rem;font-weight:600;margin-bottom:.5rem;color:var(--text-muted)">Stat 3</div>
+      <div class="lpe-field"><label class="lpe-label">Number/Value</label><input id="lp-stat3-num" class="lpe-input" placeholder="Stat value" oninput="lpeRT('stat3-num','text',this.value)"></div>
+      <div class="lpe-field"><label class="lpe-label">Label</label><input id="lp-stat3-lbl" class="lpe-input" placeholder="Label" oninput="lpeRT('stat3-lbl','text',this.value)"></div>
+    </div>
+    <div style="background:var(--surface2);border-radius:8px;padding:.75rem;margin-bottom:.75rem">
+      <div style="font-size:.78rem;font-weight:600;margin-bottom:.5rem;color:var(--text-muted)">Stat 4</div>
+      <div class="lpe-field"><label class="lpe-label">Number/Value</label><input id="lp-stat4-num" class="lpe-input" placeholder="Stat value" oninput="lpeRT('stat4-num','text',this.value)"></div>
+      <div class="lpe-field"><label class="lpe-label">Label</label><input id="lp-stat4-lbl" class="lpe-input" placeholder="Label" oninput="lpeRT('stat4-lbl','text',this.value)"></div>
+    </div>
+  </div>
+</div>
+
+<div id="lpe-panel-trust" class="lpe-panel">
+  <div class="lpe-section">
+    <div class="lpe-section-title">🤝 Trust Section</div>
+    <div class="lpe-field"><label class="lpe-label">Section heading</label><input id="lp-trust-heading" class="lpe-input" placeholder="ဘာကြောင့် MyanAi ကို ယုံကြည်ကြသလဲ" oninput="lpeRT('trust-heading-text','text',this.value)"></div>
+    <div style="background:var(--surface2);border-radius:8px;padding:.75rem;margin-bottom:.75rem">
+      <div style="font-size:.78rem;font-weight:600;margin-bottom:.5rem;color:var(--text-muted)">Card 1</div>
+      <div class="lpe-field"><label class="lpe-label">Icon</label><input id="lp-trust1-icon" class="lpe-input" placeholder="emoji" oninput="lpeRT('trust1-icon','text',this.value)"></div>
+      <div class="lpe-field"><label class="lpe-label">Title</label><input id="lp-trust1-title" class="lpe-input" placeholder="Title" oninput="lpeRT('trust1-title','text',this.value)"></div>
+      <div class="lpe-field"><label class="lpe-label">Description</label><textarea id="lp-trust1-desc" class="lpe-input" rows="2" style="height:auto" oninput="lpeRT('trust1-desc','text',this.value)"></textarea></div>
+    </div>
+    <div style="background:var(--surface2);border-radius:8px;padding:.75rem;margin-bottom:.75rem">
+      <div style="font-size:.78rem;font-weight:600;margin-bottom:.5rem;color:var(--text-muted)">Card 2</div>
+      <div class="lpe-field"><label class="lpe-label">Icon</label><input id="lp-trust2-icon" class="lpe-input" placeholder="emoji" oninput="lpeRT('trust2-icon','text',this.value)"></div>
+      <div class="lpe-field"><label class="lpe-label">Title</label><input id="lp-trust2-title" class="lpe-input" placeholder="Title" oninput="lpeRT('trust2-title','text',this.value)"></div>
+      <div class="lpe-field"><label class="lpe-label">Description</label><textarea id="lp-trust2-desc" class="lpe-input" rows="2" style="height:auto" oninput="lpeRT('trust2-desc','text',this.value)"></textarea></div>
+    </div>
+    <div style="background:var(--surface2);border-radius:8px;padding:.75rem;margin-bottom:.75rem">
+      <div style="font-size:.78rem;font-weight:600;margin-bottom:.5rem;color:var(--text-muted)">Card 3</div>
+      <div class="lpe-field"><label class="lpe-label">Icon</label><input id="lp-trust3-icon" class="lpe-input" placeholder="emoji" oninput="lpeRT('trust3-icon','text',this.value)"></div>
+      <div class="lpe-field"><label class="lpe-label">Title</label><input id="lp-trust3-title" class="lpe-input" placeholder="Title" oninput="lpeRT('trust3-title','text',this.value)"></div>
+      <div class="lpe-field"><label class="lpe-label">Description</label><textarea id="lp-trust3-desc" class="lpe-input" rows="2" style="height:auto" oninput="lpeRT('trust3-desc','text',this.value)"></textarea></div>
+    </div>
+    <div style="background:var(--surface2);border-radius:8px;padding:.75rem;margin-bottom:.75rem">
+      <div style="font-size:.78rem;font-weight:600;margin-bottom:.5rem;color:var(--text-muted)">Card 4</div>
+      <div class="lpe-field"><label class="lpe-label">Icon</label><input id="lp-trust4-icon" class="lpe-input" placeholder="emoji" oninput="lpeRT('trust4-icon','text',this.value)"></div>
+      <div class="lpe-field"><label class="lpe-label">Title</label><input id="lp-trust4-title" class="lpe-input" placeholder="Title" oninput="lpeRT('trust4-title','text',this.value)"></div>
+      <div class="lpe-field"><label class="lpe-label">Description</label><textarea id="lp-trust4-desc" class="lpe-input" rows="2" style="height:auto" oninput="lpeRT('trust4-desc','text',this.value)"></textarea></div>
+    </div>
+    <div style="background:var(--surface2);border-radius:8px;padding:.75rem;margin-bottom:.75rem">
+      <div style="font-size:.78rem;font-weight:600;margin-bottom:.5rem;color:var(--text-muted)">Card 5</div>
+      <div class="lpe-field"><label class="lpe-label">Icon</label><input id="lp-trust5-icon" class="lpe-input" placeholder="emoji" oninput="lpeRT('trust5-icon','text',this.value)"></div>
+      <div class="lpe-field"><label class="lpe-label">Title</label><input id="lp-trust5-title" class="lpe-input" placeholder="Title" oninput="lpeRT('trust5-title','text',this.value)"></div>
+      <div class="lpe-field"><label class="lpe-label">Description</label><textarea id="lp-trust5-desc" class="lpe-input" rows="2" style="height:auto" oninput="lpeRT('trust5-desc','text',this.value)"></textarea></div>
+    </div>
+    <div style="background:var(--surface2);border-radius:8px;padding:.75rem;margin-bottom:.75rem">
+      <div style="font-size:.78rem;font-weight:600;margin-bottom:.5rem;color:var(--text-muted)">Card 6</div>
+      <div class="lpe-field"><label class="lpe-label">Icon</label><input id="lp-trust6-icon" class="lpe-input" placeholder="emoji" oninput="lpeRT('trust6-icon','text',this.value)"></div>
+      <div class="lpe-field"><label class="lpe-label">Title</label><input id="lp-trust6-title" class="lpe-input" placeholder="Title" oninput="lpeRT('trust6-title','text',this.value)"></div>
+      <div class="lpe-field"><label class="lpe-label">Description</label><textarea id="lp-trust6-desc" class="lpe-input" rows="2" style="height:auto" oninput="lpeRT('trust6-desc','text',this.value)"></textarea></div>
     </div>
   </div>
 </div>

@@ -255,10 +255,10 @@ footer{padding:3rem 5vw;border-top:0.5px solid var(--border);max-width:1200px;ma
 <!-- STATS -->
 <div class="stats-section reveal">
   <div class="stats-row">
-    <div><div class="stat-num" id="stat-tenants">14+</div><div class="stat-lbl">Active businesses</div></div>
-    <div><div class="stat-num">99.9%</div><div class="stat-lbl">Uptime</div></div>
-    <div><div class="stat-num">KBZPay</div><div class="stat-lbl">+ Wave Money</div></div>
-    <div><div class="stat-num">Offline</div><div class="stat-lbl">PWA ready</div></div>
+    <div><div class="stat-num" id="stat1-num">14+</div><div class="stat-lbl" id="stat1-lbl">Active businesses</div></div>
+    <div><div class="stat-num" id="stat2-num">99.9%</div><div class="stat-lbl" id="stat2-lbl">Uptime</div></div>
+    <div><div class="stat-num" id="stat3-num">KBZPay</div><div class="stat-lbl" id="stat3-lbl">+ Wave Money</div></div>
+    <div><div class="stat-num" id="stat4-num">Offline</div><div class="stat-lbl" id="stat4-lbl">PWA ready</div></div>
   </div>
 </div>
 
@@ -281,14 +281,14 @@ footer{padding:3rem 5vw;border-top:0.5px solid var(--border);max-width:1200px;ma
 
   <!-- Trust signals -->
   <div style="background:#fff;border:1px solid #E2E8F0;border-radius:16px;padding:1.8rem;margin-bottom:2.5rem">
-    <h3 style="font-size:1rem;font-weight:700;color:#0F172A;text-align:center;margin-bottom:1.2rem">🤝 ဘာကြောင့် MyanAi ကို ယုံကြည်ကြသလဲ</h3>
+    <h3 style="font-size:1rem;font-weight:700;color:#0F172A;text-align:center;margin-bottom:1.2rem" id="trust-heading">🤝 <span id="trust-heading-text">ဘာကြောင့် MyanAi ကို ယုံကြည်ကြသလဲ</span></h3>
     <div class="trust-grid">
-      <div class="trust-card"><div class="trust-icon">🇲🇲</div><div class="trust-title">မြန်မာများ ဖန်တီး</div><div class="trust-desc">မြန်မာ့စီးပွားရေး နားလည်သောသူများ ကိုယ်တိုင်</div></div>
-      <div class="trust-card"><div class="trust-icon">📞</div><div class="trust-title">မြန်မာဘာသာ Support</div><div class="trust-desc">အချိန်မရွေး ဖုန်းဆက် မေးနိုင်</div></div>
-      <div class="trust-card"><div class="trust-icon">🎓</div><div class="trust-title">အစအဆုံး သင်ပေး</div><div class="trust-desc">Video + ဆရာ တကယ်သင်ပေး</div></div>
-      <div class="trust-card"><div class="trust-icon">🔒</div><div class="trust-title">Data လုံခြုံ</div><div class="trust-desc">သင့်ဆိုင် data လုံခြုံစိတ်ချ</div></div>
-      <div class="trust-card"><div class="trust-icon">💰</div><div class="trust-title">၁၄ ရက် အခမဲ့</div><div class="trust-desc">Credit card မလိုဘဲ စမ်းသုံးနိုင်</div></div>
-      <div class="trust-card"><div class="trust-icon">⭐</div><div class="trust-title">ဆိုင် ၁၄+ ယုံကြည်</div><div class="trust-desc">မြန်မာတစ်နိုင်ငံလုံး လက်ရှိသုံးနေ</div></div>
+      <div class="trust-card"><div class="trust-icon" id="trust1-icon">🇲🇲</div><div class="trust-title" id="trust1-title">မြန်မာများ ဖန်တီး</div><div class="trust-desc" id="trust1-desc">မြန်မာ့စီးပွားရေး နားလည်သောသူများ ကိုယ်တိုင်</div></div>
+      <div class="trust-card"><div class="trust-icon" id="trust2-icon">📞</div><div class="trust-title" id="trust2-title">မြန်မာဘာသာ Support</div><div class="trust-desc" id="trust2-desc">အချိန်မရွေး ဖုန်းဆက် မေးနိုင်</div></div>
+      <div class="trust-card"><div class="trust-icon" id="trust3-icon">🎓</div><div class="trust-title" id="trust3-title">အစအဆုံး သင်ပေး</div><div class="trust-desc" id="trust3-desc">Video + ဆရာ တကယ်သင်ပေး</div></div>
+      <div class="trust-card"><div class="trust-icon" id="trust4-icon">🔒</div><div class="trust-title" id="trust4-title">Data လုံခြုံ</div><div class="trust-desc" id="trust4-desc">သင့်ဆိုင် data လုံခြုံစိတ်ချ</div></div>
+      <div class="trust-card"><div class="trust-icon" id="trust5-icon">💰</div><div class="trust-title" id="trust5-title">၁၄ ရက် အခမဲ့</div><div class="trust-desc" id="trust5-desc">Credit card မလိုဘဲ စမ်းသုံးနိုင်</div></div>
+      <div class="trust-card"><div class="trust-icon" id="trust6-icon">⭐</div><div class="trust-title" id="trust6-title">ဆိုင် ၁၄+ ယုံကြည်</div><div class="trust-desc" id="trust6-desc">မြန်မာတစ်နိုင်ငံလုံး လက်ရှိသုံးနေ</div></div>
     </div>
     <!-- CTA in trust section -->
     <div style="text-align:center;margin-top:1.5rem;display:flex;gap:1rem;justify-content:center;flex-wrap:wrap">
@@ -324,8 +324,8 @@ footer{padding:3rem 5vw;border-top:0.5px solid var(--border);max-width:1200px;ma
 <section class="pricing-section light-section" id="pricing" style="padding:80px 5vw">
   <div class="reveal" style="text-align:center;margin-bottom:1rem">
     <p class="section-eye">Pricing</p>
-    <h2 class="section-h2">မြန်မာဆိုင်တွေ <em style="font-style:normal;color:var(--gold)">နိုင်နိုင်နင်းနင်း</em> ဝင်နိုင်တဲ့ plan</h2>
-    <p class="section-sub" style="margin:0 auto;text-align:center">Trial 14 days — credit card မလိုဘဲ စမ်းနိုင်</p>
+    <h2 class="section-h2" id="pricing-heading"><span id="pricing-h1">မြန်မာဆိုင်တွေ</span> <em style="font-style:normal;color:var(--gold)" id="pricing-h2">နိုင်နိုင်နင်းနင်း</em> <span id="pricing-h3">ဝင်နိုင်တဲ့ plan</span></h2>
+    <p class="section-sub" id="pricing-sub" style="margin:0 auto;text-align:center">Trial 14 days — credit card မလိုဘဲ စမ်းနိုင်</p>
   </div>
   <div id="pricing-grid" class="reveal" style="transition-delay:.1s">
     <!-- Loaded from tenant_api.php?action=plans -->
@@ -418,6 +418,25 @@ footer{padding:3rem 5vw;border-top:0.5px solid var(--border);max-width:1200px;ma
       document.title = s.store_name + ' — Myanmar AI Platform';
     }
 
+    // Stats bar
+    for(let i=1;i<=4;i++){
+      const sn=document.getElementById('stat'+i+'-num'); if(sn&&s['stat'+i+'_num']) sn.textContent=s['stat'+i+'_num'];
+      const sl=document.getElementById('stat'+i+'-lbl'); if(sl&&s['stat'+i+'_lbl']) sl.textContent=s['stat'+i+'_lbl'];
+    }
+    // Trust section
+    const tsh=document.getElementById('trust-heading-text'); if(tsh&&s.trust_heading) tsh.textContent=s.trust_heading;
+    for(let i=1;i<=6;i++){
+      const ti=document.getElementById('trust'+i+'-icon'); if(ti&&s['trust'+i+'_icon']) ti.textContent=s['trust'+i+'_icon'];
+      const tt=document.getElementById('trust'+i+'-title'); if(tt&&s['trust'+i+'_title']) tt.textContent=s['trust'+i+'_title'];
+      const td=document.getElementById('trust'+i+'-desc'); if(td&&s['trust'+i+'_desc']) td.textContent=s['trust'+i+'_desc'];
+    }
+    // Pricing heading
+    const psh1=document.getElementById('pricing-h1'); if(psh1&&s.pricing_h1) psh1.textContent=s.pricing_h1;
+    const psh2=document.getElementById('pricing-h2'); if(psh2&&s.pricing_h2) psh2.textContent=s.pricing_h2;
+    const psh3=document.getElementById('pricing-h3'); if(psh3&&s.pricing_h3) psh3.textContent=s.pricing_h3;
+    const pss=document.getElementById('pricing-sub'); if(pss&&s.pricing_sub) pss.textContent=s.pricing_sub;
+    // Hero body desc
+    const hbd=document.getElementById('hero-desc'); if(hbd&&s.hero_desc_text) hbd.textContent=s.hero_desc_text;
     // Feature cards
     for(let i=1;i<=6;i++){
       const ic=document.getElementById('feat'+i+'-icon'); if(ic&&s['feat'+i+'_icon']) ic.textContent=s['feat'+i+'_icon'];
