@@ -564,21 +564,8 @@ if ($action === 'save_storefront' && $_SERVER['REQUEST_METHOD'] === 'POST') {
     // Update tenant settings JSON
     $pdo->prepare("UPDATE tenants SET settings=? WHERE id=?")->execute([json_encode($existing), $tid]);
 
-    // Also update global site_settings for POS terminal access
-    $keyMap = [
-        'store_name'    => 'store_name',
-        'emoji'         => 'store_emoji',
-        'phone'         => 'footer_phone',
-        'address'       => 'footer_address',
-        'primary_color' => 'primary_color',
-        'currency'      => 'currency',
-    ];
-    foreach ($keyMap as $sfKey => $settingKey) {
-        if (isset($clean[$sfKey])) {
-            $pdo->prepare("INSERT INTO site_settings (setting_key,setting_value,label) VALUES (?,?,?) ON DUPLICATE KEY UPDATE setting_value=?")->execute([$settingKey, $clean[$sfKey], $sfKey, $clean[$sfKey]]);
-        }
-    }
-
+    // ★ Tenant storefront saved to tenant.settings JSON only
+    // Do NOT overwrite global site_settings (that's for platform branding)
     ok(['msg' => 'Storefront saved']);
 }
 
