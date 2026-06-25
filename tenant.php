@@ -71,6 +71,9 @@ if (isset($_GET['api'])) {
             'kpay_qr_image'    => $s['kpay_qr_image']    ?? '',
             'wave_merchant_id' => $s['wave_merchant_id'] ?? '',
             'wave_qr_image'    => $s['wave_qr_image']    ?? '',
+            'cash_enabled'     => $s['cash_enabled']     ?? '1',
+            'kpay_enabled'     => $s['kpay_enabled']     ?? '0',
+            'wave_enabled'     => $s['wave_enabled']     ?? '0',
         ]]);
         exit;
     }

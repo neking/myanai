@@ -76,7 +76,7 @@ if($action==='delete' && $_SERVER['REQUEST_METHOD']==='POST'){
     exit;
 }
 
-echo json_encode(['ok'=>false,'msg'=>'Unknown action']);
+// Unknown action checked at end
 
 /* ─── CURRENT SHIFT (open/closed status) ─── */
 if ($action === 'current') {
@@ -184,3 +184,5 @@ if ($action === 'detail') {
     echo json_encode(['ok'=>true,'shift'=>$shift,'stats'=>$stats,'orders'=>$orderList]);
     exit;
 }
+
+echo json_encode(['ok'=>false,'msg'=>'Unknown action']);
