@@ -1770,6 +1770,7 @@ async function doLogin() {
         </div>
       </div>
     </div>
+  <div id="dashboard-widgets">
   <!-- ★ 2FA Security Widget ★ -->
   <div style="margin:0 1rem 1rem;padding:1rem;background:var(--card);border-radius:12px;border:0.5px solid var(--border)">
     <div style="display:flex;align-items:center;justify-content:space-between">

@@ -9,3 +9,4 @@ uploads/*
 backups/
 test_functions.php
 *.bundle
+chart.umd.min.js
