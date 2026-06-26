@@ -8,7 +8,7 @@ $action = $_GET['action'] ?? '';
 
 function ok($d=[]){ echo json_encode(['ok'=>true]+$d); exit; }
 function fail($m){ http_response_code(400); echo json_encode(['ok'=>false,'msg'=>$m]); exit; }
-function isAdmin(){ return isset($_SESSION['admin_logged_in']) && $_SESSION['admin_logged_in']; }
+function isAdmin(){ return !empty($_SESSION['admin']); }
 
 /* ── Auto-generate alerts from current system state ── */
 function generateAlerts(PDO $pdo): array {

@@ -7,7 +7,7 @@ $pdo = getPDO();
 function ok($d=[]){ echo json_encode(['ok'=>true]+$d); exit; }
 function fail($m){ http_response_code(400); echo json_encode(['ok'=>false,'msg'=>$m]); exit; }
 
-if (!isset($_SESSION['admin_logged_in']) || !$_SESSION['admin_logged_in']) {
+if (empty($_SESSION['admin'])) {
     fail('Unauthorized');
 }
 
