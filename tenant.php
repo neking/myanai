@@ -520,6 +520,9 @@ button,select,input[type=checkbox]{
         <span class="nav-icon">⬆</span> Plan အဆင့်မြှင့်
         <span class="nav-badge plan-badge" id="nav-plan-badge"></span>
       </div>
+      <div class="nav-item" id="nav-analytics" onclick="showPage('analytics')">
+        <span class="nav-icon">📈</span> Analytics
+      </div>
       <div class="nav-item" id="nav-backup" onclick="showPage('backup')">
         <span class="nav-icon">💾</span> Data Backup
       </div>
@@ -1064,6 +1067,79 @@ button,select,input[type=checkbox]{
     </div>
   </div>
 </div>
+<div id="page-analytics" class="page" style="display:none">
+  <div class="page-head">
+    <div style="display:flex;align-items:center;gap:.75rem">
+      <button class="hamburger" onclick="openSidebar()">☰</button>
+      <span style="font-size:.95rem;font-weight:600">📈 Analytics</span>
+    </div>
+    <div style="display:flex;gap:.5rem;align-items:center">
+      <select id="analytics-days" onchange="loadAnalytics()" style="padding:.35rem .6rem;border:0.5px solid var(--border);border-radius:8px;background:var(--warm);color:var(--ink);font-size:.82rem">
+        <option value="7">7 ရက်</option>
+        <option value="30" selected>30 ရက်</option>
+        <option value="90">90 ရက်</option>
+      </select>
+      <button class="btn btn-ghost btn-sm" onclick="loadAnalytics()">🔄 Refresh</button>
+    </div>
+  </div>
+  <div class="content">
+    <!-- Summary stats -->
+    <div id="analytics-summary" style="display:grid;grid-template-columns:repeat(4,1fr);gap:.75rem;margin-bottom:1.25rem">
+      <div class="card" style="padding:1rem;text-align:center">
+        <div style="font-size:.75rem;color:var(--muted);margin-bottom:.3rem">စုစုပေါင်း Order</div>
+        <div id="an-total-orders" style="font-size:1.6rem;font-weight:700">—</div>
+      </div>
+      <div class="card" style="padding:1rem;text-align:center">
+        <div style="font-size:.75rem;color:var(--muted);margin-bottom:.3rem">စုစုပေါင်း ဝင်ငွေ</div>
+        <div id="an-total-revenue" style="font-size:1.6rem;font-weight:700">—</div>
+      </div>
+      <div class="card" style="padding:1rem;text-align:center">
+        <div style="font-size:.75rem;color:var(--muted);margin-bottom:.3rem">Order တစ်ခု ပျမ်းမျှ</div>
+        <div id="an-avg-order" style="font-size:1.6rem;font-weight:700">—</div>
+      </div>
+      <div class="card" style="padding:1rem;text-align:center">
+        <div style="font-size:.75rem;color:var(--muted);margin-bottom:.3rem">Customer အရေအတွက်</div>
+        <div id="an-customers" style="font-size:1.6rem;font-weight:700">—</div>
+      </div>
+    </div>
+
+    <!-- Revenue trend chart -->
+    <div class="card" style="padding:1.25rem;margin-bottom:1rem">
+      <div style="font-weight:600;font-size:.88rem;margin-bottom:1rem">ဝင်ငွေ Trend (နေ့စဉ်)</div>
+      <div style="position:relative;height:200px">
+        <canvas id="an-revenue-chart"></canvas>
+      </div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1rem">
+      <!-- Top items -->
+      <div class="card" style="padding:1.25rem">
+        <div style="font-weight:600;font-size:.88rem;margin-bottom:1rem">🏆 အရောင်းကောင်းဆုံး Items</div>
+        <div id="an-top-items"></div>
+      </div>
+      <!-- Payment methods -->
+      <div class="card" style="padding:1.25rem">
+        <div style="font-weight:600;font-size:.88rem;margin-bottom:1rem">💳 ငွေပေးချေမှု နည်းလမ်း</div>
+        <div id="an-payments"></div>
+      </div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem">
+      <!-- Hourly peak -->
+      <div class="card" style="padding:1.25rem">
+        <div style="font-weight:600;font-size:.88rem;margin-bottom:1rem">⏰ Peak အချိန်</div>
+        <div style="position:relative;height:150px">
+          <canvas id="an-hourly-chart"></canvas>
+        </div>
+      </div>
+      <!-- Categories -->
+      <div class="card" style="padding:1.25rem">
+        <div style="font-weight:600;font-size:.88rem;margin-bottom:1rem">📂 Category အလိုက်</div>
+        <div id="an-categories"></div>
+      </div>
+    </div>
+  </div>
+</div>
 <div id="page-backup" class="page" style="display:none">
   <div class="content">
     <div style="max-width:600px">
@@ -1424,7 +1500,7 @@ async function tenantApi(action, body=null){
 /* ── showPage ── */
 const ALL_PAGES = ['dashboard','menu','staff','crm','stocklog','promos','branches',
   'orders','tables','reserve','stock','shift','delivery','expenses',
-  'upgrade','backup','storefront','settings','schedule'];
+  'upgrade','analytics','backup','storefront','settings','schedule'];
 
 function showPage(page){
   // Hide all pages
@@ -1483,6 +1559,7 @@ function showPage(page){
     branches:   ()=> branchLoad(),
     upgrade:    ()=> loadUpgradePage(),
     settings:   ()=> loadTenantSettings(),
+    analytics:  ()=> loadAnalytics(),
     backup:     ()=> loadBackupPage(),
     storefront: ()=> loadStorefront(),
   };
@@ -2689,5 +2766,65 @@ async function deleteShift(id){
   }).then(r=>r.json()).catch(()=>({ok:false}));
   if(d.ok){ toast('Shift deleted','ok'); loadSchedule(); loadShifts(); }
   else toast('Error','err');
+}
+
+/* ── Analytics ── */
+let _anChart = null, _anHourly = null;
+
+async function loadAnalytics(){
+  const days = document.getElementById('analytics-days')?.value || 30;
+  const tid  = window.__TENANT_ID;
+  try {
+    const d = await fetch(`analytics.php?tenant_id=${tid}&days=${days}`,{credentials:'include'}).then(r=>r.json());
+    if(!d.ok) throw new Error(d.msg);
+    const s = d.summary || {};
+    const set = (id,v) => { const el=document.getElementById(id); if(el) el.textContent=v; };
+    set('an-total-orders',  (s.total_orders||0).toLocaleString());
+    set('an-total-revenue', fmtK(s.total_revenue||0)+' Ks');
+    set('an-avg-order',     fmtK(s.avg_order_value||0)+' Ks');
+    set('an-customers',     (s.unique_customers||0).toLocaleString());
+
+    const labels   = (d.days||[]).map(r=>r.date?.slice(5));
+    const revenues = (d.days||[]).map(r=>parseFloat(r.revenue||0));
+    const orders   = (d.days||[]).map(r=>parseInt(r.orders||0));
+    if(_anChart) _anChart.destroy();
+    const ctx1 = document.getElementById('an-revenue-chart');
+    if(ctx1 && typeof Chart!=='undefined'){
+      _anChart = new Chart(ctx1,{type:'line',data:{labels,datasets:[
+        {label:'ဝင်ငွေ',data:revenues,borderColor:'#6366f1',backgroundColor:'rgba(99,102,241,.08)',tension:.4,fill:true,yAxisID:'y1'},
+        {label:'Orders',data:orders,borderColor:'#f59e0b',backgroundColor:'rgba(245,158,11,.08)',tension:.4,fill:false,yAxisID:'y2'},
+      ]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{font:{size:11},boxWidth:12}}},
+        scales:{y1:{position:'left',ticks:{font:{size:10},callback:v=>fmtK(v)+'K'}},y2:{position:'right',grid:{drawOnChartArea:false},ticks:{font:{size:10}}}}}});
+    }
+
+    const hLabels = (d.hourly||[]).map(r=>(r.hour||0)+'h');
+    const hData   = (d.hourly||[]).map(r=>parseInt(r.count||0));
+    if(_anHourly) _anHourly.destroy();
+    const ctx2 = document.getElementById('an-hourly-chart');
+    if(ctx2 && typeof Chart!=='undefined'){
+      _anHourly = new Chart(ctx2,{type:'bar',data:{labels:hLabels,datasets:[{label:'Orders',data:hData,backgroundColor:'rgba(99,102,241,.6)',borderRadius:4}]},
+        options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{ticks:{font:{size:9}}},y:{ticks:{font:{size:10}}}}}});
+    }
+
+    const itemsEl = document.getElementById('an-top-items');
+    if(itemsEl){
+      const items = (d.items||[]).slice(0,8);
+      const maxQ  = Math.max(...items.map(i=>parseInt(i.qty||0)),1);
+      itemsEl.innerHTML = items.map(it=>`<div style="margin-bottom:.6rem"><div style="display:flex;justify-content:space-between;font-size:.8rem;margin-bottom:.2rem"><span style="font-weight:500">${escH(it.item_name)}</span><span style="color:var(--muted)">${parseInt(it.qty||0)} ခု · ${fmtK(it.revenue||0)}K</span></div><div style="background:var(--surface2);border-radius:4px;height:6px"><div style="background:#6366f1;border-radius:4px;height:6px;width:${Math.round(parseInt(it.qty||0)/maxQ*100)}%"></div></div></div>`).join('')||'<div style="color:var(--muted);font-size:.82rem">Data မရှိသေး</div>';
+    }
+
+    const payEl = document.getElementById('an-payments');
+    if(payEl){
+      const pays = d.payments||[];
+      const tot  = pays.reduce((a,p)=>a+parseInt(p.cnt||0),0)||1;
+      const pc   = {cash:'#10b981',kpay:'#3b82f6',wave:'#f59e0b'};
+      payEl.innerHTML = pays.map(p=>`<div style="display:flex;align-items:center;gap:.75rem;margin-bottom:.75rem"><div style="width:10px;height:10px;border-radius:50%;background:${pc[p.payment_method]||'#6366f1'};flex-shrink:0"></div><div style="flex:1;font-size:.82rem;font-weight:500">${escH(p.payment_method||'cash')}</div><div style="font-size:.78rem;color:var(--muted)">${Math.round(parseInt(p.cnt||0)/tot*100)}%</div><div style="font-size:.78rem">${fmtK(p.total||0)}K</div></div>`).join('')||'<div style="color:var(--muted);font-size:.82rem">Data မရှိသေး</div>';
+    }
+
+    const catEl = document.getElementById('an-categories');
+    if(catEl){
+      catEl.innerHTML = (d.categories||[]).slice(0,6).map(c=>`<div style="display:flex;justify-content:space-between;padding:.4rem 0;border-bottom:.5px solid var(--border);font-size:.8rem"><span>${escH(c.category||'Other')}</span><span style="color:var(--muted)">${parseInt(c.qty||0)} · ${fmtK(c.revenue||0)}K</span></div>`).join('')||'<div style="color:var(--muted);font-size:.82rem">Data မရှိသေး</div>';
+    }
+  } catch(e){ console.error('Analytics:',e); }
 }
 </script>
