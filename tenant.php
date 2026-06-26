@@ -740,7 +740,7 @@ button,select,input[type=checkbox]{
   <!-- Reserve modal -->
   <div id="res-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:999;display:flex;align-items:center;justify-content:center" onclick="if(event.target===this)this.style.display='none'">
     <div style="background:var(--card);border-radius:16px;padding:1.5rem;width:90%;max-width:480px;max-height:90vh;overflow-y:auto">
-      <h3 style="margin:0 0 1rem">📅 New Reservation</h3>
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem"><h3 style="margin:0">📅 New Reservation</h3><button onclick="document.getElementById('res-modal').style.display='none'" style="width:28px;height:28px;border-radius:50%;border:1px solid var(--border);background:var(--warm);cursor:pointer;font-size:1.1rem">×</button></div>
       <div style="display:grid;gap:.75rem">
         <input id="res-name" type="text" placeholder="Customer name" style="padding:.6rem;border:0.5px solid var(--border);border-radius:8px;background:var(--warm);color:var(--ink)">
         <input id="res-phone" type="tel" placeholder="Phone" style="padding:.6rem;border:0.5px solid var(--border);border-radius:8px;background:var(--warm);color:var(--ink)">
@@ -855,7 +855,8 @@ button,select,input[type=checkbox]{
   </div>
   <!-- Shift detail modal -->
   <div id="shift-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:999;align-items:center;justify-content:center" onclick="if(event.target===this)this.style.display='none'">
-    <div style="background:var(--card);border-radius:16px;padding:1.5rem;width:90%;max-width:500px;max-height:90vh;overflow-y:auto">
+    <div style="background:var(--card);border-radius:16px;padding:1.5rem;width:90%;max-width:500px;max-height:90vh;overflow-y:auto;position:relative">
+      <button onclick="document.getElementById('shift-modal').style.display='none'" style="position:absolute;top:.75rem;right:.75rem;width:28px;height:28px;border-radius:50%;border:1px solid var(--border);background:var(--warm);cursor:pointer;font-size:1.1rem">×</button>
       <div id="shift-modal-body"></div>
       <button onclick="document.getElementById('shift-modal').style.display='none'" class="btn btn-ghost" style="width:100%;margin-top:1rem">Close</button>
     </div>
@@ -941,7 +942,7 @@ button,select,input[type=checkbox]{
   <!-- Promo modal -->
   <div id="promo-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:999;align-items:center;justify-content:center" onclick="if(event.target===this)this.style.display='none'">
     <div style="background:var(--card);border-radius:16px;padding:1.5rem;width:90%;max-width:520px;max-height:90vh;overflow-y:auto">
-      <h3 id="promo-modal-title" style="margin:0 0 1rem">🎁 New Promotion</h3>
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem"><h3 id="promo-modal-title" style="margin:0">🎁 New Promotion</h3><button onclick="document.getElementById('promo-modal').style.display='none'" style="width:28px;height:28px;border-radius:50%;border:1px solid var(--border);background:var(--warm);cursor:pointer;font-size:1.1rem">×</button></div>
       <input type="hidden" id="promo-edit-id">
       <div style="display:grid;gap:.75rem">
         <input id="promo-name" type="text" placeholder="Promotion name" style="padding:.6rem;border:0.5px solid var(--border);border-radius:8px;background:var(--warm);color:var(--ink)">
@@ -986,7 +987,7 @@ button,select,input[type=checkbox]{
   <!-- Branch modal -->
   <div id="branch-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:999;align-items:center;justify-content:center" onclick="if(event.target===this)this.style.display='none'">
     <div style="background:var(--card);border-radius:16px;padding:1.5rem;width:90%;max-width:440px">
-      <h3 id="branch-modal-title" style="margin:0 0 1rem">🏢 New Branch</h3>
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem"><h3 id="branch-modal-title" style="margin:0">🏢 New Branch</h3><button onclick="document.getElementById('branch-modal').style.display='none'" style="width:28px;height:28px;border-radius:50%;border:1px solid var(--border);background:var(--warm);cursor:pointer;font-size:1.1rem">×</button></div>
       <input type="hidden" id="branch-edit-id">
       <div style="display:grid;gap:.75rem">
         <input id="branch-name" type="text" placeholder="Branch name" style="padding:.6rem;border:0.5px solid var(--border);border-radius:8px;background:var(--warm);color:var(--ink)">
