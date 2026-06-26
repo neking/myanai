@@ -1636,11 +1636,21 @@ async function doLogin() {
     </div>
     <?php endif; ?>
     <nav>
-      <!-- PLATFORM -->
-      <div class="nav-sect">Platform</div>
+      <!-- OVERVIEW -->
+      <div class="nav-sect">Overview</div>
       <div class="nav-item active" id="nav-dashboard" onclick="showPage('dashboard')">
         <span class="nav-icon">📊</span> Dashboard
       </div>
+      <div class="nav-item" id="nav-notifications" onclick="showPage('notifications')" style="position:relative">
+        <span class="nav-icon">🔔</span> Notifications
+        <span id="notif-badge" style="display:none;position:absolute;top:8px;right:12px;background:#ef4444;color:#fff;font-size:.65rem;font-weight:700;padding:1px 5px;border-radius:10px;min-width:16px;text-align:center"></span>
+      </div>
+      <div class="nav-item" id="nav-growth" onclick="showPage('growth')">
+        <span class="nav-icon">📈</span> Growth analytics
+      </div>
+
+      <!-- CUSTOMERS -->
+      <div class="nav-sect">Customers</div>
       <div class="nav-item" id="nav-tenants" onclick="showPage('tenants')">
         <span class="nav-icon">🏢</span> Tenants
         <span class="nav-badge" id="tenant-count-badge"></span>
@@ -1650,22 +1660,22 @@ async function doLogin() {
       </div>
       <div class="nav-item" id="nav-upgrades" onclick="showPage('upgrades')">
         <span class="nav-icon">⬆️</span> Upgrade requests
-        <span class="nav-badge" id="upgrade-req-badge" style="background:rgba(220,38,38,.15);color:#dc2626"></span>
+        <span class="nav-badge" id="upgrade-count-badge"></span>
       </div>
       <div class="nav-item" id="nav-plans" onclick="showPage('plans')">
         <span class="nav-icon">📦</span> Plans &amp; pricing
       </div>
 
-      <!-- MARKETING -->
+      <!-- CONTENT & MARKETING -->
       <div class="nav-sect">Marketing</div>
-      <div class="nav-item" id="nav-landing" onclick="showPage('landing');setTimeout(lpeLoad,300)">
+      <div class="nav-item" id="nav-landing" onclick="showPage('landing')">
         <span class="nav-icon">🌐</span> Landing page
-      </div>
-      <div class="nav-item" id="nav-demo" onclick="showPage('demo')">
-        <span class="nav-icon">🎭</span> Demo control
       </div>
       <div class="nav-item" id="nav-announce" onclick="showPage('announce')">
         <span class="nav-icon">📣</span> Announcements
+      </div>
+      <div class="nav-item" id="nav-demo" onclick="showPage('demo')">
+        <span class="nav-icon">🎭</span> Demo control
       </div>
 
       <!-- SYSTEM -->
@@ -1673,15 +1683,8 @@ async function doLogin() {
       <div class="nav-item" id="nav-logs" onclick="showPage('logs')">
         <span class="nav-icon">📋</span> Error Logs
       </div>
-      <div class="nav-item" id="nav-notifications" onclick="showPage('notifications')" style="position:relative">
-        <span class="nav-icon">🔔</span> Notifications
-        <span id="notif-badge" style="display:none;position:absolute;top:8px;right:12px;background:#ef4444;color:#fff;font-size:.65rem;font-weight:700;padding:1px 5px;border-radius:10px;min-width:16px;text-align:center"></span>
-      </div>
-      <div class="nav-item" id="nav-growth" onclick="showPage('growth')">
-        <span class="nav-icon">📈</span> Growth analytics
-      </div>
       <div class="nav-item" id="nav-saas" onclick="showPage('saas')">
-        <span class="nav-icon">🌐</span> SaaS dashboard
+        <span class="nav-icon">🖥️</span> SaaS dashboard
       </div>
       <div class="nav-item" id="nav-settings" onclick="showPage('settings')">
         <span class="nav-icon">⚙️</span> Settings
@@ -1713,7 +1716,22 @@ async function doLogin() {
         <span style="font-size:.78rem;color:var(--muted)" id="dash-date"></span>
       </div>
       <div class="content">
-        <!-- SaaS Metrics -->
+  <div id="dashboard-widgets">
+  <!-- ★ System Health Widget ★ -->
+  <div id="admin-health-widget" style="margin:1rem;padding:1rem;background:var(--card);border-radius:12px;border:0.5px solid var(--border)">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.75rem">
+      <span style="font-weight:600;font-size:.9rem">🖥️ System Health</span>
+      <button onclick="loadAdminHealth()" style="font-size:.72rem;background:none;border:1px solid var(--border);border-radius:6px;padding:2px 8px;cursor:pointer;color:var(--muted)">Refresh</button>
+    </div>
+    <div id="health-grid" style="display:grid;grid-template-columns:repeat(4,1fr);gap:.75rem;font-size:.8rem">
+      <div style="text-align:center"><div id="h-status" style="font-size:1.2rem">⏳</div><div style="color:var(--muted)">Status</div></div>
+      <div style="text-align:center"><div id="h-db" style="font-size:1.2rem">⏳</div><div style="color:var(--muted)">Database</div></div>
+      <div style="text-align:center"><div id="h-disk" style="font-weight:600">—</div><div style="color:var(--muted)">Disk Free</div></div>
+      <div style="text-align:center"><div id="h-errors" style="font-weight:600">—</div><div style="color:var(--muted)">Errors (1h)</div></div>
+    </div>
+  </div><!-- end dashboard-widgets -->
+  </div><!-- end dashboard-widgets -->
+  <!-- SaaS Metrics -->
         <div class="stats-grid" style="margin-bottom:1.2rem">
           <div class="stat-card">
             <div class="stat-val" id="p-total-tenants">—</div>
@@ -1741,7 +1759,8 @@ async function doLogin() {
           </div>
         </div>
 
-        <!-- Plan distribution + Recent tenants -->
+        
+  <!-- Plan distribution + Recent tenants -->
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1rem">
           <div class="table-wrap" style="padding:1rem">
             <div style="font-size:.82rem;font-weight:600;color:var(--muted);margin-bottom:.75rem">📊 Plan distribution</div>
@@ -1757,7 +1776,8 @@ async function doLogin() {
           </div>
         </div>
 
-        <!-- Upgrade requests alert -->
+        
+  <!-- Upgrade requests alert -->
         <div id="upgrade-reqs-alert" style="display:none;background:rgba(220,38,38,.06);border:0.5px solid rgba(220,38,38,.2);border-radius:var(--radius);padding:1rem;margin-bottom:1rem">
           <div style="font-weight:600;color:#dc2626;margin-bottom:.5rem">⬆️ Pending upgrade requests</div>
           <div id="upgrade-reqs-list"></div>
@@ -1765,7 +1785,8 @@ async function doLogin() {
         </div>
       </div>
 
-      <!-- Analytics mini panel -->
+      
+  <!-- Analytics mini panel -->
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1rem">
         <div class="table-wrap" style="padding:.9rem">
           <div style="font-size:.78rem;font-weight:600;color:var(--muted);margin-bottom:.6rem">📊 Tenants by plan</div>
@@ -1777,7 +1798,7 @@ async function doLogin() {
         </div>
       </div>
     </div>
-  <div id="dashboard-widgets">
+  
   <!-- ★ 2FA Security Widget ★ -->
   <div style="margin:0 1rem 1rem;padding:1rem;background:var(--card);border-radius:12px;border:0.5px solid var(--border)">
     <div style="display:flex;align-items:center;justify-content:space-between">
@@ -1785,19 +1806,8 @@ async function doLogin() {
       <span id="2fa-status-widget" style="font-size:.82rem">Loading...</span>
     </div>
   </div>
-  <!-- ★ System Health Widget ★ -->
-  <div id="admin-health-widget" style="margin:1rem;padding:1rem;background:var(--card);border-radius:12px;border:0.5px solid var(--border)">
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.75rem">
-      <span style="font-weight:600;font-size:.9rem">🖥️ System Health</span>
-      <button onclick="loadAdminHealth()" style="font-size:.72rem;background:none;border:1px solid var(--border);border-radius:6px;padding:2px 8px;cursor:pointer;color:var(--muted)">Refresh</button>
-    </div>
-    <div id="health-grid" style="display:grid;grid-template-columns:repeat(4,1fr);gap:.75rem;font-size:.8rem">
-      <div style="text-align:center"><div id="h-status" style="font-size:1.2rem">⏳</div><div style="color:var(--muted)">Status</div></div>
-      <div style="text-align:center"><div id="h-db" style="font-size:1.2rem">⏳</div><div style="color:var(--muted)">Database</div></div>
-      <div style="text-align:center"><div id="h-disk" style="font-weight:600">—</div><div style="color:var(--muted)">Disk Free</div></div>
-      <div style="text-align:center"><div id="h-errors" style="font-weight:600">—</div><div style="color:var(--muted)">Errors (1h)</div></div>
-    </div>
-  </div><!-- end dashboard-widgets -->
+  
+
   </div><!-- end page-dashboard -->
 <!-- ══ NOTIFICATIONS PAGE ══ -->
 <div id="page-notifications" style="display:none">
