@@ -55,8 +55,8 @@ input:focus,select:focus{outline:none;border-color:#e84c2b}
     <div class="biz-card" onclick="pickBiz('other',this)"><div class="icon">🏪</div><div class="label">အခြား<br>Other</div></div>
   </div>
   <div class="row">
-    <div><label>Business Name *</label><input id="s-name" placeholder="My Noodle Shop"></div>
-    <div><label>URL Slug *</label><input id="s-slug" placeholder="mynoodleshop" oninput="this.value=this.value.toLowerCase().replace(/[^a-z0-9]/g,'')"></div>
+    <div><label>Business Name *</label><input id="s-name" placeholder="My Noodle Shop" oninput="autoSlug(this.value)"></div>
+    <div><label>URL Slug *</label><input id="s-slug" placeholder="mynoodleshop" oninput="this._manual=true;this.value=this.value.toLowerCase().replace(/[^a-z0-9]/g,'')"></div>
   </div>
   <div class="row">
     <div><label>Your Name *</label><input id="s-owner" placeholder="Full name"></div>
@@ -70,6 +70,7 @@ input:focus,select:focus{outline:none;border-color:#e84c2b}
 
   <button class="btn" onclick="doSignup()">🚀 Create My Restaurant</button>
   <div id="s-msg" class="msg"></div>
+  <p style="text-align:center;margin-top:1rem;font-size:.85rem;color:#64748b">Already have an account? <a href="tenant.php" style="color:#6366f1;font-weight:600">Login →</a></p>
 </div>
 
 <script>
@@ -107,6 +108,10 @@ function pickPlan(code, el) {
   el.classList.add('active');
 }
 
+function autoSlug(v){
+  const s=document.getElementById('s-slug');
+  if(!s._manual) s.value=v.toLowerCase().replace(/[^a-z0-9]+/g,'').slice(0,30);
+}
 async function doSignup() {
   const msg = document.getElementById('s-msg');
   msg.className = 'msg'; msg.style.display = 'none';

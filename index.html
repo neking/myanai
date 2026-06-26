@@ -710,7 +710,15 @@ header{
   </div>
 </div>
 
-<!-- CATEGORIES -->
+<!-- SEARCH + CATEGORIES -->
+<div style="padding:.5rem 1rem .25rem;background:var(--bg)">
+  <div style="position:relative">
+    <input id="menu-search-input" type="search" placeholder="🔍 Search menu..." 
+      oninput="menuSearch(this.value)"
+      style="width:100%;padding:.55rem .75rem .55rem 2.2rem;border:1px solid var(--border);border-radius:20px;background:var(--surface);color:var(--ink);font-size:.88rem;box-sizing:border-box">
+    <span style="position:absolute;left:.75rem;top:50%;transform:translateY(-50%);font-size:.85rem;pointer-events:none;color:var(--muted)">🔍</span>
+  </div>
+</div>
 <div class="cat-wrap" id="cat-wrap">
   <div class="categories" id="categories"></div>
 </div>
@@ -1138,6 +1146,12 @@ async function loadMenu() {
 /* ═══════════════════════════════════════
    RENDER MENU
 ═══════════════════════════════════════ */
+function menuSearch(q) {
+  const query = q.toLowerCase().trim();
+  window._menuSearchQuery = query;
+  renderMenu();
+}
+
 function renderCats() {
   document.getElementById('categories').innerHTML = cats.map(cat =>
     `<button class="cat-btn${cat===activeCat?' active':''}" onclick="filterCat('${cat}')">${(window._catT&&window._catT[cat])||cat}</button>`
@@ -1153,6 +1167,11 @@ function filterCat(cat) {
 
 function renderMenu() {
   const items = activeCat === 'All' ? menu : menu.filter(i => (i.cat||i.category) === activeCat);
+  if(window._menuSearchQuery){
+    const q=window._menuSearchQuery;
+    items=items.filter(i=>(i.name||i.item_name||'').toLowerCase().includes(q)||(i.cat||i.category||'').toLowerCase().includes(q));
+  }
+  if(!items.length){ document.getElementById('menu-grid').innerHTML='<div style="padding:2rem;text-align:center;color:var(--muted)">No items found 😕</div>'; return; }
   document.getElementById('menu-grid').innerHTML = items.map(item => {
     const stock = parseInt(item.stock_qty ?? item.stock ?? 99);
     const sold  = stock === 0;
