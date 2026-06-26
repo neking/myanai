@@ -44,7 +44,7 @@ $totalMrr = $pdo->query("
 /* ── Churn: tenants deactivated this month ── */
 $churn = $pdo->query("
     SELECT COUNT(*) FROM tenants 
-    WHERE is_active=0 AND updated_at >= DATE_SUB(NOW(), INTERVAL 30 DAY)
+    WHERE is_active=0 AND created_at >= DATE_SUB(NOW(), INTERVAL 30 DAY)
 ")->fetchColumn();
 
 /* ── New signups last 30 days ── */
