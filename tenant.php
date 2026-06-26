@@ -2784,9 +2784,9 @@ async function loadAnalytics(){
     set('an-avg-order',     fmtK(s.avg_order_value||0)+' Ks');
     set('an-customers',     (s.unique_customers||0).toLocaleString());
 
-    const labels   = (d.days||[]).map(r=>r.date?.slice(5));
-    const revenues = (d.days||[]).map(r=>parseFloat(r.revenue||0));
-    const orders   = (d.days||[]).map(r=>parseInt(r.orders||0));
+    const labels   = (d.revenue||d.days||[]).map(r=>r.date?.slice(5));
+    const revenues = (d.revenue||d.days||[]).map(r=>parseFloat(r.revenue||0));
+    const orders   = (d.revenue||d.days||[]).map(r=>parseInt(r.orders||0));
     if(_anChart) _anChart.destroy();
     const ctx1 = document.getElementById('an-revenue-chart');
     if(ctx1 && typeof Chart!=='undefined'){
