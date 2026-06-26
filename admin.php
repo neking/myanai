@@ -3292,7 +3292,8 @@ async function setup2FA() {
   const modal = document.createElement('div');
   modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:9999;display:flex;align-items:center;justify-content:center';
   modal.innerHTML = `
-    <div style="background:var(--card);border-radius:16px;padding:2rem;max-width:400px;width:90%;text-align:center">
+    <div style="background:var(--card);border-radius:16px;padding:2rem;max-width:400px;width:90%;text-align:center;position:relative">
+      <button onclick="this.closest('div[style*=rgba]').remove()" style="position:absolute;top:.75rem;right:.75rem;width:28px;height:28px;border-radius:50%;border:1px solid var(--border);background:var(--warm);cursor:pointer;font-size:1rem;display:flex;align-items:center;justify-content:center;line-height:1">×</button>
       <h3 style="margin:0 0 1rem;font-size:1.1rem">🔐 Enable 2FA</h3>
       <p style="font-size:.85rem;color:var(--text-muted);margin-bottom:1rem">Scan this QR code with Google Authenticator or Authy:</p>
       <img src="${r.qr_url}" style="width:200px;height:200px;border:4px solid var(--border);border-radius:8px">
