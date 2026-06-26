@@ -1673,6 +1673,13 @@ async function doLogin() {
       <div class="nav-item" id="nav-logs" onclick="showPage('logs')">
         <span class="nav-icon">📋</span> Error Logs
       </div>
+      <div class="nav-item" id="nav-notifications" onclick="showPage('notifications')" style="position:relative">
+        <span class="nav-icon">🔔</span> Notifications
+        <span id="notif-badge" style="display:none;position:absolute;top:8px;right:12px;background:#ef4444;color:#fff;font-size:.65rem;font-weight:700;padding:1px 5px;border-radius:10px;min-width:16px;text-align:center"></span>
+      </div>
+      <div class="nav-item" id="nav-growth" onclick="showPage('growth')">
+        <span class="nav-icon">📈</span> Growth analytics
+      </div>
       <div class="nav-item" id="nav-saas" onclick="showPage('saas')">
         <span class="nav-icon">🌐</span> SaaS dashboard
       </div>
@@ -1792,6 +1799,67 @@ async function doLogin() {
     </div>
   </div><!-- end dashboard-widgets -->
   </div><!-- end page-dashboard -->
+<!-- ══ NOTIFICATIONS PAGE ══ -->
+<div id="page-notifications" style="display:none">
+  <div style="display:flex;align-items:center;justify-content:space-between;padding:1rem 1.5rem;border-bottom:.5px solid var(--border)">
+    <div style="display:flex;align-items:center;gap:.75rem">
+      <button class="hamburger" onclick="openSidebar()">☰</button>
+      <span style="font-size:.95rem;font-weight:600">🔔 Notifications</span>
+    </div>
+    <div style="display:flex;gap:.5rem">
+      <button class="btn btn-ghost btn-sm" onclick="markAllRead()">✓ Mark all read</button>
+      <button class="btn btn-ghost btn-sm" onclick="clearReadNotifs()">🗑 Clear read</button>
+      <button class="btn btn-ghost btn-sm" onclick="loadNotifications()">🔄</button>
+    </div>
+  </div>
+  <div style="padding:1.25rem;max-width:800px">
+    <div id="notif-list"><div style="text-align:center;padding:3rem;color:var(--text-muted)">Loading...</div></div>
+  </div>
+</div>
+
+<!-- ══ GROWTH ANALYTICS PAGE ══ -->
+<div id="page-growth" style="display:none">
+  <div style="display:flex;align-items:center;justify-content:space-between;padding:1rem 1.5rem;border-bottom:.5px solid var(--border)">
+    <div style="display:flex;align-items:center;gap:.75rem">
+      <button class="hamburger" onclick="openSidebar()">☰</button>
+      <span style="font-size:.95rem;font-weight:600">📈 Growth Analytics</span>
+    </div>
+    <div style="display:flex;gap:.5rem;align-items:center">
+      <select id="growth-months" onchange="loadGrowth()" style="padding:.35rem .6rem;border:.5px solid var(--border);border-radius:8px;background:var(--card);font-size:.82rem">
+        <option value="3">3 months</option>
+        <option value="6" selected>6 months</option>
+        <option value="12">12 months</option>
+      </select>
+      <button class="btn btn-ghost btn-sm" onclick="loadGrowth()">🔄</button>
+    </div>
+  </div>
+  <div style="padding:1.25rem">
+    <!-- Summary -->
+    <div id="growth-summary" style="display:grid;grid-template-columns:repeat(5,1fr);gap:.75rem;margin-bottom:1.25rem"></div>
+    <!-- Charts row -->
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1rem">
+      <div style="background:var(--card);border:.5px solid var(--border);border-radius:12px;padding:1.25rem">
+        <div style="font-weight:600;font-size:.88rem;margin-bottom:1rem">MRR Trend</div>
+        <div style="position:relative;height:180px"><canvas id="mrr-chart"></canvas></div>
+      </div>
+      <div style="background:var(--card);border:.5px solid var(--border);border-radius:12px;padding:1.25rem">
+        <div style="font-weight:600;font-size:.88rem;margin-bottom:1rem">Weekly signups</div>
+        <div style="position:relative;height:180px"><canvas id="weekly-chart"></canvas></div>
+      </div>
+    </div>
+    <!-- Plan dist + Top tenants -->
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem">
+      <div style="background:var(--card);border:.5px solid var(--border);border-radius:12px;padding:1.25rem">
+        <div style="font-weight:600;font-size:.88rem;margin-bottom:1rem">Plan distribution</div>
+        <div id="growth-plans"></div>
+      </div>
+      <div style="background:var(--card);border:.5px solid var(--border);border-radius:12px;padding:1.25rem">
+        <div style="font-weight:600;font-size:.88rem;margin-bottom:1rem">Top tenants (30d)</div>
+        <div id="growth-top-tenants"></div>
+      </div>
+    </div>
+  </div>
+</div>
 <div id="page-saas" style="display:none">
   <div class="page-head">
     <div style="display:flex;align-items:center;gap:.5rem">
@@ -2067,7 +2135,7 @@ window.exportSL=function(){window.open("stock_log_api.php?action=export_csv&date
 <script>
 /* ══ STAFF MANAGEMENT ══ */
 const ALL_PAGES = [
-  'dashboard','tenants','revenue','upgrades','plans',
+  'dashboard','notifications','growth','tenants','revenue','upgrades','plans',
   'landing','demo','announce','logs','saas','settings'
 ];
 async function loadStaff(){

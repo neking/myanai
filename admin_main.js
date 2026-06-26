@@ -233,6 +233,8 @@ function showPage(page) {
   if(page==='revenue')    loadRevenue();
   if(page==='upgrades')   loadUpgradeRequests();
   if(page==='plans')      loadPlans();
+  if(page==='notifications') loadNotifications();
+  if(page==='growth')        loadGrowth();
   if(page==='landing')    setTimeout(lpeLoad,300);
   if(page==='demo')       loadDemoInfo();
   if(page==='announce')   loadAnnouncementPage();
@@ -1960,6 +1962,9 @@ function escHtml(s) {
 }
 
 setTimeout(()=>{ showPage('dashboard'); }, 100);
+// Poll notification badge
+pollNotifBadge();
+setInterval(pollNotifBadge, 60000);
 ''
 
 /* ── SaaS Dashboard ── */
@@ -3385,4 +3390,144 @@ async function lpeResetToSaved(){
     setTimeout(lpeOpenPreview, 500);
   }
   if(typeof showToast==='function') showToast('↺ Last saved version ကို ပြန်ရောက်ပြီ');
+}
+
+/* ══ NOTIFICATIONS ══ */
+let _notifChartMrr = null, _notifChartWeekly = null;
+const NOTIF_LEVEL = {info:'#3b82f6', warning:'#f59e0b', danger:'#ef4444'};
+const NOTIF_ICON  = {plan_expiry:'⏰', disk_usage:'💾', error_spike:'🚨', new_signup:'🎉', churn_risk:'⚠️'};
+
+async function loadNotifications(){
+  const el = document.getElementById('notif-list');
+  if(!el) return;
+  el.innerHTML = '<div style="text-align:center;padding:2rem;color:var(--text-muted)">Loading...</div>';
+  const d = await fetch('notifications_api.php?action=list',{credentials:'include'}).then(r=>r.json()).catch(()=>({ok:false}));
+  if(!d.ok){ el.innerHTML='<div style="color:#ef4444;padding:1rem">Error loading notifications</div>'; return; }
+
+  // Update badge
+  const badge = document.getElementById('notif-badge');
+  if(badge){ badge.textContent=d.unread||''; badge.style.display=d.unread>0?'block':'none'; }
+
+  if(!d.notifications?.length){ el.innerHTML='<div style="text-align:center;padding:3rem;color:var(--text-muted)">No notifications</div>'; return; }
+
+  el.innerHTML = d.notifications.map(n=>`
+    <div id="notif-${n.id}" style="display:flex;gap:.75rem;padding:1rem;border-radius:10px;margin-bottom:.5rem;background:${n.is_read?'transparent':'var(--surface2)'};border:.5px solid var(--border)">
+      <div style="font-size:1.4rem;flex-shrink:0;margin-top:.1rem">${NOTIF_ICON[n.type]||'📌'}</div>
+      <div style="flex:1">
+        <div style="display:flex;align-items:center;gap:.5rem;margin-bottom:.2rem">
+          <span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:${NOTIF_LEVEL[n.level]||'#3b82f6'};flex-shrink:0"></span>
+          <span style="font-weight:600;font-size:.88rem">${escHtml(n.title)}</span>
+          ${!n.is_read?'<span style="font-size:.7rem;background:#ef4444;color:#fff;padding:1px 6px;border-radius:10px">New</span>':''}
+        </div>
+        ${n.body?`<p style="margin:.2rem 0 .4rem;font-size:.82rem;color:var(--text-muted)">${escHtml(n.body)}</p>`:''}
+        <span style="font-size:.74rem;color:var(--text-muted)">${(n.created_at||'').slice(0,16)}</span>
+        ${n.tenant_id?`<button class="btn btn-ghost btn-sm" style="margin-left:.5rem;font-size:.72rem" onclick="viewTenant(${n.tenant_id})">View tenant →</button>`:''}
+      </div>
+      <div style="display:flex;flex-direction:column;gap:.3rem;flex-shrink:0">
+        ${!n.is_read?`<button class="btn btn-ghost btn-sm" onclick="markRead(${n.id})" title="Mark read">✓</button>`:''}
+        <button class="btn btn-ghost btn-sm" onclick="deleteNotif(${n.id})" title="Delete">×</button>
+      </div>
+    </div>`).join('');
+}
+
+async function markRead(id){
+  await fetch('notifications_api.php?action=mark_read',{method:'POST',credentials:'include',headers:{'Content-Type':'application/json'},body:JSON.stringify({id})});
+  loadNotifications();
+}
+async function markAllRead(){
+  await fetch('notifications_api.php?action=mark_read',{method:'POST',credentials:'include',headers:{'Content-Type':'application/json'},body:JSON.stringify({id:0})});
+  loadNotifications();
+}
+async function deleteNotif(id){
+  await fetch('notifications_api.php?action=delete',{method:'POST',credentials:'include',headers:{'Content-Type':'application/json'},body:JSON.stringify({id})});
+  loadNotifications();
+}
+async function clearReadNotifs(){
+  await fetch('notifications_api.php?action=delete',{method:'POST',credentials:'include',headers:{'Content-Type':'application/json'},body:JSON.stringify({id:0})});
+  loadNotifications();
+}
+async function pollNotifBadge(){
+  try{
+    const d = await fetch('notifications_api.php?action=unread_count',{credentials:'include'}).then(r=>r.json());
+    const badge = document.getElementById('notif-badge');
+    if(badge){ badge.textContent=d.count||''; badge.style.display=d.count>0?'block':'none'; }
+  }catch(e){}
+}
+
+/* ══ GROWTH ANALYTICS ══ */
+async function loadGrowth(){
+  const months = document.getElementById('growth-months')?.value||6;
+  const d = await fetch(`admin_growth.php?months=${months}`,{credentials:'include'}).then(r=>r.json()).catch(()=>({ok:false}));
+  if(!d.ok) return;
+  const s = d.summary||{};
+
+  // Summary cards
+  const sumEl = document.getElementById('growth-summary');
+  if(sumEl){
+    const cards = [
+      {label:'Total MRR', value: fmtK(s.total_mrr||0)+'K Ks', color:'#6366f1'},
+      {label:'Active tenants', value: s.total_active||0, color:'#10b981'},
+      {label:'New signups (30d)', value: s.new_signups_30d||0, color:'#3b82f6'},
+      {label:'Churn (30d)', value: s.churn_30d||0, color:'#ef4444'},
+      {label:'Activation rate', value: (s.activation_rate||0)+'%', color:'#f59e0b'},
+    ];
+    sumEl.innerHTML = cards.map(c=>`
+      <div style="background:var(--card);border:.5px solid var(--border);border-radius:10px;padding:1rem;text-align:center">
+        <div style="font-size:.74rem;color:var(--text-muted);margin-bottom:.4rem">${c.label}</div>
+        <div style="font-size:1.5rem;font-weight:700;color:${c.color}">${c.value}</div>
+      </div>`).join('');
+  }
+
+  // MRR trend chart
+  if(_notifChartMrr) _notifChartMrr.destroy();
+  const ctx1 = document.getElementById('mrr-chart');
+  if(ctx1 && typeof Chart!=='undefined'){
+    _notifChartMrr = new Chart(ctx1,{type:'bar',data:{
+      labels:(d.mrr_trend||[]).map(r=>r.month?.slice(0,7)),
+      datasets:[
+        {label:'New tenants',data:(d.mrr_trend||[]).map(r=>parseInt(r.new_tenants||0)),backgroundColor:'rgba(99,102,241,.7)',borderRadius:4,yAxisID:'y2'},
+        {label:'MRR (Ks)',data:(d.mrr_trend||[]).map(r=>parseFloat(r.mrr_mmk||0)),backgroundColor:'rgba(16,185,129,.2)',borderColor:'#10b981',borderWidth:2,type:'line',tension:.4,fill:true,yAxisID:'y1'},
+      ]
+    },options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{font:{size:10},boxWidth:10}}},
+      scales:{y1:{position:'left',ticks:{font:{size:9},callback:v=>fmtK(v)+'K'}},y2:{position:'right',grid:{drawOnChartArea:false},ticks:{font:{size:9}}}}}});
+  }
+
+  // Weekly signups chart
+  if(_notifChartWeekly) _notifChartWeekly.destroy();
+  const ctx2 = document.getElementById('weekly-chart');
+  if(ctx2 && typeof Chart!=='undefined'){
+    _notifChartWeekly = new Chart(ctx2,{type:'bar',data:{
+      labels:(d.weekly||[]).map(r=>r.week_start),
+      datasets:[{label:'Signups',data:(d.weekly||[]).map(r=>parseInt(r.signups||0)),backgroundColor:'rgba(59,130,246,.7)',borderRadius:4}]
+    },options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{ticks:{font:{size:9}}},y:{ticks:{font:{size:9}}}}}});
+  }
+
+  // Plan distribution
+  const planEl = document.getElementById('growth-plans');
+  if(planEl){
+    const planColors = {free:'#94a3b8',basic:'#3b82f6',pro:'#8b5cf6',enterprise:'#f59e0b'};
+    const total = (d.plan_dist||[]).reduce((a,p)=>a+parseInt(p.count||0),0)||1;
+    planEl.innerHTML = (d.plan_dist||[]).map(p=>`
+      <div style="margin-bottom:.75rem">
+        <div style="display:flex;justify-content:space-between;font-size:.82rem;margin-bottom:.25rem">
+          <span style="font-weight:500;text-transform:capitalize">${p.plan}</span>
+          <span style="color:var(--text-muted)">${p.count} tenants · ${fmtK(p.mrr||0)}K MRR</span>
+        </div>
+        <div style="background:var(--surface2);border-radius:4px;height:8px">
+          <div style="background:${planColors[p.plan]||'#6366f1'};border-radius:4px;height:8px;width:${Math.round(parseInt(p.count||0)/total*100)}%"></div>
+        </div>
+      </div>`).join('')||'<div style="color:var(--text-muted);font-size:.82rem">No data</div>';
+  }
+
+  // Top tenants
+  const topEl = document.getElementById('growth-top-tenants');
+  if(topEl){
+    topEl.innerHTML = (d.top_tenants||[]).map((t,i)=>`
+      <div style="display:flex;align-items:center;gap:.6rem;padding:.5rem 0;border-bottom:.5px solid var(--border);font-size:.82rem">
+        <span style="color:var(--text-muted);width:18px;text-align:right">${i+1}</span>
+        <span style="flex:1;font-weight:500">${escHtml(t.name)}</span>
+        <span style="font-size:.72rem;padding:1px 6px;border-radius:10px;background:var(--surface2)">${t.plan}</span>
+        <span style="color:var(--text-muted)">${t.orders} orders</span>
+      </div>`).join('')||'<div style="color:var(--text-muted);font-size:.82rem">No data</div>';
+  }
 }
