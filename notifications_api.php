@@ -16,7 +16,7 @@ function generateAlerts(PDO $pdo): array {
     $now = date('Y-m-d H:i:s');
 
     // 1. Plans expiring in 7 days
-    $exp = $pdo->query("SELECT id,name,email,plan_expires FROM tenants WHERE is_active=1 AND plan_expires IS NOT NULL AND plan_expires BETWEEN NOW() AND DATE_ADD(NOW(), INTERVAL 7 DAY)")->fetchAll(PDO::FETCH_ASSOC);
+    $exp = $pdo->query("SELECT id,name,owner_email as email,plan_expires FROM tenants WHERE is_active=1 AND plan_expires IS NOT NULL AND plan_expires BETWEEN NOW() AND DATE_ADD(NOW(), INTERVAL 7 DAY)")->fetchAll(PDO::FETCH_ASSOC);
     foreach ($exp as $t) {
         $days = (int)ceil((strtotime($t['plan_expires']) - time()) / 86400);
         $alerts[] = ['type'=>'plan_expiry','level'=>$days<=2?'danger':'warning','title'=>"Plan expiring: {$t['name']}",'body'=>"Plan expires in {$days} days ({$t['plan_expires']})",'tenant_id'=>$t['id']];
