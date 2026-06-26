@@ -1899,11 +1899,13 @@ function applySettings() {
   // Header
   const hs = document.getElementById('header-status');
   if (s.open_hours) { hs.textContent = '● ' + s.open_hours; hs.style.display = ''; }
-  // Logo
-  const le = document.getElementById('logo-emoji');
-  if (le && s.store_emoji) le.textContent = s.store_emoji;
-  const lt = document.getElementById('logo-text');
-  if (lt && s.store_name) lt.innerHTML = s.store_name.replace('Haus','<span>Haus</span>');
+  // Logo — only apply from site_settings if NO tenant storefront loaded
+  if (!window._SF) {
+    const le = document.getElementById('logo-emoji');
+    if (le && s.store_emoji) le.textContent = s.store_emoji;
+    const lt = document.getElementById('logo-text');
+    if (lt && s.store_name) lt.innerHTML = s.store_name.replace('Haus','<span>Haus</span>');
+  }
   // Hero
   const hbg = document.getElementById('hero-bg-img');
   if (s.hero_bg_image) hbg.style.backgroundImage = `url(${s.hero_bg_image})`;

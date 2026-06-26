@@ -455,6 +455,36 @@ footer{padding:3rem 5vw;border-top:0.5px solid var(--border);max-width:1200px;ma
     const prH=document.getElementById('pricing-heading'); if(prH&&s.pricing_heading) prH.textContent=s.pricing_heading;
     const prS=document.getElementById('pricing-sub'); if(prS&&s.pricing_sub) prS.textContent=s.pricing_sub;
 
+    // ── Render pricing plans ──
+    const pGrid = document.getElementById('pricing-grid');
+    if(pGrid && plansRes.ok && plansRes.plans?.length) {
+      const featuredPlan = 'pro';
+      const planIcons = {free:'🆓', basic:'⚡', pro:'🚀', enterprise:'🏢'};
+      pGrid.innerHTML = plansRes.plans.map(p => {
+        const isFeatured = p.code === featuredPlan;
+        const price = parseInt(p.price_mmk||0);
+        let features = [];
+        try {
+          const fObj = p.features ? (typeof p.features==='string'?JSON.parse(p.features):p.features) : {};
+          const fLabels = {pos:'POS System',crm:'CRM / Loyalty',kds:'Kitchen Display',delivery:'Delivery',multi_branch:'Multi-branch',loyalty:'Loyalty stamps'};
+          features = Object.entries(fObj).filter(([,v])=>v).map(([k])=>fLabels[k]||k);
+        } catch(e) {}
+        return `<div class="price-card${isFeatured?' featured':''}">
+          ${isFeatured?'<div style="font-size:.72rem;font-weight:600;color:var(--accent);text-transform:uppercase;letter-spacing:.05em;margin-bottom:.25rem">⭐ Most popular</div>':''}
+          <div style="font-size:1.5rem">${planIcons[p.code]||'📦'}</div>
+          <div style="font-weight:700;font-size:1.1rem;text-transform:capitalize">${p.name||p.code}</div>
+          <div style="font-size:1.8rem;font-weight:700;color:var(--accent)">${price===0?'Free':price.toLocaleString()+' <span style="font-size:.9rem;font-weight:400">Ks/mo</span>'}</div>
+          <div style="font-size:.78rem;color:var(--text-mid);margin-bottom:.5rem">${p.description||''}</div>
+          ${features.length?'<ul style="margin:0;padding-left:1.1rem;font-size:.82rem;display:flex;flex-direction:column;gap:.3rem">'+features.map(f=>`<li>${f}</li>`).join('')+'</ul>':''}
+          <div style="margin-top:auto;padding-top:.75rem">
+            <a href="signup.html?plan=${p.code}" class="cta-btn" style="display:block;text-align:center;padding:.6rem;border-radius:8px;background:${isFeatured?'var(--accent)':'transparent'};color:${isFeatured?'#fff':'var(--accent)'};border:1.5px solid var(--accent);font-weight:600;font-size:.88rem;text-decoration:none">
+              ${price===0?'Start free':'Get started'} →
+            </a>
+          </div>
+        </div>`;
+      }).join('');
+    }
+
     // Announcement banner
     if(s.announcement_on === '1' && s.announcement_text && s.announcement_text.trim()) {
       const ban = document.getElementById('ann-banner');
