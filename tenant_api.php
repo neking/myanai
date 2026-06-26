@@ -612,4 +612,82 @@ if ($action === 'save_payment_settings' && $_SERVER['REQUEST_METHOD'] === 'POST'
     ok(['msg' => 'Payment settings saved']);
 }
 
+/* ════════════════════════════════════════════════════════
+   OPENING HOURS
+   GET  ?action=get_hours&tenant_id=
+   POST ?action=save_hours  {tenant_id, hours:{mon:{open,close,closed},...}}
+════════════════════════════════════════════════════════ */
+if ($action === 'get_hours') {
+    $tid = (int)($_GET['tenant_id'] ?? $_SESSION['tenant_id'] ?? 0);
+    if (!$tid) fail('tenant_id required');
+    $row = $pdo->prepare("SELECT settings FROM tenants WHERE id=?");
+    $row->execute([$tid]);
+    $s = json_decode($row->fetchColumn() ?: '{}', true) ?: [];
+    $defaultHours = [];
+    $days = ['mon','tue','wed','thu','fri','sat','sun'];
+    $dayNames = ['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'];
+    foreach ($days as $i => $d) {
+        $defaultHours[$d] = ['name'=>$dayNames[$i], 'open'=>'09:00', 'close'=>'22:00', 'closed'=>false];
+    }
+    $hours = array_merge($defaultHours, $s['opening_hours'] ?? []);
+    ok(['hours' => $hours]);
+}
+
+if ($action === 'save_hours' && $_SERVER['REQUEST_METHOD'] === 'POST') {
+    $b   = json_decode(file_get_contents('php://input'), true) ?? [];
+    $tid = (int)($b['tenant_id'] ?? $_SESSION['tenant_id'] ?? 0);
+    $hrs = $b['hours'] ?? [];
+    if (!$tid) fail('tenant_id required');
+    $row = $pdo->prepare("SELECT settings FROM tenants WHERE id=?");
+    $row->execute([$tid]);
+    $existing = json_decode($row->fetchColumn() ?: '{}', true) ?: [];
+    $existing['opening_hours'] = $hrs;
+    $pdo->prepare("UPDATE tenants SET settings=? WHERE id=?")->execute([json_encode($existing, JSON_UNESCAPED_UNICODE), $tid]);
+    ok(['msg' => 'Opening hours saved']);
+}
+
+/* ════════════════════════════════════════════════════════
+   RECEIPT SETTINGS
+   GET  ?action=get_receipt_settings&tenant_id=
+   POST ?action=save_receipt_settings
+════════════════════════════════════════════════════════ */
+if ($action === 'get_receipt_settings') {
+    $tid = (int)($_GET['tenant_id'] ?? $_SESSION['tenant_id'] ?? 0);
+    if (!$tid) fail('tenant_id required');
+    $row = $pdo->prepare("SELECT settings FROM tenants WHERE id=?");
+    $row->execute([$tid]);
+    $s = json_decode($row->fetchColumn() ?: '{}', true) ?: [];
+    $defaults = [
+        'receipt_header'   => '',
+        'receipt_footer'   => 'ကျေးဇူးတင်ပါသည်! ပြန်လည်လာရောက်ပါ 🙏',
+        'receipt_show_logo'=> true,
+        'receipt_show_tax' => false,
+        'tax_rate'         => 0,
+        'receipt_note'     => '',
+        'kds_enabled'      => false,
+        'kds_stations'     => ['kitchen', 'bar'],
+        'printer_type'     => 'thermal_80mm',
+        'auto_print'       => false,
+    ];
+    $settings = array_merge($defaults, $s['receipt_settings'] ?? []);
+    ok(['settings' => $settings]);
+}
+
+if ($action === 'save_receipt_settings' && $_SERVER['REQUEST_METHOD'] === 'POST') {
+    $b   = json_decode(file_get_contents('php://input'), true) ?? [];
+    $tid = (int)($b['tenant_id'] ?? $_SESSION['tenant_id'] ?? 0);
+    $rs  = $b['settings'] ?? [];
+    if (!$tid) fail('tenant_id required');
+    $allowed = ['receipt_header','receipt_footer','receipt_show_logo','receipt_show_tax',
+                'tax_rate','receipt_note','kds_enabled','kds_stations','printer_type','auto_print'];
+    $clean = array_intersect_key($rs, array_flip($allowed));
+    $row = $pdo->prepare("SELECT settings FROM tenants WHERE id=?");
+    $row->execute([$tid]);
+    $existing = json_decode($row->fetchColumn() ?: '{}', true) ?: [];
+    $existing['receipt_settings'] = $clean;
+    $pdo->prepare("UPDATE tenants SET settings=? WHERE id=?")->execute([json_encode($existing, JSON_UNESCAPED_UNICODE), $tid]);
+    ok(['msg' => 'Receipt settings saved']);
+}
+
+
 fail('Unknown action');

@@ -529,6 +529,15 @@ button,select,input[type=checkbox]{
       <div class="nav-item" id="nav-storefront" onclick="showPage('storefront')">
         <span class="nav-icon">🎨</span> ဆိုင်ဝင်ပေါက်
       </div>
+      <div class="nav-item" id="nav-hours" onclick="showPage('hours')">
+        <span class="nav-icon">🕐</span> ဖွင့်ချိန်ပိတ်ချိန်
+      </div>
+      <div class="nav-item" id="nav-receipt" onclick="showPage('receipt')">
+        <span class="nav-icon">🖨️</span> Receipt/KDS
+      </div>
+      <div class="nav-item" id="nav-reviews" onclick="showPage('reviews')">
+        <span class="nav-icon">⭐</span> Reviews
+      </div>
       <div class="nav-item" id="nav-settings" onclick="showPage('settings')">
         <span class="nav-icon">⚙️</span> ဆက်တင်
       </div>
@@ -1140,6 +1149,108 @@ button,select,input[type=checkbox]{
     </div>
   </div>
 </div>
+<!-- ══ OPENING HOURS ══ -->
+<div id="page-hours" class="page" style="display:none">
+  <div class="page-head">
+    <div style="display:flex;align-items:center;gap:.75rem"><button class="hamburger" onclick="openSidebar()">☰</button><span style="font-size:.95rem;font-weight:600">🕐 ဆိုင်ဖွင့်ချိန်ပိတ်ချိန်</span></div>
+    <button class="btn btn-primary btn-sm" onclick="saveHours()">💾 Save</button>
+  </div>
+  <div class="content" style="max-width:600px">
+    <div class="card" style="padding:1.25rem">
+      <p style="font-size:.83rem;color:var(--muted);margin:0 0 1rem">Customer ordering page တွင် ဤဆိုင်ဖွင့်ချိန်ပိတ်ချိန်ကို ပြသမည်</p>
+      <div id="hours-grid" style="display:flex;flex-direction:column;gap:.75rem">
+        <!-- Filled by loadHours() -->
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ RECEIPT & KDS SETTINGS ══ -->
+<div id="page-receipt" class="page" style="display:none">
+  <div class="page-head">
+    <div style="display:flex;align-items:center;gap:.75rem"><button class="hamburger" onclick="openSidebar()">☰</button><span style="font-size:.95rem;font-weight:600">🖨️ Receipt / KDS Settings</span></div>
+    <button class="btn btn-primary btn-sm" onclick="saveReceiptSettings()">💾 Save</button>
+  </div>
+  <div class="content" style="max-width:640px;display:flex;flex-direction:column;gap:1rem">
+
+    <!-- Receipt -->
+    <div class="card" style="padding:1.25rem">
+      <div style="font-weight:600;font-size:.88rem;margin-bottom:1rem">🧾 Receipt</div>
+      <div style="display:flex;flex-direction:column;gap:.75rem">
+        <div><label style="font-size:.78rem;color:var(--muted);display:block;margin-bottom:.3rem">Header text</label>
+          <input id="rc-header" class="form-input" placeholder="ဆိုင်အမည်၊ လိပ်စာ..." style="width:100%"></div>
+        <div><label style="font-size:.78rem;color:var(--muted);display:block;margin-bottom:.3rem">Footer text</label>
+          <input id="rc-footer" class="form-input" placeholder="ကျေးဇူးတင်ပါသည်!" style="width:100%"></div>
+        <div><label style="font-size:.78rem;color:var(--muted);display:block;margin-bottom:.3rem">Note (optional)</label>
+          <textarea id="rc-note" class="form-input" rows="2" style="width:100%;height:auto" placeholder="Wifi password, social media..."></textarea></div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:.75rem">
+          <div><label style="font-size:.78rem;color:var(--muted);display:block;margin-bottom:.3rem">Printer type</label>
+            <select id="rc-printer" style="width:100%;padding:.5rem;border:0.5px solid var(--border);border-radius:8px;background:var(--warm);color:var(--ink)">
+              <option value="thermal_80mm">Thermal 80mm</option>
+              <option value="thermal_58mm">Thermal 58mm</option>
+              <option value="a4">A4 (PDF)</option>
+            </select></div>
+          <div><label style="font-size:.78rem;color:var(--muted);display:block;margin-bottom:.3rem">Tax rate (%)</label>
+            <input id="rc-tax-rate" type="number" min="0" max="100" step="0.5" class="form-input" placeholder="0" style="width:100%"></div>
+        </div>
+        <div style="display:flex;gap:1.5rem;flex-wrap:wrap">
+          <label style="display:flex;align-items:center;gap:.5rem;font-size:.85rem;cursor:pointer">
+            <input type="checkbox" id="rc-show-logo" style="width:16px;height:16px"> Show logo
+          </label>
+          <label style="display:flex;align-items:center;gap:.5rem;font-size:.85rem;cursor:pointer">
+            <input type="checkbox" id="rc-show-tax" style="width:16px;height:16px"> Show tax
+          </label>
+          <label style="display:flex;align-items:center;gap:.5rem;font-size:.85rem;cursor:pointer">
+            <input type="checkbox" id="rc-auto-print" style="width:16px;height:16px"> Auto print on order
+          </label>
+        </div>
+      </div>
+    </div>
+
+    <!-- KDS -->
+    <div class="card" style="padding:1.25rem">
+      <div style="font-weight:600;font-size:.88rem;margin-bottom:1rem">📺 Kitchen Display (KDS)</div>
+      <div style="display:flex;flex-direction:column;gap:.75rem">
+        <label style="display:flex;align-items:center;gap:.5rem;font-size:.85rem;cursor:pointer">
+          <input type="checkbox" id="rc-kds-enabled" style="width:16px;height:16px"> KDS enable လုပ်မည်
+        </label>
+        <div><label style="font-size:.78rem;color:var(--muted);display:block;margin-bottom:.3rem">KDS Stations (comma separated)</label>
+          <input id="rc-kds-stations" class="form-input" placeholder="kitchen, bar, grill" style="width:100%"></div>
+        <p style="font-size:.78rem;color:var(--muted);margin:0">KDS မှ မမ်မမ Order ready ဖြစ်ချိန် notification ပေးနိုင်မည်</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ REVIEWS ══ -->
+<div id="page-reviews" class="page" style="display:none">
+  <div class="page-head">
+    <div style="display:flex;align-items:center;gap:.75rem"><button class="hamburger" onclick="openSidebar()">☰</button><span style="font-size:.95rem;font-weight:600">⭐ Customer Reviews</span></div>
+    <button class="btn btn-ghost btn-sm" onclick="loadReviews()">🔄 Refresh</button>
+  </div>
+  <div class="content">
+    <!-- Stats -->
+    <div id="reviews-stats" style="display:grid;grid-template-columns:repeat(3,1fr);gap:.75rem;margin-bottom:1rem">
+      <div class="card" style="padding:1rem;text-align:center">
+        <div style="font-size:.75rem;color:var(--muted);margin-bottom:.3rem">ပျမ်းမျှ Rating</div>
+        <div id="rv-avg" style="font-size:2rem;font-weight:700">—</div>
+        <div id="rv-stars" style="font-size:1.2rem;color:#f59e0b">—</div>
+      </div>
+      <div class="card" style="padding:1rem;text-align:center">
+        <div style="font-size:.75rem;color:var(--muted);margin-bottom:.3rem">Reviews စုစုပေါင်း</div>
+        <div id="rv-total" style="font-size:2rem;font-weight:700">—</div>
+      </div>
+      <div class="card" style="padding:1rem;text-align:center">
+        <div style="font-size:.75rem;color:var(--muted);margin-bottom:.3rem">Rating Bar</div>
+        <div id="rv-bar" style="font-size:.78rem;text-align:left"></div>
+      </div>
+    </div>
+    <!-- Reviews list -->
+    <div class="card" style="padding:1.25rem">
+      <div id="reviews-list"><div style="text-align:center;padding:2rem;color:var(--muted)">Loading...</div></div>
+    </div>
+  </div>
+</div>
 <div id="page-backup" class="page" style="display:none">
   <div class="content">
     <div style="max-width:600px">
@@ -1500,7 +1611,7 @@ async function tenantApi(action, body=null){
 /* ── showPage ── */
 const ALL_PAGES = ['dashboard','menu','staff','crm','stocklog','promos','branches',
   'orders','tables','reserve','stock','shift','delivery','expenses',
-  'upgrade','analytics','backup','storefront','settings','schedule'];
+  'upgrade','analytics','backup','storefront','hours','receipt','reviews','settings','schedule'];
 
 function showPage(page){
   // Hide all pages
@@ -1560,6 +1671,9 @@ function showPage(page){
     upgrade:    ()=> loadUpgradePage(),
     settings:   ()=> loadTenantSettings(),
     analytics:  ()=> loadAnalytics(),
+    hours:      ()=> loadHours(),
+    receipt:    ()=> loadReceiptSettings(),
+    reviews:    ()=> loadReviews(),
     backup:     ()=> loadBackupPage(),
     storefront: ()=> loadStorefront(),
   };
@@ -2826,5 +2940,155 @@ async function loadAnalytics(){
       catEl.innerHTML = (d.categories||[]).slice(0,6).map(c=>`<div style="display:flex;justify-content:space-between;padding:.4rem 0;border-bottom:.5px solid var(--border);font-size:.8rem"><span>${escH(c.category||'Other')}</span><span style="color:var(--muted)">${parseInt(c.qty||0)} · ${fmtK(c.revenue||0)}K</span></div>`).join('')||'<div style="color:var(--muted);font-size:.82rem">Data မရှိသေး</div>';
     }
   } catch(e){ console.error('Analytics:',e); }
+}
+
+/* ══ OPENING HOURS ══ */
+const DAY_NAMES = {mon:'တနင်္လာ',tue:'အင်္ဂါ',wed:'ဗုဒ္ဓဟူး',thu:'ကြာသပတေး',fri:'သောကြာ',sat:'စနေ',sun:'တနင်္ဂနွေ'};
+const DAYS = ['mon','tue','wed','thu','fri','sat','sun'];
+
+async function loadHours(){
+  const tid = window.__TENANT_ID;
+  const d = await fetch(`tenant_api.php?action=get_hours&tenant_id=${tid}`,{credentials:'include'}).then(r=>r.json());
+  if(!d.ok) return;
+  const grid = document.getElementById('hours-grid');
+  if(!grid) return;
+  grid.innerHTML = DAYS.map(day=>{
+    const h = d.hours[day] || {open:'09:00',close:'22:00',closed:false};
+    return `<div style="display:grid;grid-template-columns:90px 1fr 1fr 120px;align-items:center;gap:.75rem;padding:.6rem;background:var(--surface2);border-radius:8px">
+      <span style="font-size:.85rem;font-weight:500">${DAY_NAMES[day]}</span>
+      <input type="time" id="h-${day}-open" value="${h.open||'09:00'}" style="padding:.4rem;border:0.5px solid var(--border);border-radius:6px;background:var(--warm);color:var(--ink)" ${h.closed?'disabled':''}>
+      <input type="time" id="h-${day}-close" value="${h.close||'22:00'}" style="padding:.4rem;border:0.5px solid var(--border);border-radius:6px;background:var(--warm);color:var(--ink)" ${h.closed?'disabled':''}>
+      <label style="display:flex;align-items:center;gap:.4rem;font-size:.82rem;cursor:pointer">
+        <input type="checkbox" id="h-${day}-closed" onchange="toggleDayClosed('${day}',this.checked)" ${h.closed?'checked':''} style="width:15px;height:15px"> ပိတ်မည်
+      </label>
+    </div>`;
+  }).join('');
+}
+
+function toggleDayClosed(day, closed){
+  ['open','close'].forEach(t=>{
+    const el = document.getElementById(`h-${day}-${t}`);
+    if(el) el.disabled = closed;
+  });
+}
+
+async function saveHours(){
+  const tid = window.__TENANT_ID;
+  const hours = {};
+  DAYS.forEach(day=>{
+    hours[day] = {
+      name: DAY_NAMES[day],
+      open:   document.getElementById(`h-${day}-open`)?.value || '09:00',
+      close:  document.getElementById(`h-${day}-close`)?.value || '22:00',
+      closed: document.getElementById(`h-${day}-closed`)?.checked || false,
+    };
+  });
+  const d = await fetch('tenant_api.php?action=save_hours',{
+    method:'POST', credentials:'include', headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({tenant_id:tid, hours})
+  }).then(r=>r.json());
+  if(d.ok) toast('✅ ဖွင့်ချိန်ပိတ်ချိန် သိမ်းပြီ','ok');
+  else toast(d.msg||'Error','err');
+}
+
+/* ══ RECEIPT / KDS SETTINGS ══ */
+async function loadReceiptSettings(){
+  const tid = window.__TENANT_ID;
+  const d = await fetch(`tenant_api.php?action=get_receipt_settings&tenant_id=${tid}`,{credentials:'include'}).then(r=>r.json());
+  if(!d.ok) return;
+  const s = d.settings;
+  const set=(id,v)=>{const el=document.getElementById(id);if(el)el.value=v||'';};
+  const chk=(id,v)=>{const el=document.getElementById(id);if(el)el.checked=!!v;};
+  set('rc-header',  s.receipt_header);
+  set('rc-footer',  s.receipt_footer);
+  set('rc-note',    s.receipt_note);
+  set('rc-tax-rate',s.tax_rate);
+  set('rc-printer', s.printer_type);
+  set('rc-kds-stations', Array.isArray(s.kds_stations)?s.kds_stations.join(', '):s.kds_stations||'');
+  chk('rc-show-logo',  s.receipt_show_logo);
+  chk('rc-show-tax',   s.receipt_show_tax);
+  chk('rc-auto-print', s.auto_print);
+  chk('rc-kds-enabled',s.kds_enabled);
+}
+
+async function saveReceiptSettings(){
+  const tid = window.__TENANT_ID;
+  const get = id => document.getElementById(id)?.value?.trim()||'';
+  const chk = id => document.getElementById(id)?.checked||false;
+  const stations = get('rc-kds-stations').split(',').map(s=>s.trim()).filter(Boolean);
+  const d = await fetch('tenant_api.php?action=save_receipt_settings',{
+    method:'POST', credentials:'include', headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({tenant_id:tid, settings:{
+      receipt_header:   get('rc-header'),
+      receipt_footer:   get('rc-footer'),
+      receipt_note:     get('rc-note'),
+      tax_rate:         parseFloat(get('rc-tax-rate'))||0,
+      printer_type:     get('rc-printer'),
+      receipt_show_logo:chk('rc-show-logo'),
+      receipt_show_tax: chk('rc-show-tax'),
+      auto_print:       chk('rc-auto-print'),
+      kds_enabled:      chk('rc-kds-enabled'),
+      kds_stations:     stations,
+    }})
+  }).then(r=>r.json());
+  if(d.ok) toast('✅ Settings သိမ်းပြီ','ok');
+  else toast(d.msg||'Error','err');
+}
+
+/* ══ REVIEWS ══ */
+async function loadReviews(){
+  const tid = window.__TENANT_ID;
+  const d = await fetch(`reviews_api.php?action=list&tenant_id=${tid}&limit=20`,{credentials:'include'}).then(r=>r.json()).catch(()=>({ok:false}));
+  if(!d.ok){ document.getElementById('reviews-list').innerHTML='<div style="color:#e74c3c;padding:1rem">'+( d.msg||'Error loading reviews')+'</div>'; return; }
+
+  // Stats
+  const avg = d.avg_rating||0;
+  const stars = '★'.repeat(Math.round(avg))+'☆'.repeat(5-Math.round(avg));
+  document.getElementById('rv-avg').textContent = avg.toFixed(1)||'—';
+  document.getElementById('rv-stars').textContent = stars;
+  document.getElementById('rv-total').textContent = d.total||0;
+
+  // Rating bar
+  const counts = [5,4,3,2,1].map(r=>({r, count:(d.reviews||[]).filter(rv=>parseInt(rv.rating)===r).length}));
+  const maxC = Math.max(...counts.map(c=>c.count),1);
+  document.getElementById('rv-bar').innerHTML = counts.map(c=>`
+    <div style="display:flex;align-items:center;gap:.4rem;margin-bottom:.2rem">
+      <span style="font-size:.72rem;width:20px">${c.r}★</span>
+      <div style="flex:1;background:var(--surface2);border-radius:3px;height:8px">
+        <div style="background:#f59e0b;border-radius:3px;height:8px;width:${Math.round(c.count/maxC*100)}%"></div>
+      </div>
+      <span style="font-size:.72rem;width:16px;text-align:right">${c.count}</span>
+    </div>`).join('');
+
+  // Reviews list
+  const list = document.getElementById('reviews-list');
+  if(!d.reviews?.length){ list.innerHTML='<div style="text-align:center;padding:2rem;color:var(--muted)">Reviews မရှိသေး</div>'; return; }
+  list.innerHTML = d.reviews.map(r=>`
+    <div style="padding:.875rem 0;border-bottom:.5px solid var(--border)">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.3rem">
+        <div style="display:flex;align-items:center;gap:.5rem">
+          <span style="color:#f59e0b;font-size:1rem">${'★'.repeat(parseInt(r.rating))}${'☆'.repeat(5-parseInt(r.rating))}</span>
+          <span style="font-weight:500;font-size:.85rem">${escH(r.customer_name||'Anonymous')}</span>
+          ${r.customer_phone?`<span style="font-size:.75rem;color:var(--muted)">${escH(r.customer_phone)}</span>`:''}
+        </div>
+        <div style="display:flex;align-items:center;gap:.5rem">
+          <span style="font-size:.75rem;color:var(--muted)">${(r.created_at||'').slice(0,10)}</span>
+          <span style="font-size:.72rem;padding:2px 7px;border-radius:20px;background:${r.is_public?'rgba(16,185,129,.1)':'rgba(239,68,68,.1)'};color:${r.is_public?'#10b981':'#ef4444'}">${r.is_public?'Public':'Hidden'}</span>
+          <button class="btn btn-ghost btn-sm" onclick="toggleReview(${r.id})" title="${r.is_public?'Hide':'Show'}">👁</button>
+          <button class="btn btn-ghost btn-sm" onclick="deleteReview(${r.id})" title="Delete">🗑</button>
+        </div>
+      </div>
+      ${r.comment?`<p style="margin:0;font-size:.83rem;color:var(--muted);line-height:1.5">${escH(r.comment)}</p>`:''}
+    </div>`).join('');
+}
+
+async function toggleReview(id){
+  await fetch('reviews_api.php?action=toggle_public',{method:'POST',credentials:'include',headers:{'Content-Type':'application/json'},body:JSON.stringify({id})}).then(r=>r.json());
+  loadReviews();
+}
+async function deleteReview(id){
+  if(!confirm('Delete this review?')) return;
+  await fetch('reviews_api.php?action=delete',{method:'POST',credentials:'include',headers:{'Content-Type':'application/json'},body:JSON.stringify({id})}).then(r=>r.json());
+  loadReviews();
 }
 </script>
