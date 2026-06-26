@@ -4,7 +4,7 @@ if (session_status() === PHP_SESSION_NONE) session_start();
 header('Content-Type: application/json; charset=utf-8');
 
 $action = $_GET['action'] ?? '';
-$pdo    = db();
+$pdo    = getPDO();
 
 function ok($d=[]){ echo json_encode(['ok'=>true]+$d); exit; }
 function fail($m,$c=400){ http_response_code($c); echo json_encode(['ok'=>false,'msg'=>$m]); exit; }
