@@ -1730,7 +1730,6 @@ async function doLogin() {
       <div style="text-align:center"><div id="h-errors" style="font-weight:600">—</div><div style="color:var(--muted)">Errors (1h)</div></div>
     </div>
   </div><!-- end dashboard-widgets -->
-  </div><!-- end dashboard-widgets -->
   <!-- SaaS Metrics -->
         <div class="stats-grid" style="margin-bottom:1.2rem">
           <div class="stat-card">
