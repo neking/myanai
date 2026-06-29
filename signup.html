@@ -81,6 +81,17 @@ const bizPlaceholders = {
   myanmar_food:'My Myanmar Restaurant', cafe:'My Cafe', fast_food:'My Fast Food',
   fine_dining:'My Restaurant', other:'My Business'
 };
+// Auto-select plan from URL ?plan=xxx
+(function(){
+  const p = new URLSearchParams(location.search).get('plan');
+  if(p) { selectedPlan = p; document.addEventListener('DOMContentLoaded',()=>{ document.querySelectorAll('.plan-card').forEach(c=>{ c.classList.toggle('active', c.dataset.plan===p); }); }); }
+  // Demo autofill from landing page
+  if(sessionStorage.getItem('demo_autofill')){
+    sessionStorage.removeItem('demo_autofill');
+    window.location.href='tenant.php';
+  }
+})();
+
 function pickBiz(type, el) {
   selectedBiz = type;
   document.querySelectorAll('.biz-card').forEach(c=>c.classList.remove('active'));

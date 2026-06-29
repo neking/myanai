@@ -1694,6 +1694,18 @@ function branchParams(){
   return t+b;
 }
 
+/* ── Demo auto-fill from landing page ── */
+window.addEventListener('DOMContentLoaded', () => {
+  if(sessionStorage.getItem('demo_autofill')){
+    sessionStorage.removeItem('demo_autofill');
+    const em = document.getElementById('l-email');
+    const pw = document.getElementById('l-pass');
+    if(em) em.value = 'demo@myanai.net';
+    if(pw) pw.value = 'demo1234';
+    setTimeout(doTenantLogin, 300);
+  }
+});
+
 /* ── Login / Logout ── */
 async function doTenantLogin(){
   const email = document.getElementById('l-email').value.trim();

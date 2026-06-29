@@ -1970,7 +1970,7 @@ setTimeout(async ()=>{
       const banner = document.createElement('div');
       banner.id = 'tfa-warn-banner';
       banner.style.cssText = 'background:#f59e0b;color:#1c1c1c;padding:.5rem 1rem;font-size:.82rem;display:flex;align-items:center;justify-content:space-between;gap:1rem';
-      banner.innerHTML = '🔐 <strong>Security:</strong> Admin 2FA မဖွင့်ရသေး — <button onclick="showPage('settings');this.closest('#tfa-warn-banner').remove()" style="background:#1c1c1c;color:#f59e0b;border:none;padding:2px 10px;border-radius:6px;cursor:pointer;font-size:.78rem">Enable now</button> <button onclick="this.closest('#tfa-warn-banner').remove()" style="background:none;border:none;cursor:pointer;font-size:1rem;color:#1c1c1c">×</button>';
+      banner.innerHTML = `🔐 <strong>Security:</strong> Admin 2FA မဖွင့်ရသေး — <button onclick="showPage('settings');this.closest('#tfa-warn-banner').remove()" style="background:#1c1c1c;color:#f59e0b;border:none;padding:2px 10px;border-radius:6px;cursor:pointer;font-size:.78rem">Enable now</button> <button onclick="this.closest('#tfa-warn-banner').remove()" style="background:none;border:none;cursor:pointer;font-size:1rem;color:#1c1c1c">×</button>`;
       document.querySelector('.main-content,.content-area,main,#main')?.prepend(banner) || document.body.prepend(banner);
     }
   }catch(e){}

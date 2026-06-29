@@ -195,7 +195,7 @@ footer{padding:3rem 5vw;border-top:0.5px solid var(--border);max-width:1200px;ma
     <span class="nav-logo-text" id="nav-logo-text">Myan<span>Ai</span></span>
   </a>
   <div class="nav-links">
-    <a href="#products">Products</a>
+    <a href="#products">Features</a>
     <a href="#pricing">Pricing</a>
     <a href="#demo">Demo</a>
     <a href="#contact">Contact</a>
@@ -337,14 +337,51 @@ footer{padding:3rem 5vw;border-top:0.5px solid var(--border);max-width:1200px;ma
   <div class="demo-box reveal">
     <h2 class="demo-h2" id="demo-heading">Live Demo ကြည့်ပါ</h2>
     <p class="demo-sub" id="demo-sub">Sign up မလုပ်ဘဲ features အကုန် စမ်းနိုင်သည်</p>
-    <div class="demo-creds">
-      Email: <code>demo@myanai.net</code>
-      &nbsp;·&nbsp;
-      Password: <code>demo1234</code>
+    <div class="demo-creds" style="margin-bottom:1.25rem">
+      <div style="font-size:.8rem;color:#94a3b8;margin-bottom:.5rem">Demo credentials — click to auto-fill:</div>
+      <div style="display:flex;gap:.75rem;justify-content:center;flex-wrap:wrap">
+        <button onclick="autofillDemo()" style="background:#1e293b;border:1px solid #334155;color:#e2e8f0;padding:.5rem 1.25rem;border-radius:8px;cursor:pointer;font-size:.85rem">
+          📋 Email: demo@myanai.net · Pass: demo1234
+        </button>
+      </div>
     </div>
-    <br>
+    <div class="demo-slides" style="margin-bottom:1.5rem">
+      <div id="demo-slide-track" style="display:flex;gap:1rem;overflow-x:auto;scroll-snap-type:x mandatory;scrollbar-width:none;padding:.5rem 0">
+        <div style="min-width:280px;scroll-snap-align:start;background:#1e293b;border-radius:12px;padding:1.25rem;text-align:left;flex-shrink:0">
+          <div style="font-size:1.5rem;margin-bottom:.5rem">📊</div>
+          <div style="font-weight:600;font-size:.9rem;color:#f1f5f9;margin-bottom:.4rem">Analytics Dashboard</div>
+          <div style="font-size:.78rem;color:#94a3b8">Revenue trend, peak hours, top items, payment breakdown — 7/30/90 days filter</div>
+        </div>
+        <div style="min-width:280px;scroll-snap-align:start;background:#1e293b;border-radius:12px;padding:1.25rem;text-align:left;flex-shrink:0">
+          <div style="font-size:1.5rem;margin-bottom:.5rem">🛒</div>
+          <div style="font-weight:600;font-size:.9rem;color:#f1f5f9;margin-bottom:.4rem">Online Ordering</div>
+          <div style="font-size:.78rem;color:#94a3b8">Customer မှာ menu ကြည့်ပြီး cart ထည့်ကာ KBZPay/Wave/Cash ဖြင့် ပေးချေနိုင်</div>
+        </div>
+        <div style="min-width:280px;scroll-snap-align:start;background:#1e293b;border-radius:12px;padding:1.25rem;text-align:left;flex-shrink:0">
+          <div style="font-size:1.5rem;margin-bottom:.5rem">👥</div>
+          <div style="font-weight:600;font-size:.9rem;color:#f1f5f9;margin-bottom:.4rem">CRM & Loyalty</div>
+          <div style="font-size:.78rem;color:#94a3b8">Customer database, loyalty stamps, promotions, order history tracking</div>
+        </div>
+        <div style="min-width:280px;scroll-snap-align:start;background:#1e293b;border-radius:12px;padding:1.25rem;text-align:left;flex-shrink:0">
+          <div style="font-size:1.5rem;margin-bottom:.5rem">🏢</div>
+          <div style="font-weight:600;font-size:.9rem;color:#f1f5f9;margin-bottom:.4rem">Multi-branch</div>
+          <div style="font-size:.78rem;color:#94a3b8">Multiple branches, per-branch stock, staff management, centralized dashboard</div>
+        </div>
+        <div style="min-width:280px;scroll-snap-align:start;background:#1e293b;border-radius:12px;padding:1.25rem;text-align:left;flex-shrink:0">
+          <div style="font-size:1.5rem;margin-bottom:.5rem">🚚</div>
+          <div style="font-weight:600;font-size:.9rem;color:#f1f5f9;margin-bottom:.4rem">Delivery Management</div>
+          <div style="font-size:.78rem;color:#94a3b8">Driver assignment, delivery zones, active order tracking, fee settings</div>
+        </div>
+        <div style="min-width:280px;scroll-snap-align:start;background:#1e293b;border-radius:12px;padding:1.25rem;text-align:left;flex-shrink:0">
+          <div style="font-size:1.5rem;margin-bottom:.5rem">⭐</div>
+          <div style="font-weight:600;font-size:.9rem;color:#f1f5f9;margin-bottom:.4rem">Reviews & Ratings</div>
+          <div style="font-size:.78rem;color:#94a3b8">Customer reviews, public/private toggle, rating stats, feedback loop</div>
+        </div>
+      </div>
+      <div style="text-align:center;font-size:.75rem;color:#64748b;margin-top:.5rem">← swipe to explore →</div>
+    </div>
     <div style="display:flex;gap:.75rem;justify-content:center;flex-wrap:wrap">
-      <a class="btn-primary" id="demo-cta" href="tenant.php">🎭 Demo Admin ဝင်ကြည့် →</a>
+      <a class="btn-primary" id="demo-cta" href="tenant.php" onclick="autofillDemo()">🎭 Demo Admin ဝင်ကြည့် →</a>
       <a class="btn-secondary" href="index.html?t=demo">🛒 Customer ordering page</a>
     </div>
   </div>
@@ -466,7 +503,7 @@ footer{padding:3rem 5vw;border-top:0.5px solid var(--border);max-width:1200px;ma
         let features = [];
         try {
           const fObj = p.features ? (typeof p.features==='string'?JSON.parse(p.features):p.features) : {};
-          const fLabels = {pos:'POS System',crm:'CRM / Loyalty',kds:'Kitchen Display',delivery:'Delivery',multi_branch:'Multi-branch',loyalty:'Loyalty stamps'};
+          const fLabels = {pos:'POS System',crm:'CRM / Loyalty',kds:'Kitchen Display',delivery:'Delivery',multi_branch:'Multi-branch',loyalty:'Loyalty stamps',priority_support:'Priority Support',custom_setup:'Custom Setup'};
           features = Object.entries(fObj).filter(([,v])=>v).map(([k])=>fLabels[k]||k);
         } catch(e) {}
         return `<div class="price-card${isFeatured?' featured':''}">
@@ -909,6 +946,8 @@ window.addEventListener('scroll',()=>{
     nav.style.boxShadow='';
   }
 });
+function autofillDemo(){
+  sessionStorage.setItem('demo_autofill','1');
+}
+
 </script>
-</body>
-</html>
