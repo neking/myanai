@@ -109,23 +109,31 @@ if ($action && $_SERVER['REQUEST_METHOD'] === 'POST') {
 
     /* ── EDIT ITEM ── */
     if ($action === 'edit_item') {
-        $id       = (int)($b['id'] ?? 0);
-        $name     = trim($b['name'] ?? '');
-        $price    = (int)($b['price'] ?? 0);
-        $category = trim($b['category'] ?? 'Main');
-        $emoji    = trim($b['emoji'] ?? '🍽');
-        $desc     = trim($b['description'] ?? '');
-        $stock    = (int)($b['stock_qty'] ?? 0);
-        $active   = isset($b['is_active']) ? (int)$b['is_active'] : 1;
+        $id         = (int)($b['id'] ?? 0);
+        $name       = trim($b['name'] ?? '');
+        $price      = (int)($b['price'] ?? 0);
+        $category   = trim($b['category'] ?? 'Main');
+        $emoji      = trim($b['emoji'] ?? '🍽');
+        $desc       = trim($b['description'] ?? '');
+        $stock      = (int)($b['stock_qty'] ?? 0);
+        $active     = isset($b['is_active']) ? (int)$b['is_active'] : 1;
+        $image_path = isset($b['image_path']) ? trim($b['image_path']) : null;
 
         if (!$id || !$name || !$price) {
             echo json_encode(['ok'=>false,'msg'=>'ID, name, price required']); exit;
         }
 
-        $stmt = $pdo->prepare("UPDATE menu_items
-            SET name=?,description=?,price=?,category=?,emoji=?,is_active=?,stock_qty=?,updated_at=NOW()
-            WHERE id=? AND tenant_id=?");
-        $stmt->execute([$name,$desc,$price,$category,$emoji,$active,$stock,$id,$authTid]);
+        if ($image_path !== null) {
+            $stmt = $pdo->prepare("UPDATE menu_items
+                SET name=?,description=?,price=?,category=?,emoji=?,is_active=?,stock_qty=?,image_path=?,updated_at=NOW()
+                WHERE id=? AND tenant_id=?");
+            $stmt->execute([$name,$desc,$price,$category,$emoji,$active,$stock,$image_path,$id,$authTid]);
+        } else {
+            $stmt = $pdo->prepare("UPDATE menu_items
+                SET name=?,description=?,price=?,category=?,emoji=?,is_active=?,stock_qty=?,updated_at=NOW()
+                WHERE id=? AND tenant_id=?");
+            $stmt->execute([$name,$desc,$price,$category,$emoji,$active,$stock,$id,$authTid]);
+        }
         echo json_encode(['ok'=>true,'msg'=>'Item updated']);
         exit;
     }

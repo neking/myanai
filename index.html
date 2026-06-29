@@ -713,15 +713,15 @@ header{
 </div>
 
 <!-- SEARCH + CATEGORIES -->
-<div style="padding:.5rem 1rem .25rem;background:var(--bg)">
-  <div style="position:relative">
-    <input id="menu-search-input" type="search" placeholder="🔍 Search menu..." 
-      oninput="menuSearch(this.value)"
-      style="width:100%;padding:.55rem .75rem .55rem 2.2rem;border:1px solid var(--border);border-radius:20px;background:var(--surface);color:var(--ink);font-size:.88rem;box-sizing:border-box">
-    <span style="position:absolute;left:.75rem;top:50%;transform:translateY(-50%);font-size:.85rem;pointer-events:none;color:var(--muted)">🔍</span>
-  </div>
-</div>
 <div class="cat-wrap" id="cat-wrap">
+  <div style="padding:.4rem .75rem .2rem;width:100%;box-sizing:border-box">
+    <div style="position:relative">
+      <input id="menu-search-input" type="search" placeholder="🔍 Search menu..." 
+        oninput="menuSearch(this.value)"
+        style="width:100%;padding:.45rem .75rem .45rem 2rem;border:1px solid var(--border);border-radius:20px;background:var(--surface);color:var(--ink);font-size:.83rem;box-sizing:border-box;outline:none">
+      <span style="position:absolute;left:.65rem;top:50%;transform:translateY(-50%);font-size:.8rem;pointer-events:none;color:var(--muted)">🔍</span>
+    </div>
+  </div>
   <div class="categories" id="categories"></div>
 </div>
 
@@ -1181,7 +1181,7 @@ function renderMenu() {
     const sold  = stock === 0;
     const low   = !sold && stock <= 5;
     const imgEl = item.image_path
-      ? `<img src="${item.image_path}" alt="${item.name}" loading="lazy">`
+      ? `<img src="${item.image_path}" alt="${item.name}" loading="eager">`
       : `<span class="card-emoji">${item.emoji || '🍽️'}</span>`;
     const stockBadge = sold
       ? `<span class="stock-badge stock-out">${currentLang==="mm"?"လက်ကျန်မရှိပါ":"Sold Out"}</span>`
