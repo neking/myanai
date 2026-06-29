@@ -941,7 +941,7 @@ const BRANCH_ID  = parseInt(URL_PARAMS.get('branch') || URL_PARAMS.get('branch_i
 window._BRANCH_ID = BRANCH_ID; // expose for other scripts
 const DINE_IN    = !!TABLE_ID;
 
-const fmt = n => '$' + Number(n).toLocaleString('en-US', {minimumFractionDigits:0, maximumFractionDigits:2});
+const fmt = n => { const cur = window._CURRENCY||'MMK'; const sym = cur==='MMK'?'':'$'; const num = Number(n).toLocaleString('en-US',{minimumFractionDigits:0,maximumFractionDigits:0}); return cur==='MMK' ? num+' K' : sym+num; };
 
 /* ═══════════════════════════════════════
    INIT
@@ -1103,6 +1103,8 @@ window._applyThemeLoaded = true;
       window.applyBizLayout(window._TENANT_BIZ, menu || []);
     }
   }
+  activeCat = 'All';
+  window._menuSearchQuery = '';
   renderCats();
   renderMenu();
   // Reload menu for tenant after full init
