@@ -249,8 +249,8 @@ header{
 .section-title{font-size:1.2rem;font-weight:700;margin-bottom:1rem}
 .menu-grid{
   display:grid;
-  grid-template-columns:repeat(auto-fill,minmax(220px,1fr));
-  gap:1rem;
+  grid-template-columns:repeat(auto-fill,minmax(160px,1fr));
+  gap:.75rem;
 }
 @media(max-width:600px){
   .menu-grid{grid-template-columns:repeat(2,1fr);gap:.65rem}
@@ -266,7 +266,7 @@ header{
 }
 .card:hover{transform:translateY(-2px)}
 .card-img{
-  height:140px;display:flex;align-items:center;justify-content:center;
+  width:100%;height:140px;display:flex;align-items:center;justify-content:center;
   background:var(--warm);overflow:hidden;
 }
 .card-img img{width:100%;height:100%;object-fit:cover}
@@ -716,10 +716,9 @@ header{
 <div class="cat-wrap" id="cat-wrap">
   <div style="padding:.4rem .75rem .2rem;width:100%;box-sizing:border-box">
     <div style="position:relative">
-      <input id="menu-search-input" type="search" placeholder="🔍 Search menu..." 
+      <input id="menu-search-input" type="search" placeholder="Search menu..." 
         oninput="menuSearch(this.value)"
-        style="width:100%;padding:.45rem .75rem .45rem 2rem;border:1px solid var(--border);border-radius:20px;background:var(--surface);color:var(--ink);font-size:.83rem;box-sizing:border-box;outline:none">
-      <span style="position:absolute;left:.65rem;top:50%;transform:translateY(-50%);font-size:.8rem;pointer-events:none;color:var(--muted)">🔍</span>
+        style="width:100%;padding:.45rem .75rem;border:1px solid var(--border);border-radius:20px;background:var(--surface);color:var(--ink);font-size:.83rem;box-sizing:border-box;outline:none">
     </div>
   </div>
   <div class="categories" id="categories"></div>
