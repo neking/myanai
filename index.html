@@ -1168,7 +1168,7 @@ function filterCat(cat) {
 }
 
 function renderMenu() {
-  const items = activeCat === 'All' ? menu : menu.filter(i => (i.cat||i.category) === activeCat);
+  let items = activeCat === 'All' ? menu : menu.filter(i => (i.cat||i.category) === activeCat);
   if(window._menuSearchQuery){
     const q=window._menuSearchQuery;
     items=items.filter(i=>(i.name||i.item_name||'').toLowerCase().includes(q)||(i.cat||i.category||'').toLowerCase().includes(q));
