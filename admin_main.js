@@ -2880,7 +2880,7 @@ async function loadGrowthSummary(){
   if(!d.ok) return;
   const s = d.summary||{};
   const set = (id,val) => { const e=document.getElementById(id); if(e) e.textContent=val; };
-  set('gs-mrr', fmtK(s.total_mrr||0)+'K Ks');
+  set('gs-mrr', fmtK(s.total_mrr||0)+' Ks');
   set('gs-new', s.new_signups_30d||0);
   set('gs-churn', s.churn_30d||0);
   set('gs-active', s.total_active||0);
