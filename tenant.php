@@ -35,6 +35,29 @@ if (isset($_GET['api'])) {
         exit;
     }
 
+    if ($_GET['api'] === 'change_password' && $_SERVER['REQUEST_METHOD'] === 'POST') {
+        if (empty($_SESSION['tenant_id'])) { echo json_encode(['ok'=>false,'msg'=>'Not logged in']); exit; }
+        $b = json_decode(file_get_contents('php://input'), true);
+        $currentPass = trim($b['current_pass'] ?? '');
+        $newPass     = trim($b['new_pass'] ?? '');
+        if (strlen($newPass) < 6) { echo json_encode(['ok'=>false,'msg'=>'Password အနည်းဆုံး 6 လုံး ရှိရပါမည်']); exit; }
+        $pdo = getPDO();
+        $row = $pdo->prepare("SELECT settings FROM tenants WHERE id=?");
+        $row->execute([$_SESSION['tenant_id']]);
+        $tenant = $row->fetch();
+        $settings = json_decode($tenant['settings'] ?? '{}', true);
+        $hash = $settings['admin_pass_hash'] ?? '';
+        if (!password_verify($currentPass, $hash)) {
+            echo json_encode(['ok'=>false,'msg'=>'လက်ရှိ password မှားနေသည်']); exit;
+        }
+        $newHash = password_hash($newPass, PASSWORD_BCRYPT, ['cost'=>12]);
+        $settings['admin_pass_hash'] = $newHash;
+        $pdo->prepare("UPDATE tenants SET settings=? WHERE id=?")
+            ->execute([json_encode($settings), $_SESSION['tenant_id']]);
+        echo json_encode(['ok'=>true,'msg'=>'Password ပြောင်းပြီးပါပြီ']);
+        exit;
+    }
+
     if ($_GET['api'] === 'login') {
         $ip   = $_SERVER['REMOTE_ADDR'] ?? '0.0.0.0';
         $attempts = $_SESSION['login_attempts'] ?? 0;
@@ -1570,6 +1593,29 @@ button,select,input[type=checkbox]{
     <button class="btn btn-primary" onclick="saveTenantSettings()">💾 Save Settings</button>
   </div>
 
+  <!-- Ordering URL + QR Code -->
+  <div style="background:var(--card);border:0.5px solid var(--border);border-radius:var(--radius);padding:1.2rem;margin-bottom:1rem">
+    <div style="font-weight:600;margin-bottom:1rem">🔗 သင့်ဆိုင် Ordering URL</div>
+    <div style="display:flex;gap:.75rem;align-items:center;flex-wrap:wrap">
+      <input id="shop-url" type="text" readonly
+        style="flex:1;padding:.5rem .75rem;border:1px solid var(--border);border-radius:8px;background:var(--surface);font-size:.85rem;min-width:200px"
+        value="">
+      <button onclick="copyShopUrl()" class="btn btn-ghost" style="white-space:nowrap">📋 Copy</button>
+      <a id="shop-url-link" href="#" target="_blank" class="btn btn-ghost" style="white-space:nowrap">🔗 ဖွင့်ကြည့်</a>
+    </div>
+    <div style="margin-top:1rem;display:flex;gap:1rem;align-items:flex-start;flex-wrap:wrap">
+      <div style="text-align:center">
+        <img id="shop-qr" src="" alt="QR Code" style="width:160px;height:160px;border:4px solid var(--border);border-radius:12px;display:block">
+        <a id="shop-qr-dl" href="#" download="qr-code.png" class="btn btn-ghost" style="margin-top:.5rem;font-size:.78rem;display:inline-block">⬇️ QR Download</a>
+      </div>
+      <div style="font-size:.82rem;color:var(--muted);line-height:1.8;padding-top:.5rem">
+        <div>📱 ဆိုင်မှာ print ထားပြီး customer တွေကို scan ခိုင်းပါ</div>
+        <div>🔗 Social media မှာ share လုပ်နိုင်ပါတယ်</div>
+        <div>💬 Viber/Telegram group မှာ ပို့နိုင်ပါတယ်</div>
+      </div>
+    </div>
+  </div>
+
   <!-- Password Change -->
   <div style="background:var(--card);border:0.5px solid var(--border);border-radius:var(--radius);padding:1.2rem;margin-bottom:1rem">
     <div style="font-weight:600;margin-bottom:1rem">🔐 Password ပြောင်းရန်</div>
@@ -1601,6 +1647,7 @@ window.__IMPERSONATE_ADMIN = <?= json_encode($_SESSION['impersonate_admin'] ?? '
 window.__TENANT_ID    = <?= json_encode($tid) ?>;
 window.__TENANT_NAME  = <?= json_encode($tname) ?>;
 window.__TENANT_PLAN  = <?= json_encode($tplan) ?>;
+window.__TENANT_SLUG  = <?= json_encode($tslug ?? '') ?>;
 window.__PLAN_EXPIRES = <?= json_encode($texpires) ?>;
 window.__USER_ROLE    = 'tenant';
 window._currentBranch = 0;
@@ -1718,7 +1765,7 @@ function showPage(page){
     promos:     ()=> promoLoad(),
     branches:   ()=> branchLoad(),
     upgrade:    ()=> loadUpgradePage(),
-    settings:   ()=> loadTenantSettings(),
+    settings:   ()=> { loadTenantSettings(); initShopUrl(); },
     analytics:  ()=> loadAnalytics(),
     hours:      ()=> loadHours(),
     receipt:    ()=> loadReceiptSettings(),
@@ -1754,6 +1801,32 @@ window.addEventListener('DOMContentLoaded', () => {
     setTimeout(doTenantLogin, 300);
   }
 });
+
+/* ── Shop URL + QR Code ── */
+function initShopUrl(){
+  const slug = window.__TENANT_SLUG || '';
+  if(!slug) return;
+  const url = window.location.origin + '/' + slug;
+  const inp = document.getElementById('shop-url');
+  const link = document.getElementById('shop-url-link');
+  const qrImg = document.getElementById('shop-qr');
+  const qrDl = document.getElementById('shop-qr-dl');
+  if(inp) inp.value = url;
+  if(link){ link.href = url; }
+  if(qrImg){
+    const qrUrl = 'https://api.qrserver.com/v1/create-qr-code/?size=300x300&data='+encodeURIComponent(url);
+    qrImg.src = qrUrl;
+    qrImg.onload = () => { if(qrDl) qrDl.href = qrUrl; };
+  }
+}
+
+function copyShopUrl(){
+  const inp = document.getElementById('shop-url');
+  if(!inp) return;
+  navigator.clipboard.writeText(inp.value).then(()=>toast('✅ URL copied!','ok')).catch(()=>{
+    inp.select(); document.execCommand('copy'); toast('✅ Copied!','ok');
+  });
+}
 
 /* ── Password Change ── */
 async function changePassword(){
