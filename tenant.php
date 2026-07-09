@@ -12,6 +12,29 @@ if (isset($_GET['api'])) {
     $body = $_SERVER['REQUEST_METHOD'] === 'POST'
         ? (json_decode(file_get_contents('php://input'), true) ?? [])
         : [];
+    if ($_GET['api'] === 'change_password' && $_SERVER['REQUEST_METHOD'] === 'POST') {
+        $b = json_decode(file_get_contents('php://input'), true);
+        $currentPass = trim($b['current_pass'] ?? '');
+        $newPass     = trim($b['new_pass'] ?? '');
+        if (!isset($_SESSION['tenant_id'])) { ok(['ok'=>false,'msg'=>'Not logged in']); exit; }
+        if (strlen($newPass) < 6) { echo json_encode(['ok'=>false,'msg'=>'Password အနည်းဆုံး 6 လုံး ရှိရပါမည်']); exit; }
+        $pdo = db();
+        $row = $pdo->prepare("SELECT settings FROM tenants WHERE id=?");
+        $row->execute([$_SESSION['tenant_id']]);
+        $tenant = $row->fetch();
+        $settings = json_decode($tenant['settings'] ?? '{}', true);
+        $hash = $settings['admin_pass_hash'] ?? '';
+        if (!password_verify($currentPass, $hash)) {
+            echo json_encode(['ok'=>false,'msg'=>'လက်ရှိ password မှားနေသည်']); exit;
+        }
+        $newHash = password_hash($newPass, PASSWORD_BCRYPT, ['cost'=>12]);
+        $settings['admin_pass_hash'] = $newHash;
+        $pdo->prepare("UPDATE tenants SET settings=? WHERE id=?")
+            ->execute([json_encode($settings), $_SESSION['tenant_id']]);
+        echo json_encode(['ok'=>true,'msg'=>'Password ပြောင်းပြီးပါပြီ']);
+        exit;
+    }
+
     if ($_GET['api'] === 'login') {
         $ip   = $_SERVER['REMOTE_ADDR'] ?? '0.0.0.0';
         $attempts = $_SESSION['login_attempts'] ?? 0;
@@ -39,7 +62,19 @@ if (isset($_GET['api'])) {
                     $_SESSION['tenant_plan']  = $tenant['plan'];
                     $_SESSION['tenant_plan_expires'] = $tenant['plan_expires'] ?? null;
                     $_SESSION['login_time']   = time();
-                    echo json_encode(['ok'=>true,'role'=>'tenant','name'=>$tenant['name'],'plan'=>$tenant['plan']]);
+                    // Get first branch for this tenant
+                    $branchRow = $pdo->prepare("SELECT id FROM branches WHERE tenant_id=? ORDER BY id LIMIT 1");
+                    $branchRow->execute([$tenant['id']]);
+                    $firstBranch = (int)($branchRow->fetchColumn() ?: 0);
+                    echo json_encode([
+                        'ok'        => true,
+                        'role'      => 'tenant',
+                        'name'      => $tenant['name'],
+                        'plan'      => $tenant['plan'],
+                        'tenant_id' => (int)$tenant['id'],
+                        'branch_id' => $firstBranch,
+                        'slug'      => $tenant['slug'],
+                    ]);
                     exit;
                 }
             }
@@ -1534,6 +1569,20 @@ button,select,input[type=checkbox]{
     </div>
     <button class="btn btn-primary" onclick="saveTenantSettings()">💾 Save Settings</button>
   </div>
+
+  <!-- Password Change -->
+  <div style="background:var(--card);border:0.5px solid var(--border);border-radius:var(--radius);padding:1.2rem;margin-bottom:1rem">
+    <div style="font-weight:600;margin-bottom:1rem">🔐 Password ပြောင်းရန်</div>
+    <div class="form-row">
+      <div class="field"><label>လက်ရှိ Password</label><input id="pw-current" type="password" placeholder="လက်ရှိ password"></div>
+    </div>
+    <div class="form-row">
+      <div class="field"><label>Password အသစ်</label><input id="pw-new" type="password" placeholder="password အသစ် (6+ လုံး)"></div>
+      <div class="field"><label>Password အသစ် အတည်ပြုရန်</label><input id="pw-confirm" type="password" placeholder="ထပ်ရိုက်ပါ"></div>
+    </div>
+    <div id="pw-msg" style="font-size:.82rem;margin:.5rem 0;color:var(--danger)"></div>
+    <button class="btn btn-primary" onclick="changePassword()">🔐 Password ပြောင်းမည်</button>
+  </div>
 </div>
 
 <script>
@@ -1705,6 +1754,34 @@ window.addEventListener('DOMContentLoaded', () => {
     setTimeout(doTenantLogin, 300);
   }
 });
+
+/* ── Password Change ── */
+async function changePassword(){
+  const current = document.getElementById('pw-current')?.value?.trim();
+  const newPass  = document.getElementById('pw-new')?.value?.trim();
+  const confirm  = document.getElementById('pw-confirm')?.value?.trim();
+  const msg      = document.getElementById('pw-msg');
+  if(!current||!newPass||!confirm){ msg.textContent='အကွက်အားလုံး ဖြည့်ပါ'; return; }
+  if(newPass!==confirm){ msg.textContent='Password အသစ် မတူညီပါ'; return; }
+  if(newPass.length<6){ msg.textContent='Password အနည်းဆုံး 6 လုံး ရှိရပါမည်'; return; }
+  msg.textContent='';
+  const r = await fetch('tenant.php?api=change_password',{
+    method:'POST', headers:{'Content-Type':'application/json'},
+    credentials:'include',
+    body: JSON.stringify({current_pass:current, new_pass:newPass})
+  }).then(r=>r.json()).catch(()=>({ok:false,msg:'Error'}));
+  if(r.ok){
+    toast('✅ Password ပြောင်းပြီးပါပြီ','ok');
+    document.getElementById('pw-current').value='';
+    document.getElementById('pw-new').value='';
+    document.getElementById('pw-confirm').value='';
+    msg.style.color='var(--success)';
+    msg.textContent='✅ '+r.msg;
+  } else {
+    msg.style.color='var(--danger)';
+    msg.textContent='❌ '+r.msg;
+  }
+}
 
 /* ── Login / Logout ── */
 async function doTenantLogin(){

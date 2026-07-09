@@ -4,6 +4,7 @@
  * Actions: signup, list, detail, update, toggle, plans, billing, stats
  */
 declare(strict_types=1);
+if(session_status()===PHP_SESSION_NONE) session_start();
 require_once __DIR__ . '/db_connect.php';
 require_once __DIR__ . '/mailer.php';
 header('Content-Type: application/json; charset=utf-8');
