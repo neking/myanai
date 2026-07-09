@@ -713,6 +713,16 @@ button,select,input[type=checkbox]{
           <div class="field"><label>Price (MMK) *</label><input id="item-price" type="number" placeholder="3500"></div>
         </div>
         <div class="field"><label>Description</label><textarea id="item-desc" rows="2" style="width:100%;padding:.5rem .7rem;border:0.5px solid var(--border);border-radius:8px;background:var(--warm);color:var(--ink);font-family:inherit;font-size:.85rem" placeholder="Optional description"></textarea></div>
+        <div class="field">
+          <label>Item Photo</label>
+          <div style="display:flex;gap:.75rem;align-items:center;flex-wrap:wrap">
+            <img id="item-photo-preview" src="" alt="" style="width:72px;height:72px;border-radius:10px;object-fit:cover;border:1px solid var(--border);display:none">
+            <div style="flex:1">
+              <input type="file" id="item-photo-file" accept="image/jpeg,image/png,image/webp" onchange="previewMenuPhoto(this)" style="font-size:.78rem;width:100%">
+              <div id="item-photo-status" style="font-size:.72rem;color:var(--muted);margin-top:.2rem"></div>
+            </div>
+          </div>
+        </div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:.75rem">
           <div class="field"><label>Initial stock qty</label><input id="item-stock" type="number" placeholder="100" value="100"></div>
           <div class="field" style="display:flex;align-items:center;gap:.5rem;padding-top:1.4rem">
@@ -1828,6 +1838,31 @@ function copyShopUrl(){
   });
 }
 
+/* ── Menu Photo Upload ── */
+function previewMenuPhoto(input){
+  const file = input.files[0];
+  if(!file) return;
+  const preview = document.getElementById('item-photo-preview');
+  const status = document.getElementById('item-photo-status');
+  if(file.size > 5*1024*1024){ if(status) status.textContent='❌ Max 5MB'; return; }
+  const reader = new FileReader();
+  reader.onload = e => {
+    if(preview){ preview.src=e.target.result; preview.style.display='block'; }
+    if(status) status.textContent='✅ '+file.name;
+  };
+  reader.readAsDataURL(file);
+}
+
+async function uploadMenuPhoto(itemId){
+  const fileInput = document.getElementById('item-photo-file');
+  if(!fileInput?.files?.length) return null;
+  const fd = new FormData();
+  fd.append('img', fileInput.files[0]);
+  fd.append('item_id', itemId);
+  const r = await fetch('admin.php?api=upload_image',{method:'POST',body:fd,credentials:'include'}).then(r=>r.json()).catch(()=>({ok:false}));
+  return r.ok ? r.path : null;
+}
+
 /* ── Password Change ── */
 async function changePassword(){
   const current = document.getElementById('pw-current')?.value?.trim();
@@ -2449,6 +2484,21 @@ async function saveMenuItem(){
   }).then(r=>r.json()).catch(()=>({ok:false,msg:'Network error'}));
 
   if(d.ok){
+    const itemId = id || d.item_id;
+    if(itemId && document.getElementById('item-photo-file')?.files?.length){
+      const photoPath = await uploadMenuPhoto(itemId);
+      if(photoPath){
+        await fetch(`menu_api.php?action=edit_item&tenant_id=${window.__TENANT_ID}`,{
+          method:'POST', headers:{'Content-Type':'application/json'}, credentials:'include',
+          body: JSON.stringify({id:parseInt(itemId), name, price, category,
+            emoji: document.getElementById('item-emoji').value.trim()||'🍽',
+            description: document.getElementById('item-desc').value.trim(),
+            stock_qty: parseInt(document.getElementById('item-stock').value)||0,
+            is_active: document.getElementById('item-active').checked?1:0,
+            image_path: photoPath})
+        }).then(r=>r.json()).catch(()=>({ok:false}));
+      }
+    }
     toast(id?'✅ Item updated':'✅ Item added','ok');
     closeModal('modal-menu-item');
     await loadMenuItems();
