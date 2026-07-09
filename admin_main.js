@@ -2194,7 +2194,7 @@ function saasExportCSV(){
 
 async function toggleTenant(tenantId, currentActive) {
   if(!confirm(`${currentActive ? 'Disable' : 'Enable'} this tenant?`)) return;
-  const d = await fetch(`tenant_api.php?action=toggle&tenant_id=${tenantId}`, {method:'POST'}).then(r=>r.json());
+  const d = await fetch(`tenant_api.php?action=toggle`,{method:'POST',headers:{'Content-Type':'application/json'},credentials:'include',body:JSON.stringify({id:tenantId})}).then(r=>r.json());
   if(d.ok) { toast(d.message||'Updated'); loadSaas(); }
   else toast('Error: ' + (d.msg||'unknown'));
 }

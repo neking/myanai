@@ -240,7 +240,7 @@ if ($action === 'toggle' && $_SERVER['REQUEST_METHOD'] === 'POST') {
     requireSuperAdmin();
     $d = json_decode(file_get_contents('php://input'), true) ?? [];
     $id = (int)($d['id'] ?? 0);
-    if (!$id || $id===1) fail('Cannot toggle');
+    if (!$id) fail('Cannot toggle');
     $pdo->prepare("UPDATE tenants SET is_active=NOT is_active WHERE id=?")->execute([$id]);
     ok();
 }
