@@ -1079,8 +1079,10 @@ window._applyThemeLoaded = true;
 
 (async () => {
   loadCart();
-  // ── Tenant detection ──
-  const _slug = new URLSearchParams(location.search).get('t');
+  // ── Tenant detection — ?t=slug, /slug clean URL, subdomain support ──
+  const _pathSlug = location.pathname.replace(/^[/]+/, '').split('/')[0];
+  const _urlSlug = new URLSearchParams(location.search).get('t');
+  const _slug = _urlSlug || (_pathSlug && !_pathSlug.includes('.') ? _pathSlug : null);
   if (_slug) {
     try {
       const _td = await (await fetch('tenant_api.php?action=resolve&slug=' + encodeURIComponent(_slug))).json();
