@@ -10,3 +10,14 @@ backups/
 test_functions.php
 *.bundle
 chart.umd.min.js
+
+# Sensitive server-side scripts
+demo_reset_cron.sh
+demo_seed.php
+
+# Uploads (user-generated content)
+uploads/
+
+# Environment
+.env
+*.env.local
