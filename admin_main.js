@@ -206,7 +206,7 @@ async function doLogout() {
 ═══════════════════════════════════════ */
 function showPage(page) {
   // Platform admin pages only
-  const PAGES = ['dashboard','tenants','revenue','upgrades','plans','landing','demo','announce','logs','saas','settings'];
+  const PAGES = ['dashboard','tenants','revenue','upgrades','plans','landing','demo','announce','logs','saas','settings','notifications'];
 
   PAGES.forEach(p => {
     const pageEl = document.getElementById('page-'+p);
