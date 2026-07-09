@@ -56,7 +56,7 @@ function branchWhere(string $alias='o'): string {
 }
 // ─────────────────────────────────────────────────────────────────────
 
-    if (empty($_SESSION['admin'])) fail('Unauthorized', 401);
+    if (empty($_SESSION['admin']) && empty($_SESSION['tenant_id'])) fail('Unauthorized', 401);
 }
 
 

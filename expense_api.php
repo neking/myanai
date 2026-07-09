@@ -27,7 +27,7 @@ function branchWhere(string $alias='o'): string {
     return $w ? ' AND '.implode(' AND ',$w) : '';
 }
 // ─────────────────────────────────────────────────────────────────────
- if(empty($_SESSION['admin']))fail('Unauthorized',401); }
+ if(empty($_SESSION['admin']) && empty($_SESSION['tenant_id']))fail('Unauthorized',401); }
 
 /* LIST expenses */
 if ($action === 'list') {

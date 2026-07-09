@@ -3,7 +3,11 @@ require_once __DIR__ . '/db_connect.php';
 session_start();
 header('Content-Type: application/json');
 
-if (empty($_SESSION['admin'])) { echo json_encode(['ok'=>false,'msg'=>'Unauthorized']); exit; }
+if (empty($_SESSION['admin']) && empty($_SESSION['tenant_id'])) { echo json_encode(['ok'=>false,'msg'=>'Unauthorized']); exit; }
+// Allow tenant to only access their own data
+if (!empty($_SESSION['tenant_id'])) {
+    $_GET['tenant_id'] = $_SESSION['tenant_id'];
+}
 
 $pdo  = getPDO();
 $days = max(7, min(90, (int)($_GET['days'] ?? 7)));
