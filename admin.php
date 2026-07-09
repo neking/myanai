@@ -865,6 +865,22 @@ if($_SERVER['REQUEST_METHOD']==='POST' && isset($_FILES['og_image']) && ($_GET['
         exit;
     }
 
+    if ($_GET['api'] === 'update_plan' && $_SERVER['REQUEST_METHOD'] === 'POST') {
+        if (empty($_SESSION['admin'])) { echo json_encode(['ok'=>false,'msg'=>'Unauthorized']); exit; }
+        $b = json_decode(file_get_contents('php://input'), true) ?? [];
+        $code     = trim($b['code'] ?? '');
+        $price    = (int)($b['price_mmk'] ?? 0);
+        $branches = (int)($b['max_branches'] ?? 1);
+        $staff    = (int)($b['max_staff'] ?? 1);
+        $items    = (int)($b['max_menu_items'] ?? 1);
+        if (!$code) { echo json_encode(['ok'=>false,'msg'=>'Plan code required']); exit; }
+        $pdo = getPDO();
+        $pdo->prepare("UPDATE saas_plans SET price_mmk=?, max_branches=?, max_staff=?, max_menu_items=? WHERE code=?")
+            ->execute([$price, $branches, $staff, $items, $code]);
+        echo json_encode(['ok'=>true,'msg'=>'Plan updated']);
+        exit;
+    }
+
     if ($_GET['api'] === 'upload_font' && $_SERVER['REQUEST_METHOD'] === 'POST') {
         if (empty($_FILES['font'])) { echo json_encode(['ok'=>false,'msg'=>'No file']); exit; }
         $file = $_FILES['font'];
@@ -2424,6 +2440,30 @@ document.addEventListener('DOMContentLoaded', function() {
   </div>
   <div class="content">
     <div id="plans-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:1rem"></div>
+  </div>
+</div>
+
+<!-- Edit Plan Modal -->
+<div class="modal-overlay" id="modal-edit-plan" style="display:none">
+  <div class="modal" style="max-width:420px">
+    <div class="modal-head">
+      <span class="modal-title" id="ep-modal-title">✏️ Edit Plan</span>
+      <button class="modal-close" onclick="closeModal('modal-edit-plan')">✕</button>
+    </div>
+    <input type="hidden" id="ep-code">
+    <div style="display:grid;gap:.75rem">
+      <div class="field"><label>Plan Name</label><input id="ep-name" class="form-control" readonly style="background:var(--surface2);opacity:.7"></div>
+      <div class="field"><label>Price (MMK/month)</label><input id="ep-price" type="number" class="form-control" placeholder="150000"></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:.5rem">
+        <div class="field"><label>Branches</label><input id="ep-branches" type="number" class="form-control" min="1"></div>
+        <div class="field"><label>Staff</label><input id="ep-staff" type="number" class="form-control" min="1"></div>
+        <div class="field"><label>Menu Items</label><input id="ep-items" type="number" class="form-control" min="1"></div>
+      </div>
+    </div>
+    <div style="margin-top:1.2rem;display:flex;gap:.5rem;justify-content:flex-end">
+      <button class="btn btn-ghost" onclick="closeModal('modal-edit-plan')">Cancel</button>
+      <button class="btn btn-primary" onclick="savePlan()">💾 Save Plan</button>
+    </div>
   </div>
 </div>
 

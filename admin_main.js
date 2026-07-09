@@ -2771,13 +2771,49 @@ async function loadPlans() {
   const planEmoji={free:'🆓',basic:'⭐',pro:'🚀',enterprise:'🏢'};
   grid.innerHTML = d.plans.map(p=>`
     <div style="background:var(--card);border:0.5px solid var(--border);border-radius:var(--radius);padding:1.2rem">
-      <div style="font-size:1.3rem">${planEmoji[p.code]||'📦'}</div>
+      <div style="display:flex;justify-content:space-between;align-items:flex-start">
+        <div style="font-size:1.3rem">${planEmoji[p.code]||'📦'}</div>
+        <button onclick="editPlan('${p.code}',${p.price_mmk},${p.max_branches},${p.max_staff},${p.max_menu_items},'${p.name}')" style="font-size:.72rem;padding:3px 10px;border:1px solid var(--border);border-radius:6px;background:none;cursor:pointer;color:var(--muted)">✏️ Edit</button>
+      </div>
       <div style="font-weight:600;margin:.4rem 0">${p.name}</div>
       <div style="font-size:1rem;font-weight:600;color:${planColors[p.code]||'#888'}">${parseInt(p.price_mmk||0).toLocaleString()} MMK</div>
       <div style="font-size:.78rem;color:var(--muted);margin-top:.4rem">
         ${p.max_branches} branches · ${p.max_staff} staff · ${p.max_menu_items} items
       </div>
     </div>`).join('');
+}
+
+function editPlan(code, price, branches, staff, items, name){
+  // Fill modal fields
+  document.getElementById('ep-code').value = code;
+  document.getElementById('ep-name').value = name;
+  document.getElementById('ep-price').value = price;
+  document.getElementById('ep-branches').value = branches;
+  document.getElementById('ep-staff').value = staff;
+  document.getElementById('ep-items').value = items;
+  document.getElementById('ep-modal-title').textContent = '✏️ Edit Plan — '+name;
+  openModal('modal-edit-plan');
+}
+
+async function savePlan(){
+  const code     = document.getElementById('ep-code').value;
+  const price    = parseInt(document.getElementById('ep-price').value)||0;
+  const branches = parseInt(document.getElementById('ep-branches').value)||1;
+  const staff    = parseInt(document.getElementById('ep-staff').value)||1;
+  const items    = parseInt(document.getElementById('ep-items').value)||1;
+  const d = await fetch('admin.php?api=update_plan',{
+    method:'POST', headers:{'Content-Type':'application/json'},
+    credentials:'include',
+    body: JSON.stringify({code, price_mmk:price, max_branches:branches, max_staff:staff, max_menu_items:items})
+  }).then(r=>r.json()).catch(()=>({ok:false}));
+  if(d.ok){
+    toast('✅ Plan updated','ok');
+    closeModal('modal-edit-plan');
+    loadPlans();
+  } else {
+    toast(d.msg||'Error','err');
+  }
+async function loadPlans() {
 }
 
 /* ── Landing Page CMS ── */
