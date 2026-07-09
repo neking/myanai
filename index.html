@@ -1094,6 +1094,12 @@ window._applyThemeLoaded = true;
         applyTheme(window._TENANT_BIZ);
         // Apply storefront branding immediately
         if (_td.storefront) applyStorefront(_td.storefront);
+
+        // ── Opening hours check ──
+        try {
+          const _hrs = await fetch('tenant_api.php?action=get_hours&tenant_id='+_td.tenant_id,{credentials:'include'}).then(r=>r.json());
+          if(_hrs.ok) applyOpeningHours(_hrs.hours);
+        } catch(e) {}
       }
     } catch(e) {}
   }
@@ -1151,6 +1157,64 @@ async function loadMenu() {
 /* ═══════════════════════════════════════
    RENDER MENU
 ═══════════════════════════════════════ */
+function applyOpeningHours(hours) {
+  const days = ['sun','mon','tue','wed','thu','fri','sat'];
+  const now = new Date();
+  const dayKey = days[now.getDay()];
+  const today = hours[dayKey];
+  if (!today) return;
+
+  const banner = document.getElementById('hours-banner') || (() => {
+    const b = document.createElement('div');
+    b.id = 'hours-banner';
+    b.style.cssText = 'padding:.5rem 1rem;text-align:center;font-size:.82rem;font-weight:500;';
+    const nav = document.getElementById('main-nav');
+    if (nav) nav.after(b);
+    return b;
+  })();
+
+  if (today.closed) {
+    banner.style.background = '#fee2e2';
+    banner.style.color = '#dc2626';
+    banner.textContent = '🔴 ယနေ့ ပိတ်ပါသည်';
+    // Disable add to cart
+    document.querySelectorAll('.add-btn').forEach(b => {
+      b.disabled = true;
+      b.style.opacity = '0.4';
+      b.title = 'ဆိုင်ပိတ်နေပါသည်';
+    });
+    return;
+  }
+
+  // Check if currently open
+  const [openH, openM] = (today.open||'09:00').split(':').map(Number);
+  const [closeH, closeM] = (today.close||'22:00').split(':').map(Number);
+  const nowMins = now.getHours()*60 + now.getMinutes();
+  const openMins = openH*60 + openM;
+  const closeMins = closeH*60 + closeM;
+  const isOpen = nowMins >= openMins && nowMins < closeMins;
+
+  if (isOpen) {
+    banner.style.background = '#dcfce7';
+    banner.style.color = '#16a34a';
+    banner.textContent = '🟢 ဖွင့်ဆိုင်ဆဲ — ပိတ်ချိန် ' + today.close;
+  } else {
+    banner.style.background = '#fef3c7';
+    banner.style.color = '#d97706';
+    if (nowMins < openMins) {
+      banner.textContent = '🟡 မဖွင့်ရသေးဘဲ — ဖွင့်ချိန် ' + today.open;
+    } else {
+      banner.textContent = '🔴 ယနေ့ ပိတ်ပြီးပါပြီ — မနက်ဖြန် ' + today.open + ' မှ ဖွင့်မည်';
+    }
+    // Disable add to cart if closed
+    document.querySelectorAll('.add-btn').forEach(b => {
+      b.disabled = true;
+      b.style.opacity = '0.4';
+      b.title = 'ဆိုင်ပိတ်နေပါသည်';
+    });
+  }
+}
+
 function menuSearch(q) {
   const query = q.toLowerCase().trim();
   window._menuSearchQuery = query;
