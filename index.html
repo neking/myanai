@@ -1168,8 +1168,8 @@ function applyOpeningHours(hours) {
     const b = document.createElement('div');
     b.id = 'hours-banner';
     b.style.cssText = 'padding:.5rem 1rem;text-align:center;font-size:.82rem;font-weight:500;';
-    const nav = document.getElementById('main-nav');
-    if (nav) nav.after(b);
+    const nav = document.querySelector('header') || document.querySelector('.cat-wrap');
+    if (nav) nav.after(b); else document.body.prepend(b);
     return b;
   })();
 
