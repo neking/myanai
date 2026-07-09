@@ -4,7 +4,10 @@ require_once __DIR__ . '/db_connect.php';
 $pdo = getPDO();
 if(session_status()===PHP_SESSION_NONE) session_start();
 header('Content-Type: application/json; charset=utf-8');
-header('Access-Control-Allow-Origin: *');
+$allowedOrigins = ['https://myanai.net','https://www.myanai.net','http://localhost','http://127.0.0.1'];
+$origin = $_SERVER['HTTP_ORIGIN'] ?? '';
+if(in_array($origin, $allowedOrigins)) header("Access-Control-Allow-Origin: $origin");
+else header('Access-Control-Allow-Origin: https://myanai.net');
 header('Access-Control-Allow-Methods: GET, POST, OPTIONS');
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') { http_response_code(204); exit; }
 

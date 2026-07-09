@@ -2,9 +2,21 @@
 require_once __DIR__ . '/db_connect.php';
 if (session_status() === PHP_SESSION_NONE) session_start();
 header('Content-Type: application/json; charset=utf-8');
+$allowedOrigins = ['https://myanai.net','https://www.myanai.net','http://localhost','http://127.0.0.1'];
+$origin = $_SERVER['HTTP_ORIGIN'] ?? '';
+if(in_array($origin, $allowedOrigins)) header("Access-Control-Allow-Origin: $origin");
+else header('Access-Control-Allow-Origin: https://myanai.net');
+header('Access-Control-Allow-Methods: GET, POST, OPTIONS');
+header('Access-Control-Allow-Headers: Content-Type, X-CSRF-Token');
+if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') { http_response_code(204); exit; }
 
 $action = $_GET['action'] ?? '';
 $pdo    = getPDO();
+// XSS Sanitization helper
+function clean(mixed $v): string {
+    return htmlspecialchars(strip_tags(trim((string)($v ?? ''))), ENT_QUOTES, 'UTF-8');
+}
+
 
 function ok($d=[]){ echo json_encode(['ok'=>true]+$d); exit; }
 function fail($m,$c=400){ http_response_code($c); echo json_encode(['ok'=>false,'msg'=>$m]); exit; }
@@ -37,9 +49,9 @@ if ($action === 'submit' && $_SERVER['REQUEST_METHOD'] === 'POST') {
     $b      = json_decode(file_get_contents('php://input'), true) ?? [];
     $tid    = (int)($b['tenant_id'] ?? 0);
     $rating = (int)($b['rating'] ?? 0);
-    $name   = trim($b['customer_name'] ?? '');
-    $phone  = trim($b['customer_phone'] ?? '');
-    $comment= trim($b['comment'] ?? '');
+    $name   = clean($b['customer_name'] ?? '');
+    $phone  = clean($b['customer_phone'] ?? '');
+    $comment= clean($b['comment'] ?? '');
     $orderId= (int)($b['order_id'] ?? 0) ?: null;
 
     if (!$tid)   fail('tenant_id required');

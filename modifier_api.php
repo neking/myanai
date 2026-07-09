@@ -5,7 +5,10 @@ require_once __DIR__ . '/db_connect.php';
 $pdo = getPDO();
 
 header('Content-Type: application/json; charset=utf-8');
-header('Access-Control-Allow-Origin: *');
+$allowedOrigins = ['https://myanai.net','https://www.myanai.net','http://localhost','http://127.0.0.1'];
+$origin = $_SERVER['HTTP_ORIGIN'] ?? '';
+if(in_array($origin, $allowedOrigins)) header("Access-Control-Allow-Origin: $origin");
+else header('Access-Control-Allow-Origin: https://myanai.net');
 
 /* ── DB CONFIG ── */
 

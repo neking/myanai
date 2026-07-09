@@ -5,6 +5,12 @@ require_once __DIR__ . '/db_connect.php';
 require_once __DIR__ . '/tenant_helper.php';
 $pdo = getPDO();
 
+// XSS Sanitization helper
+function clean(mixed $v): string {
+    return htmlspecialchars(strip_tags(trim((string)($v ?? ''))), ENT_QUOTES, 'UTF-8');
+}
+
+
 
 // Error တွေကို JSON ထဲပါအောင် catch လုပ်
 ini_set('display_errors', '0');
@@ -28,7 +34,10 @@ register_shutdown_function(function() {
 });
 
 header('Content-Type: application/json; charset=utf-8');
-header('Access-Control-Allow-Origin: *');
+$allowedOrigins = ['https://myanai.net','https://www.myanai.net','http://localhost','http://127.0.0.1'];
+$origin = $_SERVER['HTTP_ORIGIN'] ?? '';
+if(in_array($origin, $allowedOrigins)) header("Access-Control-Allow-Origin: $origin");
+else header('Access-Control-Allow-Origin: https://myanai.net');
 header('Cache-Control: no-cache');
 
 
@@ -72,11 +81,11 @@ if ($action && $_SERVER['REQUEST_METHOD'] === 'POST') {
 
     /* ── ADD ITEM ── */
     if ($action === 'add_item') {
-        $name     = trim($b['name'] ?? '');
+        $name     = clean($b['name'] ?? '');
         $price    = (int)($b['price'] ?? 0);
-        $category = trim($b['category'] ?? 'Main');
-        $emoji    = trim($b['emoji'] ?? '🍽');
-        $desc     = trim($b['description'] ?? '');
+        $category = clean($b['category'] ?? 'Main');
+        $emoji    = clean($b['emoji'] ?? '🍽');
+        $desc     = clean($b['description'] ?? '');
         $stock    = (int)($b['stock_qty'] ?? 100);
         $active   = isset($b['is_active']) ? (int)$b['is_active'] : 1;
         $bid      = (int)($b['branch_id'] ?? 0);
@@ -110,11 +119,11 @@ if ($action && $_SERVER['REQUEST_METHOD'] === 'POST') {
     /* ── EDIT ITEM ── */
     if ($action === 'edit_item') {
         $id         = (int)($b['id'] ?? 0);
-        $name       = trim($b['name'] ?? '');
+        $name       = clean($b['name'] ?? '');
         $price      = (int)($b['price'] ?? 0);
-        $category   = trim($b['category'] ?? 'Main');
-        $emoji      = trim($b['emoji'] ?? '🍽');
-        $desc       = trim($b['description'] ?? '');
+        $category   = clean($b['category'] ?? 'Main');
+        $emoji      = clean($b['emoji'] ?? '🍽');
+        $desc       = clean($b['description'] ?? '');
         $stock      = (int)($b['stock_qty'] ?? 0);
         $active     = isset($b['is_active']) ? (int)$b['is_active'] : 1;
         $image_path = isset($b['image_path']) ? trim($b['image_path']) : null;

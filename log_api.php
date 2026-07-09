@@ -7,6 +7,13 @@ declare(strict_types=1);
 require_once __DIR__ . '/db_connect.php';
 session_start();
 header('Content-Type: application/json; charset=utf-8');
+$allowedOrigins = ['https://myanai.net','https://www.myanai.net','http://localhost','http://127.0.0.1'];
+$origin = $_SERVER['HTTP_ORIGIN'] ?? '';
+if(in_array($origin, $allowedOrigins)) header("Access-Control-Allow-Origin: $origin");
+else header('Access-Control-Allow-Origin: https://myanai.net');
+header('Access-Control-Allow-Methods: GET, POST, OPTIONS');
+header('Access-Control-Allow-Headers: Content-Type, X-CSRF-Token');
+if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') { http_response_code(204); exit; }
 
 if (empty($_SESSION['admin'])) { echo json_encode(['ok'=>false,'msg'=>'Unauthorized']); exit; }
 
