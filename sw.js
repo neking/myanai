@@ -1,5 +1,5 @@
 // MyanAi POS Service Worker
-const CACHE_NAME = 'myanai-v1';
+const CACHE_NAME = 'myanai-v4';
 const STATIC_ASSETS = [
   '/tenant.php',
   '/index.html',
@@ -36,10 +36,18 @@ self.addEventListener('fetch', event => {
     return;
   }
 
-  // Static assets: cache first
+  // Static assets: network first so deploys propagate immediately, cache as fallback only
   if (event.request.destination === 'script' || event.request.destination === 'style') {
     event.respondWith(
-      caches.match(event.request).then(cached => cached || fetch(event.request))
+      fetch(event.request)
+        .then(response => {
+          if (response.ok) {
+            const clone = response.clone();
+            caches.open(CACHE_NAME).then(cache => cache.put(event.request, clone));
+          }
+          return response;
+        })
+        .catch(() => caches.match(event.request))
     );
     return;
   }

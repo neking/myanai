@@ -23,7 +23,7 @@ function requireSuperAdmin(): void {
 
 /* ── PLANS (public) ── */
 if ($action === 'plans') {
-    ok(['plans' => $pdo->query("SELECT * FROM saas_plans WHERE is_active=1 ORDER BY price_mmk")->fetchAll(PDO::FETCH_ASSOC)]);
+    ok(['plans' => $pdo->query("SELECT code, name, price_mmk, price_usd, max_branches, max_staff, max_menu_items, features, description FROM saas_plans WHERE is_active=1 ORDER BY price_mmk")->fetchAll(PDO::FETCH_ASSOC)]);
 }
 
 

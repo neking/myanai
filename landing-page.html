@@ -1,24 +1,54 @@
 <!DOCTYPE html>
 <html lang="my">
 <head>
+<script>
+// CSS-first: fetch settings synchronously so static defaults match saved values
+// This eliminates FOUC for critical visual properties (colors, fonts, brand name)
+(function(){
+  try{
+    var xhr=new XMLHttpRequest();
+    xhr.open('GET','/site_settings.php?action=get',false); // synchronous
+    xhr.send();
+    var d=JSON.parse(xhr.responseText);
+    var s=d.settings||{};
+    var r=document.documentElement;
+    // Apply critical CSS variables immediately before render
+    if(s.bg_body) document.documentElement.style.setProperty('--bg-body-init',s.bg_body);
+    if(s.color_accent){ r.style.setProperty('--accent',s.color_accent); r.style.setProperty('--primary-em',s.color_accent); }
+    // Nav logo text
+    window.__initSettings=s;
+  } catch(e){}
+  // Async promise for full settings (used by init() and applyStyles())
+  window.__settingsPromise = window.__initSettings
+    ? Promise.resolve({ok:true,settings:window.__initSettings})
+    : fetch('/site_settings.php?action=get').then(r=>r.json()).catch(()=>({ok:false}));
+})();
+</script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title id="page-title">MyanAi — Myanmar AI Products Platform</title>
-<meta name="description" content="MyanAi — Myanmar businesses အတွက် AI-powered POS, HR နဲ့ Analytics platform။ KBZPay, Wave Money, offline mode ပါ။ Free trial 14 days။">
+<title id="page-title">MyanAi — မြန်မာ AI POS System | ဆိုင်စီမံခန့်ခွဲမှု Software</title>
+<meta name="description" content="မြန်မာ AI POS System — KBZPay, Wave Money ချိတ်ဆက်နိုင်ပြီး Internet မပါဘဲ ဆက်သုံးနိုင်သည်။ ၁၄ ရက် အခမဲ့ စမ်းသုံးနိုင်။ စားသောက်ဆိုင်၊ လက်လီဆိုင်၊ Cafe အတွက် ဒီဇိုင်းထုတ်ထားသည်။">
 <link rel="canonical" href="https://myanai.net/landing-page.html">
 <!-- Open Graph -->
 <meta property="og:type" content="website">
-<meta property="og:title" content="MyanAi — Myanmar AI Products Platform">
+<meta property="og:title" content="MyanAi — မြန်မာ AI POS System">
+<meta property="og:image" content="https://myanai.net/uploads/og-image.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://myanai.net/landing-page.html">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://myanai.net/uploads/og-image.png">
 <meta property="og:description" content="Myanmar businesses အတွက် AI-powered POS, HR နဲ့ Analytics platform။ KBZPay, Wave Money, offline mode ပါ။">
 <meta property="og:url" content="https://myanai.net">
 <meta property="og:site_name" content="MyanAi">
 <meta property="og:locale" content="my_MM">
 <!-- Twitter Card -->
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="MyanAi — Myanmar AI Products Platform">
+<meta name="twitter:title" content="MyanAi — မြန်မာ AI POS System">
 <meta name="twitter:description" content="Myanmar businesses အတွက် AI-powered software platform">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,700;1,700&family=Noto+Sans+Myanmar:wght@400;500;700&family=Padauk:wght@400;700&family=Inter:wght@400;500;600;700&family=Poppins:wght@400;500;600;700&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,700;1,700&family=Noto+Sans+Myanmar:wght@400;500;700&family=Padauk:wght@400;700&family=Inter:wght@400;500;600;700&family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Noto+Sans+Myanmar:wght@400;700&family=Padauk:wght@400;700&display=swap">
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
@@ -26,8 +56,9 @@
   /* ── Light palette (warm, professional, readable) ── */
   --bg:#FAFAF8;--bg2:#F1F5F9;--bg3:#E2E8F0;
   --card:#FFFFFF;--border:#E2E8F0;--border2:#CBD5E1;
-  --gold:#2563EB;--gold-dim:#DBEAFE;--gold-glow:#93C5FD;
-  --accent:#10B981;--accent2:#059669;
+  --gold:#0D9F6E;--gold-dim:#D1FAE5;--gold-glow:#6EE7B7;
+  --primary-em:#0D9F6E;
+  --accent:#F97316;--accent2:#EA580C;
   --text:#0F172A;--text-mid:#475569;--text-dim:#94A3B8;
   --radius:14px;--radius-sm:8px;
   --glow:0 0 40px rgba(16,185,129,.12);
@@ -41,11 +72,11 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);lin
 #ann-banner{display:none;padding:.6rem 1rem;text-align:center;font-size:.85rem;font-weight:500}
 
 /* ── NAV ── */
-nav{position:fixed;top:0;left:0;right:0;z-index:100;padding:1rem 5vw;display:flex;align-items:center;gap:2rem;background:rgba(255,255,255,.95);backdrop-filter:blur(20px);border-bottom:1px solid #E2E8F0;transition:background .3s,box-shadow .3s;box-shadow:0 1px 8px rgba(0,0,0,.05)}
+nav{position:fixed;top:0;left:0;right:0;z-index:100;padding:1rem 5vw;display:flex;align-items:center;gap:2rem;background:#FFFFFF;backdrop-filter:blur(20px);border-bottom:1px solid #E2E8F0;transition:background .3s,box-shadow .3s;box-shadow:0 1px 8px rgba(0,0,0,.05)}
 .nav-logo{display:flex;align-items:center;gap:.6rem;text-decoration:none}
 .nav-logo-mark{width:32px;height:32px;border-radius:10px;background:var(--accent);display:flex;align-items:center;justify-content:center;font-size:.85rem;font-weight:700;color:#fff}
-.nav-logo-text{font-size:1rem;font-weight:700;letter-spacing:-.4px;color:var(--text)}
-.nav-logo-text span{color:var(--gold)}
+.nav-logo-text{font-size:1rem;font-weight:700;letter-spacing:-.4px;color:#0080ff}
+.nav-logo-text span{color:var(--primary-em)}
 .nav-links{display:flex;gap:1.5rem;margin-left:auto}
 .nav-links a{color:#94a3b8;text-decoration:none;font-size:.88rem;transition:color .15s}
 .nav-links a:hover{color:var(--text)}
@@ -55,51 +86,54 @@ nav{position:fixed;top:0;left:0;right:0;z-index:100;padding:1rem 5vw;display:fle
 /* ── HERO ── */
 .hero{min-height:100vh;padding:90px 5vw 60px;background:linear-gradient(135deg,#1a1f35 0%,#0f1729 60%,#1e3a5f 100%);display:grid;grid-template-columns:1fr 1fr;gap:60px;align-items:center;position:relative;overflow:hidden;max-width:1200px;margin:0 auto}
 .hero::before{content:'';position:absolute;top:20%;left:30%;width:600px;height:600px;background:radial-gradient(circle,rgba(99,102,241,.12) 0%,transparent 70%);pointer-events:none}
-.hero-label{color:#a78bfa;display:inline-flex;align-items:center;gap:.5rem;font-size:.78rem;font-weight:600;color:var(--accent2);background:rgba(99,102,241,.1);border:0.5px solid rgba(99,102,241,.2);padding:.3rem .75rem;border-radius:99px;margin-bottom:1.5rem;text-transform:uppercase;letter-spacing:.06em}
-.hero-h1{font-size:clamp(2.2rem,5vw,3.8rem);font-weight:700;letter-spacing:-.03em;line-height:1.1;margin-bottom:1.2rem;color:#f8fafc}
-.hero-h1 em{font-style:normal;color:var(--gold)}
-.hero-sub{font-size:1rem;color:#94a3b8;line-height:1.7;margin-bottom:.75rem;max-width:480px}
-.hero-desc{font-size:.88rem;color:#64748b;line-height:1.7;margin-bottom:2rem;max-width:480px}
+.hero-label{display:inline-flex;align-items:center;gap:.5rem;font-size:.78rem;font-weight:600;color:var(--accent2);background:rgba(16,185,129,.1);border:0.5px solid rgba(16,185,129,.2);padding:.3rem .75rem;border-radius:99px;margin-bottom:1.5rem;text-transform:uppercase;letter-spacing:.06em}
+.hero-h1{font-size:clamp(2.2rem,5vw,3.8rem);font-weight:700;letter-spacing:-.03em;line-height:1.1;margin-bottom:1.2rem;color:#292524}
+.hero-h1 em{font-style:normal;color:var(--primary-em)}
+.hero-sub{font-size:1rem;color:#57534E;line-height:1.7;margin-bottom:.75rem;max-width:480px}
+.hero-desc{font-size:.88rem;color:#78716C;line-height:1.7;margin-bottom:2rem;max-width:480px}
 .hero-btns{display:flex;gap:.75rem;flex-wrap:wrap}
-.btn-primary{background:var(--accent);color:#fff;padding:.7rem 1.5rem;border-radius:10px;text-decoration:none;font-weight:600;font-size:.9rem;transition:all .15s;display:inline-flex;align-items:center;gap:.4rem}
+.btn-primary{background:#0D9F6E;color:#0F172A;padding:.7rem 1.5rem;border-radius:10px;text-decoration:none;font-weight:600;font-size:.9rem;transition:all .15s;display:inline-flex;align-items:center;gap:.4rem}
 .btn-primary:hover{background:var(--accent2);transform:translateY(-1px)}
 .btn-secondary{background:rgba(255,255,255,.06);color:var(--text);padding:.7rem 1.5rem;border-radius:10px;text-decoration:none;font-weight:500;font-size:.9rem;border:0.5px solid var(--border2);transition:all .15s}
 .btn-secondary:hover{background:rgba(255,255,255,.1)}
 .hero-right{position:relative}
 
 /* ── MOCK DASHBOARD ── */
-.mock-shell{background:var(--bg3);border:0.5px solid var(--border);border-radius:16px;overflow:hidden;box-shadow:var(--glow),0 40px 80px rgba(0,0,0,.5)}
+.mock-shell{background:var(--bg3);border:0.5px solid var(--border);border-radius:16px;overflow:hidden;box-shadow:var(--glow),0 40px 80px rgba(0,0,0,.5);color:var(--text);max-width:560px;width:100%}
 .mock-topbar{background:var(--bg2);padding:.6rem 1rem;display:flex;align-items:center;gap:.5rem;border-bottom:0.5px solid var(--border)}
 .mock-dot{width:10px;height:10px;border-radius:50%}
 .mock-title{font-size:.72rem;color:var(--text-mid);margin-left:.5rem}
-.mock-body{padding:1rem;display:flex;flex-direction:column;gap:.75rem}
+.mock-body{padding:1.3rem;display:flex;flex-direction:column;gap:1rem;font-size:1.05em}
 .mock-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:.5rem}
 .mock-stat{background:var(--bg2);border-radius:8px;padding:.6rem .75rem;border:0.5px solid var(--border)}
 .mock-stat-val{font-size:1.1rem;font-weight:600}
 .mock-stat-lbl{font-size:.68rem;color:var(--text-mid);margin-top:2px}
 .mock-orders{background:var(--bg2);border-radius:8px;border:0.5px solid var(--border);overflow:hidden}
-.mock-order-head{padding:.5rem .75rem;font-size:.7rem;color:var(--text-mid);border-bottom:0.5px solid var(--border);font-weight:600;text-transform:uppercase;letter-spacing:.06em}
+.mock-order-head{padding:.5rem .75rem;font-size:.7rem;color:var(--text-mid,#475569);border-bottom:0.5px solid var(--border);font-weight:600;text-transform:uppercase;letter-spacing:.06em}
 .mock-order-row{display:flex;align-items:center;gap:.5rem;padding:.45rem .75rem;border-bottom:0.5px solid var(--border);font-size:.72rem}
 .mock-order-row:last-child{border-bottom:none}
 .mock-badge{font-size:.6rem;padding:1px 6px;border-radius:99px;font-weight:600}
 .badge-new{background:rgba(99,102,241,.2);color:#818cf8}
 .badge-cook{background:rgba(245,158,11,.2);color:#fbbf24}
 .badge-done{background:rgba(5,150,105,.2);color:#34d399}
+.mock-slide{display:none;flex-direction:column;gap:.75rem;animation:mockFade .5s ease}
+.mock-slide.active{display:flex}
+@keyframes mockFade{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:translateY(0)}}
+.mock-dots{display:flex;gap:.4rem;justify-content:center;padding:.75rem 0 0}
+.mock-dot-nav{width:7px;height:7px;border-radius:50%;background:var(--border2);cursor:pointer;transition:background .2s,width .2s}
+.mock-dot-nav.active{background:var(--accent);width:18px;border-radius:4px}
+.mock-kds-col{display:grid;grid-template-columns:1fr 1fr;gap:.5rem}
+.mock-kds-card{background:var(--bg2);border-radius:8px;border:0.5px solid var(--border);padding:.5rem .6rem}
+.mock-kds-head{font-size:.65rem;color:var(--text-mid);font-weight:600;text-transform:uppercase;margin-bottom:.3rem}
+.mock-kds-item{font-size:.72rem;padding:.2rem 0}
+.mock-chart{display:flex;align-items:flex-end;gap:.4rem;height:80px;padding:.5rem .25rem}
+.mock-bar{flex:1;background:linear-gradient(180deg,var(--accent),var(--accent2));border-radius:4px 4px 0 0}
 
 /* ── PRODUCTS ── */
 .products-section{padding:80px 5vw;max-width:1200px;margin:0 auto}
 .section-eye{font-size:.75rem;font-weight:600;color:var(--accent2);text-transform:uppercase;letter-spacing:.1em;margin-bottom:.75rem}
 .section-h2{font-size:clamp(1.6rem,3.5vw,2.4rem);font-weight:700;letter-spacing:-.03em;margin-bottom:.75rem}
 .section-sub{font-size:.95rem;color:var(--text-mid);margin-bottom:3rem;max-width:500px}
-#products-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:1.5rem}
-.product-card{background:var(--card);border:0.5px solid var(--border);border-radius:var(--radius);padding:1.5rem;transition:all .2s;cursor:pointer;text-decoration:none;display:block}
-.product-card:hover{border-color:var(--accent);transform:translateY(-2px);box-shadow:var(--glow)}
-.product-icon{font-size:2rem;margin-bottom:1rem}
-.product-name{font-size:1rem;font-weight:600;margin-bottom:.4rem}
-.product-desc{font-size:.83rem;color:var(--text-mid);line-height:1.6}
-.product-tag{display:inline-block;font-size:.68rem;padding:2px 8px;border-radius:99px;margin-top:.75rem;font-weight:600}
-.tag-live{background:rgba(5,150,105,.15);color:#34d399}
-.tag-soon{background:rgba(100,116,139,.15);color:#94a3b8}
 
 /* ── PRICING ── */
 .pricing-section{padding:80px 5vw;max-width:1200px;margin:0 auto}
@@ -107,7 +141,7 @@ nav{position:fixed;top:0;left:0;right:0;z-index:100;padding:1rem 5vw;display:fle
 .price-card{background:var(--card);border:0.5px solid var(--border);border-radius:var(--radius);padding:1.5rem;display:flex;flex-direction:column;gap:.5rem}
 .price-card.featured{border-color:var(--accent);box-shadow:var(--glow)}
 .price-plan{font-weight:700;font-size:1rem}
-.price-amount{font-size:1.6rem;font-weight:700;letter-spacing:-.03em;color:var(--gold)}
+.price-amount{font-size:1.6rem;font-weight:700;letter-spacing:-.03em;color:var(--accent)}
 .price-amount span{font-size:.85rem;color:var(--text-mid);font-weight:400}
 .price-feats{list-style:none;font-size:.82rem;color:var(--text-mid);display:flex;flex-direction:column;gap:.4rem;margin-top:.5rem;flex:1}
 .price-feats li::before{content:'✓ ';color:var(--accent2)}
@@ -120,7 +154,7 @@ nav{position:fixed;top:0;left:0;right:0;z-index:100;padding:1rem 5vw;display:fle
 /* ── STATS ── */
 .stats-section{padding:60px 5vw;border-top:0.5px solid var(--border);border-bottom:0.5px solid var(--border);max-width:1200px;margin:0 auto}
 .stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:2rem;text-align:center}
-.stat-num{font-size:2.2rem;font-weight:700;letter-spacing:-.03em;color:var(--gold)}
+.stat-num{font-size:2.2rem;font-weight:700;letter-spacing:-.03em;color:var(--accent)}
 .stat-lbl{font-size:.83rem;color:var(--text-mid);margin-top:.25rem}
 
 /* ── DEMO BANNER ── */
@@ -129,8 +163,6 @@ nav{position:fixed;top:0;left:0;right:0;z-index:100;padding:1rem 5vw;display:fle
 .demo-box::before{content:'';position:absolute;inset:0;background:radial-gradient(circle at 50% 0%,rgba(99,102,241,.08) 0%,transparent 60%);pointer-events:none}
 .demo-h2{font-size:clamp(1.4rem,3vw,2rem);font-weight:700;letter-spacing:-.03em;margin-bottom:.75rem}
 .demo-sub{font-size:.92rem;color:var(--text-mid);margin-bottom:1.5rem}
-.demo-creds{display:inline-flex;gap:1.5rem;background:rgba(255,255,255,.04);border:0.5px solid var(--border);border-radius:10px;padding:.6rem 1.2rem;margin-bottom:1.5rem;font-size:.83rem;color:var(--text-mid)}
-.demo-creds code{color:var(--accent2);font-family:monospace}
 
 /* ── FOOTER ── */
 footer{padding:3rem 5vw;border-top:0.5px solid var(--border);max-width:1200px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:1rem}
@@ -156,23 +188,19 @@ footer{padding:3rem 5vw;border-top:0.5px solid var(--border);max-width:1200px;ma
 /* ── LIGHT SECTIONS ── */
 .light-section{background:#F8FAFC;color:#0F172A}
 .light-section .section-h2{color:#0F172A}
-.light-section .section-eye{color:#2563EB;font-weight:700;letter-spacing:.08em}
+.light-section .section-eye{color:var(--accent);font-weight:700;letter-spacing:.08em}
 .light-section .section-sub{color:#475569}
 .benefit-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:1rem;margin-bottom:2.5rem;margin-top:1.5rem}
 .benefit-card{background:#fff;border:1px solid #E2E8F0;border-radius:16px;padding:1.4rem;display:flex;flex-direction:column;gap:.6rem;box-shadow:0 1px 4px rgba(0,0,0,.05);transition:box-shadow .2s}
 .benefit-card:hover{box-shadow:0 4px 12px rgba(16,185,129,.15);border-color:#10B981}
-.benefit-icon{font-size:1.8rem;display:inline-block;background:#F0FDF4;padding:.5rem;border-radius:12px;margin-bottom:.25rem}
-.benefit-title{font-size:.95rem;font-weight:700;color:#2563EB;line-height:1.4}
+.benefit-icon{font-size:1.8rem;display:inline-block;background:rgba(16,185,129,.08);padding:.5rem;border-radius:12px;margin-bottom:.25rem}
+.benefit-title{font-size:.95rem;font-weight:700;color:var(--accent2);line-height:1.4}
 .benefit-desc{font-size:.83rem;color:#475569;line-height:1.7}
 .trust-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(165px,1fr));gap:.85rem}
 .trust-card{background:#fff;border:1px solid #E2E8F0;border-radius:12px;padding:1.1rem;text-align:center;box-shadow:0 1px 3px rgba(0,0,0,.04)}
 .trust-icon{font-size:1.6rem;margin-bottom:.4rem;display:block}
-.trust-title{font-size:.82rem;font-weight:700;color:#2563EB;margin-bottom:.25rem}
+.trust-title{font-size:.82rem;font-weight:700;color:var(--accent2);margin-bottom:.25rem}
 .trust-desc{font-size:.74rem;color:#64748B;line-height:1.55}
-.btn-emerald{background:#10B981;color:#fff;padding:.75rem 1.75rem;border-radius:99px;font-weight:700;font-size:.95rem;text-decoration:none;display:inline-flex;align-items:center;gap:.5rem;transition:all .2s;box-shadow:0 2px 8px rgba(16,185,129,.3)}
-.btn-emerald:hover{background:#059669;transform:translateY(-1px);box-shadow:0 4px 16px rgba(16,185,129,.4)}
-.btn-blue{background:#2563EB;color:#fff;padding:.75rem 1.75rem;border-radius:99px;font-weight:700;font-size:.95rem;text-decoration:none;display:inline-flex;align-items:center;gap:.5rem;transition:all .2s;box-shadow:0 2px 8px rgba(37,99,235,.3)}
-.btn-blue:hover{background:#1d4ed8;transform:translateY(-1px)}
 
 /* Pyidaungsu font */
 @font-face {
@@ -182,6 +210,20 @@ footer{padding:3rem 5vw;border-top:0.5px solid var(--border);max-width:1200px;ma
 }
 </style>
 <link rel="manifest" href="/manifest.json">
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"SoftwareApplication","name":"MyanAi POS","applicationCategory":"BusinessApplication","operatingSystem":"Web, PWA","description":"မြန်မာ AI POS System — KBZPay, Wave Money ချိတ်ဆက်နိုင်ပြီး Internet မပါဘဲ အလုပ်လုပ်သည်","url":"https://myanai.net","offers":[{"@type":"Offer","name":"Free","price":"0","priceCurrency":"MMK"},{"@type":"Offer","name":"Basic","price":"50000","priceCurrency":"MMK"},{"@type":"Offer","name":"Pro","price":"150000","priceCurrency":"MMK"},{"@type":"Offer","name":"Enterprise","price":"300000","priceCurrency":"MMK"}],"inLanguage":"my"}</script>
+<!-- GA4 — set ga4_id in admin Settings to activate -->
+<script>
+(function(){
+  var gid=window.__initSettings&&window.__initSettings.ga4_id||'';
+  if(!gid)return;
+  var s=document.createElement('script');s.async=true;
+  s.src='https://www.googletagmanager.com/gtag/js?id='+gid;
+  document.head.appendChild(s);
+  window.dataLayer=window.dataLayer||[];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js',new Date());gtag('config',gid);
+})();
+</script>
 </head>
 <body>
 
@@ -192,21 +234,21 @@ footer{padding:3rem 5vw;border-top:0.5px solid var(--border);max-width:1200px;ma
 <nav id="main-nav">
   <a class="nav-logo" href="/landing-page.html">
     <div class="nav-logo-mark" id="nav-logo-mark">M</div>
-    <span class="nav-logo-text" id="nav-logo-text">Myan<span>Ai</span></span>
+    <span class="nav-logo-text" id="nav-logo-text">MyanAiX</span>
   </a>
   <div class="nav-links">
-    <a href="#products">Features</a>
+    <a href="#benefits">Features</a>
     <a href="#pricing">Pricing</a>
     <a href="#demo">Demo</a>
     <a href="#contact">Contact</a>
   </div>
-  <a class="nav-cta" id="nav-cta" href="signup.html">Free Trial စမ်း →</a>
+  <a class="nav-cta" id="nav-cta" href="/signup.html" style="background:#0D9F6E">Get Started</a>
 </nav>
 
 <!-- HERO -->
-<section class="hero" style="margin-top:0;padding-top:120px;background:linear-gradient(135deg,#1a1f35 0%,#0f1729 60%,#1e3a5f 100%);color:#f8fafc">
+<section class="hero" style="margin-top:0;padding-top:120px;background:#FFF7ED;color:#292524">
   <div class="hero-left reveal">
-    <div class="hero-label" id="hero-label">🇲🇲 မြန်မာနိုင်ငံသားများ ဖန်တီးထားသော AI နည်းပညာ</div>
+    <div class="hero-label" id="hero-label" style="display:inline-flex">🇲🇲 မြန်မာနိုင်ငံသားများ ဖန်တီးထားသော AI နည်းပညာ</div>
     <h1 class="hero-h1" id="hero-h1">
       မြန်မာ့စီးပွားရေး<br>
       <em>AI နည်းပညာဖြင့်</em><br>
@@ -236,16 +278,60 @@ footer{padding:3rem 5vw;border-top:0.5px solid var(--border);max-width:1200px;ma
         <span class="mock-title">MyanAi POS — Business Admin</span>
       </div>
       <div class="mock-body">
-        <div class="mock-stats">
-          <div class="mock-stat"><div class="mock-stat-val">248</div><div class="mock-stat-lbl">Orders today</div></div>
-          <div class="mock-stat"><div class="mock-stat-val">1.2M</div><div class="mock-stat-lbl">Revenue MMK</div></div>
-          <div class="mock-stat"><div class="mock-stat-val">14</div><div class="mock-stat-lbl">Pending</div></div>
+        <div class="mock-slide active" id="mock-slide-1">
+          <div class="mock-stats">
+            <div class="mock-stat"><div class="mock-stat-val">248</div><div class="mock-stat-lbl">ဒီနေ့ orders</div></div>
+            <div class="mock-stat"><div class="mock-stat-val">1.2M</div><div class="mock-stat-lbl">ဝင်ငွေ MMK</div></div>
+            <div class="mock-stat"><div class="mock-stat-val">14</div><div class="mock-stat-lbl">စောင့်ဆိုင်း</div></div>
+          </div>
+          <div class="mock-orders">
+            <div class="mock-order-head">လက်ရှိ orders</div>
+            <div class="mock-order-row"><span class="mock-badge badge-new">New</span><span>Order #1042</span><span style="margin-left:auto;color:#94a3b8">Item A ×2</span></div>
+            <div class="mock-order-row"><span class="mock-badge badge-cook">Processing</span><span>Order #1041</span><span style="margin-left:auto;color:#94a3b8">Shan noodle ×1</span></div>
+            <div class="mock-order-row"><span class="mock-badge badge-done">Done</span><span>Order #1040</span><span style="margin-left:auto;color:#94a3b8">Tea ×3</span></div>
+          </div>
         </div>
-        <div class="mock-orders">
-          <div class="mock-order-head">Live orders</div>
-          <div class="mock-order-row"><span class="mock-badge badge-new">New</span><span>Order #1042</span><span style="margin-left:auto;color:#94a3b8">Item A ×2</span></div>
-          <div class="mock-order-row"><span class="mock-badge badge-cook">Processing</span><span>Order #1041</span><span style="margin-left:auto;color:#94a3b8">Shan noodle ×1</span></div>
-          <div class="mock-order-row"><span class="mock-badge badge-done">Done</span><span>Order #1040</span><span style="margin-left:auto;color:#94a3b8">Tea ×3</span></div>
+        <div class="mock-slide" id="mock-slide-2">
+          <div class="mock-order-head" style="padding:0 0 .4rem">🍳 Kitchen Display</div>
+          <div class="mock-kds-col">
+            <div class="mock-kds-card">
+              <div class="mock-kds-head">🟡 ပြင်ဆင်နေသည်</div>
+              <div class="mock-kds-item">#1042 — Shan noodle ×2</div>
+              <div class="mock-kds-item">#1043 — Tea ×1</div>
+            </div>
+            <div class="mock-kds-card">
+              <div class="mock-kds-head">✅ အဆင်သင့်</div>
+              <div class="mock-kds-item">#1040 — Mohinga ×3</div>
+              <div class="mock-kds-item">#1039 — Coffee ×2</div>
+            </div>
+          </div>
+          <div class="mock-orders">
+            <div class="mock-order-head">ဌာနတင်</div>
+            <div class="mock-order-row"><span class="mock-badge badge-cook">မီးဖိုချောင်</span><span style="margin-left:auto;color:#94a3b8">3 active</span></div>
+            <div class="mock-order-row"><span class="mock-badge badge-new">အဖျော်ယမကာ</span><span style="margin-left:auto;color:#94a3b8">2 active</span></div>
+          </div>
+        </div>
+        <div class="mock-slide" id="mock-slide-3">
+          <div class="mock-order-head" style="padding:0 0 .4rem">📊 Analytics — Last 7 days</div>
+          <div class="mock-chart">
+            <div class="mock-bar" style="height:45%"></div>
+            <div class="mock-bar" style="height:60%"></div>
+            <div class="mock-bar" style="height:38%"></div>
+            <div class="mock-bar" style="height:80%"></div>
+            <div class="mock-bar" style="height:65%"></div>
+            <div class="mock-bar" style="height:95%"></div>
+            <div class="mock-bar" style="height:72%"></div>
+          </div>
+          <div class="mock-stats">
+            <div class="mock-stat"><div class="mock-stat-val">+18%</div><div class="mock-stat-lbl">vs last week</div></div>
+            <div class="mock-stat"><div class="mock-stat-val">⭐4.8</div><div class="mock-stat-lbl">Avg rating</div></div>
+            <div class="mock-stat"><div class="mock-stat-val">62%</div><div class="mock-stat-lbl">Repeat orders</div></div>
+          </div>
+        </div>
+        <div class="mock-dots" id="mock-dots">
+          <div class="mock-dot-nav active" data-slide="1" onclick="mockGoTo(1)"></div>
+          <div class="mock-dot-nav" data-slide="2" onclick="mockGoTo(2)"></div>
+          <div class="mock-dot-nav" data-slide="3" onclick="mockGoTo(3)"></div>
         </div>
       </div>
     </div>
@@ -255,7 +341,7 @@ footer{padding:3rem 5vw;border-top:0.5px solid var(--border);max-width:1200px;ma
 <!-- STATS -->
 <div class="stats-section reveal">
   <div class="stats-row">
-    <div><div class="stat-num" id="stat1-num">14+</div><div class="stat-lbl" id="stat1-lbl">Active businesses</div></div>
+    <div><div class="stat-num" id="stat1-num">500+</div><div class="stat-lbl" id="stat1-lbl">Orders processed daily</div></div>
     <div><div class="stat-num" id="stat2-num">99.9%</div><div class="stat-lbl" id="stat2-lbl">Uptime</div></div>
     <div><div class="stat-num" id="stat3-num">KBZPay</div><div class="stat-lbl" id="stat3-lbl">+ Wave Money</div></div>
     <div><div class="stat-num" id="stat4-num">Offline</div><div class="stat-lbl" id="stat4-lbl">PWA ready</div></div>
@@ -263,7 +349,7 @@ footer{padding:3rem 5vw;border-top:0.5px solid var(--border);max-width:1200px;ma
 </div>
 
 <!-- PRODUCTS -->
-<section class="products-section light-section" id="products" style="padding:80px 5vw">
+<section class="products-section light-section" id="benefits" style="padding:80px 5vw">
   <div class="reveal">
     <p class="section-eye">ထုတ်ကုန်များနှင့် အကျိုးကျေးဇူးများ</p>
     <h2 class="section-h2" id="products-heading"><span id="products-heading-l1">သင့်ဆိုင်ကို ပိုမိုလွယ်ကူ</span><br><em style="font-style:normal;color:#2563EB" id="products-heading-l2">စီမံနိုင်မယ့် နည်းလမ်းများ</em></h2>
@@ -277,7 +363,43 @@ footer{padding:3rem 5vw;border-top:0.5px solid var(--border);max-width:1200px;ma
     <div class="benefit-card"><div class="benefit-icon" id="feat4-icon">📱</div><div class="benefit-title" id="feat4-title">ဖုန်းဖြင့် Real-time ကြည့်ရှု</div><div class="benefit-desc" id="feat4-desc">ဆိုင်မှ မနေဘဲ မည်သည့်နေရာမဆို ဝင်ငွေနှင့် အခြေအနေ စစ်ဆေးနိုင်</div></div>
     <div class="benefit-card"><div class="benefit-icon" id="feat5-icon">📊</div><div class="benefit-title" id="feat5-title">နေ့စဉ် Report အလိုအလျောက်</div><div class="benefit-desc" id="feat5-desc">ဝင်ငွေ၊ အရောင်းကောင်းသောပစ္စည်း၊ ဝန်ထမ်းစွမ်းဆောင်ရည် ပုံနှိပ်ရန်အသင့် ထုတ်</div></div>
     <div class="benefit-card"><div class="benefit-icon" id="feat6-icon">👥</div><div class="benefit-title" id="feat6-title">ဝန်ထမ်းစီမံခန့်ခွဲမှု</div><div class="benefit-desc" id="feat6-desc">ဝန်ထမ်းတစ်ဦးချင်း ရောင်းချမှုနှင့် အချိန်ဆင်းမှတ်တမ်း System က ထောက်လှမ်းပေး</div></div>
+      <div class="benefit-card"><div class="benefit-icon" id="feat7-icon">🔔</div><div class="benefit-title" id="feat7-title">Real-time Notifications</div><div class="benefit-desc" id="feat7-desc">Order အသစ်၊ stock လျော့ချက်၊ payment status — push notification ချက်ချင်းရ</div></div>
+      <div class="benefit-card"><div class="benefit-icon" id="feat8-icon">📦</div><div class="benefit-title" id="feat8-title">Multi-branch စီမံခန့်ခွဲမှု</div><div class="benefit-desc" id="feat8-desc">ဆိုင်ခွဲများကို တစ်နေရာတည်းမှ ထိန်းချုပ်နိုင်</div></div>
   </div>
+
+<!-- TESTIMONIALS -->
+<section style="padding:60px 5vw;background:var(--bg2,#F8FAFC)" id="testimonials">
+  <div style="max-width:1200px;margin:0 auto;text-align:center">
+    <p class="section-eye" style="color:var(--accent)">Customer Stories</p>
+    <h2 class="section-h2" style="margin-bottom:2rem">သုံးစွဲသူများ ပြောသည်မှာ</h2>
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:1.25rem;text-align:left">
+      <div style="padding:1.25rem;border-radius:14px;background:var(--card,#fff);border:1px solid var(--border,#E2E8F0)">
+        <div style="color:#F59E0B;margin-bottom:.5rem">★★★★★</div>
+        <p style="font-size:.88rem;color:var(--text-mid,#374151);line-height:1.7;margin-bottom:1rem">"MyanAi နဲ့ ဆိုင်စီမံတာ အရမ်းလွယ်လာတယ်။ KBZPay ချိတ်ဆက်ပြီးတဲ့နောက် customer တွေ ပိုကျေနပ်တယ်။"</p>
+        <div style="display:flex;align-items:center;gap:.6rem">
+          <div style="width:36px;height:36px;border-radius:50%;background:var(--accent);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700">N</div>
+          <div><div style="font-size:.83rem;font-weight:700">NoodleHaus Main</div><div style="font-size:.75rem;color:var(--text-mid,#64748B)">စားသောက်ဆိုင် · Yangon</div></div>
+        </div>
+      </div>
+      <div style="padding:1.25rem;border-radius:14px;background:var(--card,#fff);border:1px solid var(--border,#E2E8F0)">
+        <div style="color:#F59E0B;margin-bottom:.5rem">★★★★★</div>
+        <p style="font-size:.88rem;color:var(--text-mid,#374151);line-height:1.7;margin-bottom:1rem">"Internet ပြတ်ပြတ် ဆိုင်မပိတ်ရတော့ဘူး။ Offline mode တကယ်ကောင်းတယ်။ Report တွေ auto ထွက်တာ အချိန်သက်သာတယ်။"</p>
+        <div style="display:flex;align-items:center;gap:.6rem">
+          <div style="width:36px;height:36px;border-radius:50%;background:var(--accent);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700">B</div>
+          <div><div style="font-size:.83rem;font-weight:700">Boba Star Café</div><div style="font-size:.75rem;color:var(--text-mid,#64748B)">Café · Mandalay</div></div>
+        </div>
+      </div>
+      <div style="padding:1.25rem;border-radius:14px;background:var(--card,#fff);border:1px solid var(--border,#E2E8F0)">
+        <div style="color:#F59E0B;margin-bottom:.5rem">★★★★★</div>
+        <p style="font-size:.88rem;color:var(--text-mid,#374151);line-height:1.7;margin-bottom:1rem">"Setup 30 မိနစ်ထဲ ပြီးသွားတယ်။ Support team က မြန်မာဘာသာနဲ့ ချက်ချင်းကူညီတယ်။ Highly recommended!"</p>
+        <div style="display:flex;align-items:center;gap:.6rem">
+          <div style="width:36px;height:36px;border-radius:50%;background:var(--accent);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700">S</div>
+          <div><div style="font-size:.83rem;font-weight:700">Shwe Shan Restaurant</div><div style="font-size:.75rem;color:var(--text-mid,#64748B)">Restaurant · Naypyidaw</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
 
   <!-- Trust signals -->
   <div style="background:#fff;border:1px solid #E2E8F0;border-radius:16px;padding:1.8rem;margin-bottom:2.5rem">
@@ -289,42 +411,20 @@ footer{padding:3rem 5vw;border-top:0.5px solid var(--border);max-width:1200px;ma
       <div class="trust-card"><div class="trust-icon" id="trust4-icon">🔒</div><div class="trust-title" id="trust4-title">Data လုံခြုံ</div><div class="trust-desc" id="trust4-desc">သင့်ဆိုင် data လုံခြုံစိတ်ချ</div></div>
       <div class="trust-card"><div class="trust-icon" id="trust5-icon">💰</div><div class="trust-title" id="trust5-title">၁၄ ရက် အခမဲ့</div><div class="trust-desc" id="trust5-desc">Credit card မလိုဘဲ စမ်းသုံးနိုင်</div></div>
       <div class="trust-card"><div class="trust-icon" id="trust6-icon">⭐</div><div class="trust-title" id="trust6-title">ဆိုင် ၁၄+ ယုံကြည်</div><div class="trust-desc" id="trust6-desc">မြန်မာတစ်နိုင်ငံလုံး လက်ရှိသုံးနေ</div></div>
-    </div>
-    <!-- CTA in trust section -->
-    <div style="text-align:center;margin-top:1.5rem;display:flex;gap:1rem;justify-content:center;flex-wrap:wrap">
-      <a class="btn-emerald" href="signup.html">🚀 ၁၄ ရက် အခမဲ့ စမ်းသုံးမည်</a>
-      <a class="btn-blue" href="tenant.php">👁️ Demo ကြည့်ရှုရန်</a>
+      <div class="trust-card"><div class="trust-icon" id="trust7-icon">🛡️</div><div class="trust-title" id="trust7-title">Data Backup အလိုအလျောက်</div><div class="trust-desc" id="trust7-desc">နေ့စဉ် backup — data ဆုံးရှုံးရန် မစိုးရိမ်ရ</div></div>
+      <div class="trust-card"><div class="trust-icon" id="trust8-icon">💬</div><div class="trust-title" id="trust8-title">Myanmar Support Team</div><div class="trust-desc" id="trust8-desc">မြန်မာစကားပြောသော support team ကိုယ်တိုင်</div></div>
+      <div class="trust-card"><div class="trust-icon" id="trust9-icon">📱</div><div class="trust-title" id="trust9-title">KBZPay / Wave Ready</div><div class="trust-desc" id="trust9-desc">မြန်မာ payment အကုန် built-in ပါ</div></div>
+      <div class="trust-card"><div class="trust-icon" id="trust10-icon">🔌</div><div class="trust-title" id="trust10-title">Internet မပါဘဲ သုံးနိုင်</div><div class="trust-desc" id="trust10-desc">PWA offline mode — ဆိုင်ပိတ်ရန် မလို</div></div>
     </div>
   </div>
 
-  <div id="products-grid" class="reveal" style="transition-delay:.1s">
-    <!-- Loaded dynamically -->
-    <a class="product-card" href="tenant.php">
-      <div class="product-icon">🍜</div>
-      <div class="product-name" id="prod1-name">MyanAi POS</div>
-      <div class="product-desc">Restaurant & F&B အတွက် complete POS system — orders, KDS, tables, staff, stock, delivery, CRM</div>
-      <span class="product-tag tag-live">✓ Live now</span>
-    </a>
-    <a class="product-card" href="#" onclick="alert('MyanAi HR — Coming soon! Sign up to get notified.');return false;">
-      <div class="product-icon">👥</div>
-      <div class="product-name" id="prod2-name">MyanAi HR</div>
-      <div class="product-desc">HR & payroll management — employee records, attendance, salary calculation, leave management</div>
-      <span class="product-tag tag-soon">Coming soon</span>
-    </a>
-    <a class="product-card" href="#" onclick="alert('MyanAi Bot — Coming soon! Sign up to get notified.');return false;">
-      <div class="product-icon">🤖</div>
-      <div class="product-name" id="prod3-name">MyanAi Bot</div>
-      <div class="product-desc" id="prod3-desc">AI customer service bot — Myanmar language, auto-reply, order taking, FAQ handling</div>
-      <span class="product-tag tag-soon">Coming soon</span>
-    </a>
-  </div>
 </section>
 
 <!-- PRICING -->
 <section class="pricing-section light-section" id="pricing" style="padding:80px 5vw">
   <div class="reveal" style="text-align:center;margin-bottom:1rem">
-    <p class="section-eye">Pricing</p>
-    <h2 class="section-h2" id="pricing-heading"><span id="pricing-h1">မြန်မာဆိုင်တွေ</span> <em style="font-style:normal;color:var(--gold)" id="pricing-h2">နိုင်နိုင်နင်းနင်း</em> <span id="pricing-h3">ဝင်နိုင်တဲ့ plan</span></h2>
+    <p class="section-eye" id="pricing-eye" style="color:#ff8040">စျေးနှုန်းများ</p>
+    <h2 class="section-h2" id="pricing-heading"><span id="pricing-h1">မြန်မာဆိုင်တွေ</span> <em style="font-style:normal;color:var(--primary-em)" id="pricing-h2">နိုင်နိုင်နင်းနင်း</em> <span id="pricing-h3">ဝင်နိုင်တဲ့ plan</span></h2>
     <p class="section-sub" id="pricing-sub" style="margin:0 auto;text-align:center">Trial 14 days — credit card မလိုဘဲ စမ်းနိုင်</p>
   </div>
   <div id="pricing-grid" class="reveal" style="transition-delay:.1s">
@@ -332,78 +432,48 @@ footer{padding:3rem 5vw;border-top:0.5px solid var(--border);max-width:1200px;ma
   </div>
 </section>
 
-<!-- DEMO SECTION -->
-<section class="demo-section" id="demo" style="background:linear-gradient(135deg,#1a1f35 0%,#0f1729 100%)">
-  <div class="demo-box reveal">
-    <h2 class="demo-h2" id="demo-heading">Live Demo ကြည့်ပါ</h2>
-    <p class="demo-sub" id="demo-sub">Sign up မလုပ်ဘဲ features အကုန် စမ်းနိုင်သည်</p>
-    <div class="demo-creds" style="margin-bottom:1.25rem">
-      <div style="font-size:.8rem;color:#94a3b8;margin-bottom:.5rem">Demo credentials — click to auto-fill:</div>
-      <div style="display:flex;gap:.75rem;justify-content:center;flex-wrap:wrap">
-        <button onclick="autofillDemo()" style="background:#1e293b;border:1px solid #334155;color:#e2e8f0;padding:.5rem 1.25rem;border-radius:8px;cursor:pointer;font-size:.85rem">
-          📋 Email: demo@myanai.net · Pass: demo1234
-        </button>
-      </div>
-    </div>
-    <div class="demo-slides" style="margin-bottom:1.5rem">
-      <div id="demo-slide-track" style="display:flex;gap:1rem;overflow-x:auto;scroll-snap-type:x mandatory;scrollbar-width:none;padding:.5rem 0">
-        <div style="min-width:280px;scroll-snap-align:start;background:#1e293b;border-radius:12px;padding:1.25rem;text-align:left;flex-shrink:0">
-          <div style="font-size:1.5rem;margin-bottom:.5rem">📊</div>
-          <div style="font-weight:600;font-size:.9rem;color:#f1f5f9;margin-bottom:.4rem">Analytics Dashboard</div>
-          <div style="font-size:.78rem;color:#94a3b8">Revenue trend, peak hours, top items, payment breakdown — 7/30/90 days filter</div>
-        </div>
-        <div style="min-width:280px;scroll-snap-align:start;background:#1e293b;border-radius:12px;padding:1.25rem;text-align:left;flex-shrink:0">
-          <div style="font-size:1.5rem;margin-bottom:.5rem">🛒</div>
-          <div style="font-weight:600;font-size:.9rem;color:#f1f5f9;margin-bottom:.4rem">Online Ordering</div>
-          <div style="font-size:.78rem;color:#94a3b8">Customer မှာ menu ကြည့်ပြီး cart ထည့်ကာ KBZPay/Wave/Cash ဖြင့် ပေးချေနိုင်</div>
-        </div>
-        <div style="min-width:280px;scroll-snap-align:start;background:#1e293b;border-radius:12px;padding:1.25rem;text-align:left;flex-shrink:0">
-          <div style="font-size:1.5rem;margin-bottom:.5rem">👥</div>
-          <div style="font-weight:600;font-size:.9rem;color:#f1f5f9;margin-bottom:.4rem">CRM & Loyalty</div>
-          <div style="font-size:.78rem;color:#94a3b8">Customer database, loyalty stamps, promotions, order history tracking</div>
-        </div>
-        <div style="min-width:280px;scroll-snap-align:start;background:#1e293b;border-radius:12px;padding:1.25rem;text-align:left;flex-shrink:0">
-          <div style="font-size:1.5rem;margin-bottom:.5rem">🏢</div>
-          <div style="font-weight:600;font-size:.9rem;color:#f1f5f9;margin-bottom:.4rem">Multi-branch</div>
-          <div style="font-size:.78rem;color:#94a3b8">Multiple branches, per-branch stock, staff management, centralized dashboard</div>
-        </div>
-        <div style="min-width:280px;scroll-snap-align:start;background:#1e293b;border-radius:12px;padding:1.25rem;text-align:left;flex-shrink:0">
-          <div style="font-size:1.5rem;margin-bottom:.5rem">🚚</div>
-          <div style="font-weight:600;font-size:.9rem;color:#f1f5f9;margin-bottom:.4rem">Delivery Management</div>
-          <div style="font-size:.78rem;color:#94a3b8">Driver assignment, delivery zones, active order tracking, fee settings</div>
-        </div>
-        <div style="min-width:280px;scroll-snap-align:start;background:#1e293b;border-radius:12px;padding:1.25rem;text-align:left;flex-shrink:0">
-          <div style="font-size:1.5rem;margin-bottom:.5rem">⭐</div>
-          <div style="font-weight:600;font-size:.9rem;color:#f1f5f9;margin-bottom:.4rem">Reviews & Ratings</div>
-          <div style="font-size:.78rem;color:#94a3b8">Customer reviews, public/private toggle, rating stats, feedback loop</div>
-        </div>
-      </div>
-      <div style="text-align:center;font-size:.75rem;color:#64748b;margin-top:.5rem">← swipe to explore →</div>
-    </div>
-    <div style="display:flex;gap:.75rem;justify-content:center;flex-wrap:wrap">
-      <a class="btn-primary" id="demo-cta" href="tenant.php" onclick="autofillDemo()">🎭 Demo Admin ဝင်ကြည့် →</a>
-      <a class="btn-secondary" href="index.html?t=demo">🛒 Customer ordering page</a>
+<!-- DEMO SECTION (compact) -->
+<section class="demo-section" id="demo" style="background:linear-gradient(135deg,#1a1f35 0%,#0f1729 100%);padding:48px 5vw">
+  <div class="demo-box reveal" style="padding:1.75rem 1.5rem">
+    <h2 class="demo-h2" id="demo-heading" style="font-size:1.3rem;margin-bottom:.4rem">Live Demo ကြည့်ပါ</h2>
+    <p class="demo-sub" id="demo-sub" style="font-size:.85rem;margin-bottom:1rem">Sign up မလုပ်ဘဲ features အကုန် စမ်းနိုင်သည်</p>
+    <div style="display:flex;gap:.75rem;justify-content:center;flex-wrap:wrap;align-items:center">
+      <a class="btn-primary" id="demo-cta" href="tenant.php" onclick="autofillDemo()" style="padding:.5rem 1.1rem;font-size:.85rem">🎭 Admin ဝင်ကြည့်ရန် →</a>
+      <a class="btn-secondary" href="index.html?t=demo" style="padding:.5rem 1.1rem;font-size:.85rem">🛒 Order Page ကြည့်ရန် →</a>
     </div>
   </div>
 </section>
 
 <!-- CONTACT -->
-<section style="padding:80px 5vw;background:#F8FAFC;border-top:0.5px solid #E2E8F0" id="contact">
-  <div style="max-width:1200px;margin:0 auto">
+<section style="padding:80px 5vw;background:#F8FAFC;border-top:0.5px solid #E2E8F0;max-width:1200px;margin:0 auto;box-sizing:border-box" id="contact">
+  <div>
     <div class="reveal" style="text-align:center;margin-bottom:3rem">
-      <p class="section-eye">Contact</p>
+      <p class="section-eye" id="contact-eye">ဆက်သွယ်ရန်</p>
       <h2 class="section-h2" id="contact-heading">ဆက်သွယ်ပါ</h2>
       <p class="section-sub" style="margin:0 auto;text-align:center" id="contact-sub">မေးစရာ ရှိရင် ဖော်ပြပါ channel မှတစ်ဆင့် ဆက်သွယ်နိုင်သည်</p>
     </div>
     <div id="contact-grid" style="display:flex;flex-wrap:wrap;gap:1rem;justify-content:center;max-width:900px;margin:0 auto">
       <!-- loaded dynamically -->
     </div>
+    <!-- Contact Form -->
+    <div style="max-width:560px;margin:2.5rem auto 0;background:var(--card,#fff);border:1px solid var(--border,#E2E8F0);border-radius:16px;padding:2rem">
+      <h3 style="font-size:1rem;font-weight:700;margin-bottom:1.25rem;color:var(--text,#0F172A)">📬 မက်ဆေ့ပို့ပါ</h3>
+      <div id="contact-form-msg" style="display:none;padding:.6rem 1rem;border-radius:8px;margin-bottom:1rem;font-size:.85rem"></div>
+      <div style="display:flex;flex-direction:column;gap:.75rem">
+        <input id="cf-name" type="text" placeholder="သင့်နာမည်" style="width:100%;padding:.6rem .9rem;border:1px solid var(--border,#E2E8F0);border-radius:8px;font-size:.88rem;background:var(--warm,#fff);color:var(--text,#0F172A);font-family:inherit">
+        <input id="cf-email" type="email" placeholder="Email လိပ်စာ" style="width:100%;padding:.6rem .9rem;border:1px solid var(--border,#E2E8F0);border-radius:8px;font-size:.88rem;background:var(--warm,#fff);color:var(--text,#0F172A);font-family:inherit">
+        <input id="cf-phone" type="tel" placeholder="ဖုန်းနံပါတ် (optional)" style="width:100%;padding:.6rem .9rem;border:1px solid var(--border,#E2E8F0);border-radius:8px;font-size:.88rem;background:var(--warm,#fff);color:var(--text,#0F172A);font-family:inherit">
+        <textarea id="cf-msg" rows="4" placeholder="သင်၏ မေးခွန်း သို့မဟုတ် မက်ဆေ့..." style="width:100%;padding:.6rem .9rem;border:1px solid var(--border,#E2E8F0);border-radius:8px;font-size:.88rem;background:var(--warm,#fff);color:var(--text,#0F172A);font-family:inherit;resize:vertical"></textarea>
+        <button onclick="submitContactForm()" style="background:var(--accent,#F97316);color:#fff;border:none;padding:.7rem 1.5rem;border-radius:8px;font-weight:700;font-size:.9rem;cursor:pointer;font-family:inherit;transition:opacity .15s" onmouseover="this.style.opacity='.85'" onmouseout="this.style.opacity='1'">📨 ပို့မည်</button>
+      </div>
+    </div>
   </div>
 </section>
 
 <!-- FOOTER -->
-<footer id="page-footer" style="background:#1a1f35;color:#94a3b8">
-  <div class="foot-copy" id="foot-copy">© 2026 MyanAi · Made in Myanmar 🇲🇲</div>
+<button id="back-to-top" onclick="window.scrollTo({top:0,behavior:'smooth'})" aria-label="Back to top" style="position:fixed;bottom:1.5rem;right:1.5rem;width:42px;height:42px;border-radius:50%;background:var(--accent);color:#fff;border:none;cursor:pointer;font-size:1.2rem;display:none;align-items:center;justify-content:center;box-shadow:0 2px 12px rgba(0,0,0,.15);z-index:50;transition:opacity .2s">↑</button>
+<footer id="page-footer" style="background:#1a1f35;color:#94a3b8;transition:background .3s,color .3s">
+  <div class="foot-copy" id="foot-copy">© <span id="footer-year">2026</span> MyanAi · Made in Myanmar 🇲🇲</div>
   <div class="foot-links">
     <a href="signup.html">Sign up</a>
     <a href="tenant.php">Login</a>
@@ -417,9 +487,9 @@ footer{padding:3rem 5vw;border-top:0.5px solid var(--border);max-width:1200px;ma
   try {
     // Load site settings
     const [settingsRes, plansRes, tenantsRes] = await Promise.all([
-      fetch('site_settings.php?action=get').then(r=>r.json()).catch(()=>({ok:false})),
+      window.__settingsPromise,
       fetch('tenant_api.php?action=plans').then(r=>r.json()).catch(()=>({ok:false})),
-      fetch('tenant_api.php?action=list').then(r=>r.json()).catch(()=>({ok:false})),
+      Promise.resolve({ok:false}),
     ]);
 
     const s = settingsRes.settings || {};
@@ -451,7 +521,14 @@ footer{padding:3rem 5vw;border-top:0.5px solid var(--border);max-width:1200px;ma
 
     // Brand
     if(s.store_name) {
-      const _logo=document.getElementById('nav-logo-text'); if(_logo) _logo.textContent=s.store_name;
+      const _logo=document.getElementById('nav-logo-text');
+      if(_logo){
+        if(s.store_name)  _logo.textContent=s.store_name;
+        if(s.store_color) _logo.style.color=s.store_color;
+        if(s.store_font)  _logo.style.fontFamily=s.store_font;
+        if(s.store_size)  _logo.style.fontSize=s.store_size+'px';
+        if(s.store_weight)_logo.style.fontWeight=s.store_weight;
+      }
       document.title = s.store_name + ' — Myanmar AI Platform';
     }
 
@@ -462,20 +539,23 @@ footer{padding:3rem 5vw;border-top:0.5px solid var(--border);max-width:1200px;ma
     }
     // Trust section
     const tsh=document.getElementById('trust-heading-text'); if(tsh&&s.trust_heading) tsh.textContent=s.trust_heading;
-    for(let i=1;i<=6;i++){
+    for(let i=1;i<=10;i++){
       const ti=document.getElementById('trust'+i+'-icon'); if(ti&&s['trust'+i+'_icon']) ti.textContent=s['trust'+i+'_icon'];
       const tt=document.getElementById('trust'+i+'-title'); if(tt&&s['trust'+i+'_title']) tt.textContent=s['trust'+i+'_title'];
       const td=document.getElementById('trust'+i+'-desc'); if(td&&s['trust'+i+'_desc']) td.textContent=s['trust'+i+'_desc'];
     }
     // Pricing heading
+    const peye=document.getElementById('pricing-eye');
+    if(peye&&s.pricing_eye) peye.textContent=s.pricing_eye;
+    if(peye&&s.pricing_eye_color) peye.style.color=s.pricing_eye_color;
     const psh1=document.getElementById('pricing-h1'); if(psh1&&s.pricing_h1) psh1.textContent=s.pricing_h1;
     const psh2=document.getElementById('pricing-h2'); if(psh2&&s.pricing_h2) psh2.textContent=s.pricing_h2;
     const psh3=document.getElementById('pricing-h3'); if(psh3&&s.pricing_h3) psh3.textContent=s.pricing_h3;
     const pss=document.getElementById('pricing-sub'); if(pss&&s.pricing_sub) pss.textContent=s.pricing_sub;
     // Hero body desc
-    const hbd=document.getElementById('hero-desc'); if(hbd&&s.hero_desc_text) hbd.textContent=s.hero_desc_text;
+    const hbd=document.getElementById('hero-desc'); if(hbd) hbd.textContent=s.hero_desc_text||s.hero_desc||hbd.textContent;
     // Feature cards
-    for(let i=1;i<=6;i++){
+    for(let i=1;i<=8;i++){
       const ic=document.getElementById('feat'+i+'-icon'); if(ic&&s['feat'+i+'_icon']) ic.textContent=s['feat'+i+'_icon'];
       const ti=document.getElementById('feat'+i+'-title'); if(ti&&s['feat'+i+'_title']) ti.textContent=s['feat'+i+'_title'];
       const de=document.getElementById('feat'+i+'-desc'); if(de&&s['feat'+i+'_desc']) de.textContent=s['feat'+i+'_desc'];
@@ -507,11 +587,16 @@ footer{padding:3rem 5vw;border-top:0.5px solid var(--border);max-width:1200px;ma
           features = Object.entries(fObj).filter(([,v])=>v).map(([k])=>fLabels[k]||k);
         } catch(e) {}
         return `<div class="price-card${isFeatured?' featured':''}">
-          ${isFeatured?'<div style="font-size:.72rem;font-weight:600;color:var(--accent);text-transform:uppercase;letter-spacing:.05em;margin-bottom:.25rem">⭐ Most popular</div>':''}
+          ${isFeatured?'<div style="font-size:.72rem;font-weight:700;color:#fff;background:var(--accent);display:inline-block;padding:.15rem .6rem;border-radius:99px;text-transform:uppercase;letter-spacing:.05em;margin-bottom:.5rem">⭐ Most popular</div>':''}
           <div style="font-size:1.5rem">${planIcons[p.code]||'📦'}</div>
           <div style="font-weight:700;font-size:1.1rem;text-transform:capitalize">${p.name||p.code}</div>
-          <div style="font-size:1.8rem;font-weight:700;color:var(--accent)">${price===0?'Free':price.toLocaleString()+' <span style="font-size:.9rem;font-weight:400">Ks/mo</span>'}</div>
+          <div style="font-size:1.8rem;font-weight:700;color:var(--accent)">${price===0?'Free':price.toLocaleString()+' <span style="font-size:.9rem;font-weight:400">Ks/လ</span>'}</div>
           <div style="font-size:.78rem;color:var(--text-mid);margin-bottom:.5rem">${p.description||''}</div>
+          <div style="font-size:.75rem;color:var(--text-mid);background:var(--bg2,#f1f5f9);border-radius:8px;padding:.4rem .6rem;margin-bottom:.5rem;display:flex;gap:.75rem;flex-wrap:wrap">
+            <span>🏢 ${p.max_branches||1} branch</span>
+            <span>👥 ${p.max_staff||3} staff</span>
+            <span>🍽️ ${p.max_menu_items||20} items</span>
+          </div>
           ${features.length?'<ul style="margin:0;padding-left:1.1rem;font-size:.82rem;display:flex;flex-direction:column;gap:.3rem">'+features.map(f=>`<li>${f}</li>`).join('')+'</ul>':''}
           <div style="margin-top:auto;padding-top:.75rem">
             <a href="signup.html?plan=${p.code}" class="cta-btn" style="display:block;text-align:center;padding:.6rem;border-radius:8px;background:${isFeatured?'var(--accent)':'transparent'};color:${isFeatured?'#fff':'var(--accent)'};border:1.5px solid var(--accent);font-weight:600;font-size:.88rem;text-decoration:none">
@@ -538,11 +623,6 @@ footer{padding:3rem 5vw;border-top:0.5px solid var(--border);max-width:1200px;ma
     if(s.demo_heading) set('demo-heading', s.demo_heading);
     if(s.demo_sub) set('demo-sub', s.demo_sub);
     if(s.cta_demo_url) document.getElementById('demo-cta')?.setAttribute('href', s.cta_demo_url);
-    // Demo credentials
-    if(s.demo_email || s.demo_password) {
-      const dc = document.querySelector('.demo-creds');
-      if(dc) dc.innerHTML = `Email: <code>${s.demo_email||'demo@myanai.net'}</code> &nbsp;·&nbsp; Password: <code>${s.demo_password||'demo1234'}</code>`;
-    }
     if(s.demo_btn_text) set('demo-cta', s.demo_btn_text);
 
     // Nav CTA
@@ -550,7 +630,8 @@ footer{padding:3rem 5vw;border-top:0.5px solid var(--border);max-width:1200px;ma
     if(s.cta_primary_url) document.getElementById('nav-cta')?.setAttribute('href', s.cta_primary_url);
 
     // Hero label
-    if(s.hero_label) set('hero-label', s.hero_label);
+    const hlEl=document.getElementById('hero-label');
+    if(hlEl){ if(s.hero_label){hlEl.textContent=s.hero_label;hlEl.style.display='inline-flex';} else{hlEl.style.display='none';} }
 
     // Page title
     if(s.page_title) document.title = s.page_title;
@@ -563,7 +644,7 @@ footer{padding:3rem 5vw;border-top:0.5px solid var(--border);max-width:1200px;ma
 // Apply saved styling separately (won't block content if it fails)
 (async function applyStyles(){
   try {
-    const res = await fetch('site_settings.php?action=get').then(r=>r.json()).catch(()=>({ok:false}));
+    const res = await window.__settingsPromise;
     const s = res.settings || {};
     const inj=(id,css)=>{let st=document.getElementById(id);if(!st){st=document.createElement('style');st.id=id;document.head.appendChild(st);}st.textContent=css;};
 
@@ -597,6 +678,9 @@ footer{padding:3rem 5vw;border-top:0.5px solid var(--border);max-width:1200px;ma
     // ── CTA Buttons ──
     if(s.cta_primary_text){const el=document.getElementById('hero-cta1');if(el)el.textContent=s.cta_primary_text;}
     if(s.cta_primary_url) {const el=document.getElementById('hero-cta1');if(el)el.href=s.cta_primary_url;}
+    if(s.mock_width)    inj('init-mock-w','.mock-shell{max-width:'+s.mock_width+'px!important}');
+    if(s.mock_fontsize) inj('init-mock-fs','.mock-body{font-size:'+s.mock_fontsize+'em!important}');
+    if(s.mock_color)    inj('init-mock-c','.mock-shell{color:'+s.mock_color+'!important}');
     if(s.cta1_bg)     inj('init-cta1-bg','#hero-cta1{background:'+s.cta1_bg+'!important;border-color:'+s.cta1_bg+'!important}');
     if(s.cta1_color)  inj('init-cta1-c','#hero-cta1{color:'+s.cta1_color+'!important}');
     if(s.cta1_size)   inj('init-cta1-s','#hero-cta1{font-size:'+s.cta1_size+'px!important}');
@@ -610,15 +694,19 @@ footer{padding:3rem 5vw;border-top:0.5px solid var(--border);max-width:1200px;ma
     // ── Colors ──
     if(s.bg_body)    document.body.style.background=s.bg_body;
     if(s.bg_hero)   {const h=document.querySelector('.hero');if(h)h.style.background=s.bg_hero;}
-    if(s.bg_nav)    inj('init-nav-bg','#main-nav{background:'+s.bg_nav+'!important}');
+    if(s.bg_nav){    inj('init-nav-bg','#main-nav{background:'+s.bg_nav+'!important}'); const nv=document.getElementById('main-nav'); if(nv) nv.style.background=s.bg_nav; }
     if(s.bg_footer) {const f=document.getElementById('page-footer');if(f)f.style.background=s.bg_footer;}
+      inj('init-demo-bg','#demo{background:'+(s.bg_demo||'linear-gradient(135deg,#1a1f35 0%,#0f1729 100%)')+'!important}');
+    if(s.bg_section) inj('init-section-bg','.light-section{background:'+s.bg_section+'!important}.demo-box{background:'+s.bg_section+'!important}');
     if(s.color_accent){
       document.documentElement.style.setProperty('--teal',s.color_accent);
       document.documentElement.style.setProperty('--accent',s.color_accent);
     }
-    if(s.color_body) inj('init-body-c','body{color:'+s.color_body+'!important}');
+    if(s.color_body) inj('init-body-c','body{color:'+s.color_body+'!important}.light-section .section-sub{color:'+s.color_body+'!important}.demo-sub{color:'+s.color_body+'!important}');
     // color_h1 only if no specific T1 color set
     if(s.color_h1&&!s.hero_t1_color) inj('init-h1-c','#hero-h1{color:'+s.color_h1+'!important}');
+    if(s.color_h1) inj('init-section-h2-c','.light-section .section-h2{color:'+s.color_h1+'!important}.demo-h2{color:'+s.color_h1+'!important}');
+    if(s.color_accent) inj('init-section-eye-c','.light-section .section-eye{color:'+s.color_accent+'!important}');
     // ── Banner ──
     if(s.announcement_on==='1'){
       inj('init-ban-on','#ann-banner{display:block!important}');
@@ -649,6 +737,66 @@ footer{padding:3rem 5vw;border-top:0.5px solid var(--border);max-width:1200px;ma
 })();
 
 /* ── Reveal on scroll ── */
+let _mockCur = 1;
+let _mockTimer = null;
+function mockGoTo(n){
+  _mockCur = n;
+  document.querySelectorAll('.mock-slide').forEach(s=>s.classList.remove('active'));
+  document.querySelectorAll('.mock-dot-nav').forEach(d=>d.classList.remove('active'));
+  const slide = document.getElementById('mock-slide-'+n);
+  const dot   = document.querySelector('.mock-dot-nav[data-slide="'+n+'"]');
+  if(slide) slide.classList.add('active');
+  if(dot) dot.classList.add('active');
+}
+function mockNext(){
+  _mockCur = _mockCur >= 3 ? 1 : _mockCur + 1;
+  mockGoTo(_mockCur);
+}
+function mockStartAuto(){
+  if(_mockTimer) clearInterval(_mockTimer);
+  _mockTimer = setInterval(mockNext, 4000);
+}
+mockStartAuto();
+const mockShellEl = document.querySelector('.mock-shell');
+if(mockShellEl){
+  mockShellEl.addEventListener('mouseenter', ()=>{ if(_mockTimer) clearInterval(_mockTimer); });
+  mockShellEl.addEventListener('mouseleave', mockStartAuto);
+}
+
+// Auto-update footer year
+const fyEl = document.getElementById('footer-year');
+if(fyEl) fyEl.textContent = new Date().getFullYear();
+
+async function submitContactForm(){
+  const name  = document.getElementById('cf-name')?.value?.trim();
+  const email = document.getElementById('cf-email')?.value?.trim();
+  const phone = document.getElementById('cf-phone')?.value?.trim();
+  const msg   = document.getElementById('cf-msg')?.value?.trim();
+  const msgEl = document.getElementById('contact-form-msg');
+  if(!name||!email||!msg){
+    msgEl.style.background='#fee2e2'; msgEl.style.color='#991b1b';
+    msgEl.textContent='⚠️ နာမည်၊ email နဲ့ မက်ဆေ့ ထည့်ပေးပါ'; msgEl.style.display='block'; return;
+  }
+  const btn = document.querySelector('#contact-form-msg ~ div button') || document.querySelector('[onclick="submitContactForm()"]');
+  if(btn){btn.disabled=true; btn.textContent='ပို့နေသည်...';}
+  try{
+    const res = await fetch('contact_submit.php',{
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({name,email,phone,message:msg})
+    }).then(r=>r.json());
+    if(res.ok){
+      msgEl.style.background='#d1fae5'; msgEl.style.color='#065f46';
+      msgEl.textContent='✅ မက်ဆေ့ ရောက်ပါပြီ! မကြာမီ ဆက်သွယ်ပေးပါမည်';
+      msgEl.style.display='block';
+      ['cf-name','cf-email','cf-phone','cf-msg'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+    } else throw new Error(res.message||'Error');
+  } catch(e){
+    msgEl.style.background='#fee2e2'; msgEl.style.color='#991b1b';
+    msgEl.textContent='❌ မပို့နိုင်ပါ — နောက်မှ ထပ်ကြိုးစားပါ'; msgEl.style.display='block';
+  }
+  if(btn){btn.disabled=false; btn.textContent='📨 ပို့မည်';}
+}
+
 const obs = new IntersectionObserver(entries=>{
   entries.forEach(e=>{ if(e.isIntersecting) e.target.classList.add('visible'); });
 },{threshold:.08});
@@ -740,7 +888,17 @@ window.addEventListener('message', e=>{
     if(s.color_h1 && h1) h1.style.color=s.color_h1;
     // Fonts
     if(s.font_mm||s.font_en){
-      window._lpeMM=s.font_mm||"'Noto Sans Myanmar','Pyidaungsu','Padauk',sans-serif";
+      let mmFont = s.font_mm||"'Noto Sans Myanmar','Pyidaungsu','Padauk',sans-serif";
+      // Custom uploaded Myanmar font takes precedence
+      if(s.font_mm==='custom' && s.custom_mm_font_family && s.custom_mm_font_path){
+        document.getElementById('lpe-custom-face-static')?.remove();
+        const face=document.createElement('style');
+        face.id='lpe-custom-face-static';
+        face.textContent=`@font-face{font-family:'${s.custom_mm_font_family}';src:url('/${s.custom_mm_font_path}') format('${s.custom_mm_font_format||'truetype'}');font-display:swap;}`;
+        document.head.appendChild(face);
+        mmFont = "'"+s.custom_mm_font_family+"'";
+      }
+      window._lpeMM=mmFont;
       window._lpeEN=s.font_en||"'Inter',sans-serif";
       const f=window._lpeMM+','+window._lpeEN;
       document.getElementById('lpe-font-rt')?.remove();
@@ -856,6 +1014,18 @@ window.addEventListener('message', e=>{
       if(prop==='weight')     inj('lpe-rt-cta1-w','#hero-cta1{font-weight:'+val+'!important}');
       if(prop==='font')       inj('lpe-rt-cta1-f','#hero-cta1{font-family:'+val+'!important}');
     }
+    if(field==='pricing-eye'){
+      const pe = document.getElementById('pricing-eye');
+      if(pe){
+        if(prop==='text')  pe.textContent = val;
+        if(prop==='color') pe.style.color = val;
+      }
+    }
+    if(field==='mock'){
+      if(prop==='width')    inj('lpe-rt-mock-w','.mock-shell{max-width:'+val+'px!important}');
+      if(prop==='fontsize') inj('lpe-rt-mock-fs','.mock-body{font-size:'+val+'em!important}');
+      if(prop==='color')    inj('lpe-rt-mock-c','.mock-shell{color:'+val+'!important}');
+    }
     if(field==='lp-cta1-bg')  inj('lpe-rt-cta1-bg','#hero-cta1{background:'+val+'!important;border-color:'+val+'!important}');
     if(field==='lp-cta2'){
       const el=document.getElementById('hero-cta2');
@@ -875,6 +1045,7 @@ window.addEventListener('message', e=>{
       if(prop==='lp-bg-hero'){   const h=document.querySelector('.hero');if(h)h.style.background=val; }
       if(prop==='lp-bg-nav')     inj('lpe-rt-nav-bg','#main-nav{background:'+val+'!important}');
       if(prop==='lp-bg-footer'){  const f=document.getElementById('page-footer');if(f)f.style.background=val; }
+      if(prop==='lp-bg-demo')    inj('lpe-rt-demo-bg','#demo{background:'+val+'!important}');
       if(prop==='lp-color-accent'){
         document.documentElement.style.setProperty('--teal',val);
         document.documentElement.style.setProperty('--accent',val);
@@ -885,9 +1056,33 @@ window.addEventListener('message', e=>{
     // ── Fonts ──
     if(field==='fonts'){
       if(!window._lpeFonts) window._lpeFonts={mm:"'Noto Sans Myanmar','Pyidaungsu','Padauk',sans-serif",en:"'Inter',sans-serif"};
+
+      // Custom uploaded Myanmar font props come in as separate lpeRT calls
+      if(prop==='mm_custom_family'){ window._lpeCustomFamily=val; return; }
+      if(prop==='mm_custom_path'){ window._lpeCustomPath=val; return; }
+      if(prop==='mm_custom_format'){
+        window._lpeCustomFormat=val;
+        // All three custom props have arrived — inject @font-face now
+        if(window._lpeCustomFamily && window._lpeCustomPath){
+          const faceId='lpe-custom-face';
+          document.getElementById(faceId)?.remove();
+          const face=document.createElement('style');
+          face.id=faceId;
+          face.textContent=`@font-face{font-family:'${window._lpeCustomFamily}';src:url('/${window._lpeCustomPath}') format('${window._lpeCustomFormat}');font-display:swap;}`;
+          document.head.appendChild(face);
+        }
+        return;
+      }
+
       window._lpeFonts[prop]=val;
-      const f=window._lpeFonts.mm+','+window._lpeFonts.en;
-      // Load Google Font dynamically
+      let f;
+      if(prop==='mm' && val==='custom' && window._lpeCustomFamily){
+        f="'"+window._lpeCustomFamily+"',"+window._lpeFonts.en;
+      } else {
+        f=window._lpeFonts.mm+','+window._lpeFonts.en;
+      }
+
+      // Load Google Font dynamically (skip for custom uploaded font)
       const fontMap={
         'Noto Sans Myanmar':'Noto+Sans+Myanmar:wght@400;700',
         'Padauk':'Padauk:wght@400;700',
@@ -916,9 +1111,15 @@ window.addEventListener('message', e=>{
     }
 
     // ── Brand ──
-    if(field==='lp-store-name'&&prop==='text'){
+    if(field==='lp-store-name'){
       const logo=document.getElementById('nav-logo-text');
-      if(logo) logo.textContent=val;
+      if(logo){
+        if(prop==='text')   logo.textContent=val;
+        if(prop==='color')  logo.style.color=val;
+        if(prop==='font')   logo.style.fontFamily=val;
+        if(prop==='size')   logo.style.fontSize=val+'px';
+        if(prop==='weight') logo.style.fontWeight=val;
+      }
     }
 
     // ── Banner ──
@@ -933,7 +1134,9 @@ window.addEventListener('message', e=>{
     }  }
 });
 
+const btt=document.getElementById('back-to-top');
 window.addEventListener('scroll',()=>{
+  if(btt) btt.style.display=window.scrollY>400?'flex':'none';
   const nav = document.getElementById('main-nav');
   if(!nav) return;
   if(scrollY>10){
