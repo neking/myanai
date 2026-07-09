@@ -838,6 +838,25 @@ header{
           <button onclick="printCustomerReceipt()" style="margin-top:.4rem;width:100%;padding:.65rem;background:none;border:1.5px solid #888;color:#888;border-radius:10px;font-size:.88rem;cursor:pointer">🖨️ Receipt ထုတ်မည်</button>
           <button onclick="toggleInlineHist()" style="margin-top:.4rem;width:100%;padding:.65rem;background:none;border:1.5px solid #888;color:#888;border-radius:10px;font-size:.88rem;cursor:pointer">📋 Order History ကြည့်</button>
         </div>
+
+        <!-- Review Form -->
+        <div id="review-section" style="margin-top:1rem;border-top:1px solid #eee;padding-top:1rem;text-align:left;display:none">
+          <div style="font-weight:600;font-size:.9rem;margin-bottom:.5rem">⭐ ဆိုင်ကို Rating ပေးပါ</div>
+          <div id="star-row" style="display:flex;gap:.25rem;font-size:1.8rem;margin-bottom:.5rem;cursor:pointer">
+            <span data-star="1" onclick="setReviewStar(1)">☆</span>
+            <span data-star="2" onclick="setReviewStar(2)">☆</span>
+            <span data-star="3" onclick="setReviewStar(3)">☆</span>
+            <span data-star="4" onclick="setReviewStar(4)">☆</span>
+            <span data-star="5" onclick="setReviewStar(5)">☆</span>
+          </div>
+          <textarea id="review-comment" placeholder="Comment (optional)" rows="2"
+            style="width:100%;padding:.5rem;border:1px solid #ddd;border-radius:8px;font-size:.83rem;box-sizing:border-box;resize:none"></textarea>
+          <button onclick="submitReview()" id="review-submit-btn"
+            style="margin-top:.4rem;width:100%;padding:.6rem;background:#f59e0b;color:#fff;border:none;border-radius:10px;font-size:.88rem;cursor:pointer;font-weight:600">
+            ⭐ Rating ပို့မည်
+          </button>
+          <div id="review-msg" style="font-size:.78rem;margin-top:.3rem;text-align:center"></div>
+        </div>
         <!-- Inline Order History -->
         <div id="inline-hist" style="display:none;margin-top:1rem;text-align:left;border-top:1px solid #eee;padding-top:1rem">
           <div style="display:flex;gap:.5rem;margin-bottom:.75rem">
@@ -1157,6 +1176,62 @@ async function loadMenu() {
 /* ═══════════════════════════════════════
    RENDER MENU
 ═══════════════════════════════════════ */
+/* ── Customer Review ── */
+let _reviewStar = 0;
+let _reviewOrderId = null;
+
+function showReviewSection(orderId){
+  _reviewOrderId = orderId;
+  _reviewStar = 0;
+  const sec = document.getElementById('review-section');
+  if(sec) sec.style.display = 'block';
+  setReviewStar(0);
+  const msg = document.getElementById('review-msg');
+  if(msg) msg.textContent = '';
+  const btn = document.getElementById('review-submit-btn');
+  if(btn) btn.disabled = false;
+}
+
+function setReviewStar(n){
+  _reviewStar = n;
+  const stars = document.querySelectorAll('#star-row span');
+  stars.forEach((s,i) => { s.textContent = i < n ? '⭐' : '☆'; });
+}
+
+async function submitReview(){
+  if(_reviewStar === 0){ toast('Star ရွေးပေးပါ','err'); return; }
+  const comment = document.getElementById('review-comment')?.value?.trim() || '';
+  const phone = document.getElementById('f-phone')?.value?.trim() || '';
+  const tid = window._TENANT_ID;
+  if(!tid) return;
+
+  const btn = document.getElementById('review-submit-btn');
+  if(btn) btn.disabled = true;
+
+  const r = await fetch('reviews_api.php?action=submit', {
+    method: 'POST',
+    headers: {'Content-Type':'application/json'},
+    credentials: 'include',
+    body: JSON.stringify({
+      tenant_id: tid,
+      order_id: _reviewOrderId,
+      rating: _reviewStar,
+      comment,
+      customer_phone: phone,
+    })
+  }).then(r=>r.json()).catch(()=>({ok:false}));
+
+  const msg = document.getElementById('review-msg');
+  if(r.ok){
+    if(msg){ msg.style.color='#16a34a'; msg.textContent='✅ Rating ပေးပြီးပါပြီ — ကျေးဇူးတင်ပါသည်!'; }
+    document.getElementById('review-section').style.display='none';
+    setTimeout(()=>{ if(document.getElementById('review-section')) document.getElementById('review-section').style.display='none'; },3000);
+  } else {
+    if(btn) btn.disabled = false;
+    if(msg){ msg.style.color='#dc2626'; msg.textContent='❌ '+(r.msg||'Error'); }
+  }
+}
+
 function applyOpeningHours(hours) {
   const days = ['sun','mon','tue','wed','thu','fri','sat'];
   const now = new Date();
@@ -1771,6 +1846,8 @@ async function submitOrder() {
     document.getElementById('order-ref').textContent = orderRef;
     document.getElementById('success-screen').classList.add('show');
     document.getElementById('cart-modal-title').textContent = '✅ Order Placed!';
+    // Show review form after short delay
+    setTimeout(()=>{ if(typeof showReviewSection==='function') showReviewSection(newOrderId||null); }, 1000);
 
   } catch(err) {
     toast('❌ ' + err.message);
