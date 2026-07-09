@@ -53,7 +53,7 @@ function checkPlanLimit(PDO $pdo, int $tenantId, string $resource): bool {
 
 /* ── CHECK LIMITS (public) ── */
 if ($action === 'check_limits') {
-    $tid = (int)($_GET['tenant_id'] ?? 0);
+    $tid = (int)($_GET['tenant_id'] ?? $_POST['tenant_id'] ?? $_SESSION['tenant_id'] ?? 0);
     if (!$tid) fail('tenant_id required');
     $t = $pdo->prepare("SELECT max_branches, max_staff, max_menu_items, plan FROM tenants WHERE id=?");
     $t->execute([$tid]);

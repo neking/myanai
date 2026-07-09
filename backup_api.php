@@ -82,7 +82,7 @@ if ($action === 'export') {
 }
 
 /* ── BACKUP INFO (summary only, no download) ── */
-if ($action === 'info') {
+if ($action === 'info' || $action === 'list') {
     $tid = (int)($_GET['tenant_id'] ?? $sessionTid);
     if (!$isSuperAdmin && (!$isTenant || $sessionTid !== $tid)) {
         http_response_code(403); echo json_encode(['ok'=>false,'msg'=>'Unauthorized']); exit;

@@ -11,7 +11,7 @@ function fail($m,$c=400){ http_response_code($c); echo json_encode(['ok'=>false,
 
 // ── List reviews (tenant) ──────────────────────────────────────
 if ($action === 'list') {
-    $tid  = (int)($_GET['tenant_id'] ?? 0);
+    $tid  = (int)($_GET['tenant_id'] ?? $_SESSION['tenant_id'] ?? 0);
     $limit= min((int)($_GET['limit'] ?? 20), 100);
     $page = max(1, (int)($_GET['page'] ?? 1));
     $off  = ($page-1)*$limit;

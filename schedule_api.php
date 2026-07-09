@@ -14,7 +14,7 @@ function fail(string $m, int $c=400): never { http_response_code($c); echo json_
 function requireAdmin(): void { if(session_status()===PHP_SESSION_NONE)session_start(); if(empty($_SESSION['admin']))fail('Unauthorized',401); }
 
 /* WEEK VIEW */
-if ($action === 'week') {
+if ($action === 'week' || $action === 'list') {
     requireAdmin();
     $startDate = trim($_GET['start'] ?? '');
     if (!$startDate) {
