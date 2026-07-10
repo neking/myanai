@@ -7,8 +7,9 @@ $pdo = getPDO();
 header('Content-Type: application/json; charset=utf-8');
 header('Access-Control-Allow-Origin: *');
 
-$orderId  = (int)($_GET['id'] ?? 0);
-$deviceId = trim($_GET['device_id'] ?? '');
+$orderUuid = trim($_GET['uuid'] ?? '');
+$orderId   = (int)($_GET['id'] ?? 0);
+$deviceId  = trim($_GET['device_id'] ?? '');
 
 
 
@@ -29,8 +30,15 @@ if ($orderId <= 0 && $deviceId) {
 }
 if ($orderId <= 0) { echo json_encode(['success'=>false,'message'=>'No active order']); exit; }
 
-$order = $pdo->prepare("SELECT * FROM orders WHERE id = :id AND (deleted_at IS NULL OR status='cancelled')");
-$order->execute([':id' => $orderId]);
+// UUID lookup first (secure), fallback to id+device_id only
+if ($orderUuid) {
+    $order = $pdo->prepare("SELECT * FROM orders WHERE order_uuid = :uuid AND (deleted_at IS NULL OR status='cancelled')");
+    $order->execute([':uuid' => $orderUuid]);
+} else {
+    // Legacy: only allow id lookup if device_id matches
+    $order = $pdo->prepare("SELECT * FROM orders WHERE id = :id AND device_id = :did AND (deleted_at IS NULL OR status='cancelled')");
+    $order->execute([':id' => $orderId, ':did' => $deviceId]);
+}
 $o = $order->fetch();
 if (!$o) { echo json_encode(['success'=>false,'message'=>'Order not found']); exit; }
 

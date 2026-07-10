@@ -118,11 +118,11 @@ try {
             INSERT INTO orders
                 (tenant_id,branch_id,customer_name,customer_phone,delivery_address,township,city,
                  special_notes,payment_method,subtotal,delivery_fee,total_amount,
-                 status,device_id,order_type,table_id,table_status,created_at)
+                 status,device_id,order_type,table_id,table_status,order_uuid,created_at)
             VALUES
                 (:tenant_id,:branch_id,:name,:phone,:address,:township,:city,
                  :notes,:payment,:subtotal,:delivery_fee,:total,
-                 'pending',:device_id,:order_type,:table_id,:table_status,NOW())
+                 'pending',:device_id,:order_type,:table_id,:table_status,UUID(),NOW())
         ");
         $s->execute([
             ':tenant_id'    => tenantId(),
@@ -253,10 +253,16 @@ try {
     jsonError('Order could not be saved', 500);
 }
 
+// Get the UUID for this order
+$uuidRow = $pdo->prepare("SELECT order_uuid FROM orders WHERE id=?");
+$uuidRow->execute([$orderId]);
+$orderUuid = $uuidRow->fetchColumn() ?: null;
+
 echo json_encode([
     'success'           => true,
     'order_id'          => 'NH-'.str_pad((string)$orderId, 6, '0', STR_PAD_LEFT),
     'db_id'             => $orderId,
+    'order_uuid'        => $orderUuid,
     'message'           => $isAppend ? 'Items added to your table order' : 'Order placed successfully',
     'is_append'         => $isAppend,
     'estimated_minutes' => 30,

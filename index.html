@@ -1844,6 +1844,8 @@ async function submitOrder() {
     document.getElementById('cart-step').style.display = 'none';
     document.getElementById('delivery-step').style.display = 'none';
     document.getElementById('order-ref').textContent = orderRef;
+    // Save UUID for secure tracking
+    window._lastOrderUuid = data.order_uuid || null;
     document.getElementById('success-screen').classList.add('show');
     document.getElementById('cart-modal-title').textContent = '✅ Order Placed!';
     // Show review form after short delay
@@ -1859,6 +1861,10 @@ async function submitOrder() {
    SUCCESS ACTIONS
 ═══════════════════════════════════════ */
 function trackAndClose() {
+  if(window._lastOrderUuid){
+    window.open('track.php?uuid='+window._lastOrderUuid, '_blank');
+    return;
+  }
   closeModal('cart-modal');
   // Keep pill visible AND expanded
   // Restore orders from localStorage if somehow lost in memory
