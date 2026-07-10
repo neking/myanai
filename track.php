@@ -32,7 +32,7 @@ if ($orderId <= 0) { echo json_encode(['success'=>false,'message'=>'No active or
 
 // UUID lookup first (secure), fallback to id+device_id only
 if ($orderUuid) {
-    $order = $pdo->prepare("SELECT * FROM orders WHERE order_uuid = :uuid AND (deleted_at IS NULL OR status='cancelled')");
+    $order = $pdo->prepare("SELECT * FROM orders WHERE order_uuid = :uuid AND deleted_at IS NULL");
     $order->execute([':uuid' => $orderUuid]);
 } else {
     // Legacy: only allow id lookup if device_id matches
