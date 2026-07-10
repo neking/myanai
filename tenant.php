@@ -785,6 +785,16 @@ button,select,input[type=checkbox]{
             <label for="item-active" style="cursor:pointer">Active</label>
           </div>
         </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:.75rem">
+          <div class="field" style="display:flex;align-items:center;gap:.5rem;padding-top:.5rem">
+            <input type="checkbox" id="item-popular" style="width:18px;height:18px">
+            <label for="item-popular" style="cursor:pointer">🔥 လူကြိုက်များ</label>
+          </div>
+          <div class="field" style="display:flex;align-items:center;gap:.5rem;padding-top:.5rem">
+            <input type="checkbox" id="item-featured" style="width:18px;height:18px">
+            <label for="item-featured" style="cursor:pointer">⭐ Chef's Special</label>
+          </div>
+        </div>
       </div>
       <div style="margin-top:1.2rem;display:flex;gap:.5rem;justify-content:flex-end">
         <button class="btn btn-ghost" onclick="closeModal('modal-menu-item')">Cancel</button>
@@ -2573,7 +2583,9 @@ function openEditItem(id){
   document.getElementById('item-price').value    = it.price||'';
   document.getElementById('item-desc').value     = it.description||'';
   document.getElementById('item-stock').value    = it.stock_qty||0;
-  document.getElementById('item-active').checked = !!it.is_active;
+  document.getElementById('item-active').checked   = !!it.is_active;
+  document.getElementById('item-popular').checked  = !!it.is_popular;
+  document.getElementById('item-featured').checked = !!it.is_featured;
   openModal('modal-menu-item');
 }
 

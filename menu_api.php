@@ -108,10 +108,12 @@ if ($action && $_SERVER['REQUEST_METHOD'] === 'POST') {
             echo json_encode(['ok'=>false,'msg'=>"Plan limit reached ($current/$limit). Upgrade to add more items."]); exit;
         }
 
+        $popular  = (int)($b['is_popular']  ?? 0);
+        $featured = (int)($b['is_featured'] ?? 0);
         $stmt = $pdo->prepare("INSERT INTO menu_items
-            (tenant_id,branch_id,name,description,price,category,emoji,is_active,stock_qty,sort_order)
-            VALUES (?,?,?,?,?,?,?,?,?,?)");
-        $stmt->execute([$authTid,$bid,$name,$desc,$price,$category,$emoji,$active,$stock,$current+1]);
+            (tenant_id,branch_id,name,description,price,category,emoji,is_active,is_popular,is_featured,stock_qty,sort_order)
+            VALUES (?,?,?,?,?,?,?,?,?,?,?,?)");
+        $stmt->execute([$authTid,$bid,$name,$desc,$price,$category,$emoji,$active,$popular,$featured,$stock,$current+1]);
         echo json_encode(['ok'=>true,'id'=>$pdo->lastInsertId(),'msg'=>'Item added']);
         exit;
     }
@@ -134,14 +136,18 @@ if ($action && $_SERVER['REQUEST_METHOD'] === 'POST') {
 
         if ($image_path !== null) {
             $stmt = $pdo->prepare("UPDATE menu_items
-                SET name=?,description=?,price=?,category=?,emoji=?,is_active=?,stock_qty=?,image_path=?,updated_at=NOW()
+                SET name=?,description=?,price=?,category=?,emoji=?,is_active=?,is_popular=?,is_featured=?,stock_qty=?,image_path=?,updated_at=NOW()
                 WHERE id=? AND tenant_id=?");
-            $stmt->execute([$name,$desc,$price,$category,$emoji,$active,$stock,$image_path,$id,$authTid]);
+            $popular  = (int)($b['is_popular']  ?? 0);
+            $featured = (int)($b['is_featured'] ?? 0);
+            $stmt->execute([$name,$desc,$price,$category,$emoji,$active,$popular,$featured,$stock,$image_path,$id,$authTid]);
         } else {
             $stmt = $pdo->prepare("UPDATE menu_items
-                SET name=?,description=?,price=?,category=?,emoji=?,is_active=?,stock_qty=?,updated_at=NOW()
+                SET name=?,description=?,price=?,category=?,emoji=?,is_active=?,is_popular=?,is_featured=?,stock_qty=?,updated_at=NOW()
                 WHERE id=? AND tenant_id=?");
-            $stmt->execute([$name,$desc,$price,$category,$emoji,$active,$stock,$id,$authTid]);
+            $popular  = (int)($b['is_popular']  ?? 0);
+            $featured = (int)($b['is_featured'] ?? 0);
+            $stmt->execute([$name,$desc,$price,$category,$emoji,$active,$popular,$featured,$stock,$id,$authTid]);
         }
         echo json_encode(['ok'=>true,'msg'=>'Item updated']);
         exit;
@@ -172,10 +178,10 @@ if ($action && $_SERVER['REQUEST_METHOD'] === 'POST') {
 
 
     $stmt = $pdo->prepare("
-        SELECT id, name, category, description, price, stock_qty, emoji, image_path
+        SELECT id, name, category, description, price, stock_qty, emoji, image_path, is_popular, is_featured
         FROM menu_items
         WHERE is_active = 1 AND tenant_id = :tid
-        ORDER BY sort_order ASC, category, name
+        ORDER BY is_featured DESC, is_popular DESC, sort_order ASC, category, name
     ");
     $stmt->execute([':tid' => $tid]);
     $rows = $stmt->fetchAll();
