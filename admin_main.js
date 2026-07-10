@@ -2813,6 +2813,9 @@ async function savePlan(){
   } else {
     toast(d.msg||'Error','err');
   }
+}se {
+    toast(d.msg||'Error','err');
+  }
 async function loadPlans() {
 }
 
