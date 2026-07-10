@@ -52,7 +52,7 @@ function generateAlerts(PDO $pdo): array {
     }
 
     // 5. Tenants with no orders in 14+ days (churn risk)
-    $dormant = $pdo->query("SELECT t.id,t.name FROM tenants t WHERE t.is_active=1 AND t.plan!='free' AND NOT EXISTS (SELECT 1 FROM orders o WHERE o.tenant_id=t.id AND o.created_at >= DATE_SUB(NOW(), INTERVAL 14 DAY)) LIMIT 5")->fetchAll(PDO::FETCH_ASSOC);
+    $dormant = $pdo->query("SELECT t.id,t.name FROM tenants t WHERE t.is_active=1 AND t.plan!='free' AND t.created_at <= DATE_SUB(NOW(), INTERVAL 14 DAY) AND EXISTS (SELECT 1 FROM orders o WHERE o.tenant_id=t.id) AND NOT EXISTS (SELECT 1 FROM orders o WHERE o.tenant_id=t.id AND o.created_at >= DATE_SUB(NOW(), INTERVAL 14 DAY)) LIMIT 5")->fetchAll(PDO::FETCH_ASSOC);
     foreach ($dormant as $t) {
         $alerts[] = ['type'=>'churn_risk','level'=>'warning','title'=>"Churn risk: {$t['name']}",'body'=>"No orders in 14+ days. Consider reaching out.",'tenant_id'=>$t['id']];
     }
