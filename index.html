@@ -1328,7 +1328,7 @@ function renderMenu() {
       : low ? `<span class="stock-badge stock-low">${currentLang==="mm"?stock+" ကျန်":"Only "+stock+" left"}</span>`
       : `<span class="stock-badge stock-ok">${currentLang==="mm"?stock+" ခု ရှိ":stock+" avail"}</span>`;
     const popularBadge = item.is_popular ? '<span style="background:#ef4444;color:#fff;font-size:.62rem;padding:2px 6px;border-radius:99px;font-weight:600;margin-right:.3rem">🔥 လူကြိုက်များ</span>' : '';
-    const featuredBadge = item.is_featured ? '<span style="background:#f59e0b;color:#fff;font-size:.62rem;padding:2px 6px;border-radius:99px;font-weight:600">⭐ Chef's Special</span>' : '';
+    const featuredBadge = item.is_featured ? '<span style="background:#f59e0b;color:#fff;font-size:.62rem;padding:2px 6px;border-radius:99px;font-weight:600">⭐ Chef Special</span>' : '';
     const badgeRow = (popularBadge||featuredBadge) ? `<div style="margin-bottom:.25rem">${popularBadge}${featuredBadge}</div>` : '';
     return `<div class="card">
       <div class="card-img">${imgEl}</div>
