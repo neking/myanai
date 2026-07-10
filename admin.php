@@ -3478,13 +3478,13 @@ document.addEventListener('DOMContentLoaded', () => {
     window.showPage = function(p) {
       orig(p);
       if (p === 'logs') setTimeout(loadLogs, 100);
-      if (p === 'dashboard') { setTimeout(loadAdminHealth, 200); setTimeout(loadGrowthSummary, 250); }
+      if (p === 'dashboard') { setTimeout(loadAdminHealth, 200); if(typeof loadGrowthSummary==='function') setTimeout(loadGrowthSummary, 250); }
     };
   }
   // Load health on initial page load
   setTimeout(loadAdminHealth, 500);
-  setTimeout(loadGrowthSummary, 550);
-  setTimeout(load2FAStatus, 600);
+  if(typeof loadGrowthSummary==='function') setTimeout(loadGrowthSummary, 550);
+  if(typeof load2FAStatus==='function') setTimeout(load2FAStatus, 600);
 });
 
 
