@@ -21,3 +21,4 @@ uploads/
 # Environment
 .env
 *.env.local
+vendor/
