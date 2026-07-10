@@ -28,7 +28,7 @@ if ($orderId <= 0 && $deviceId) {
     $row = $stmt->fetch();
     if ($row) $orderId = (int)$row['id'];
 }
-if ($orderId <= 0) { echo json_encode(['success'=>false,'message'=>'No active order']); exit; }
+if ($orderId <= 0 && !$orderUuid) { echo json_encode(['success'=>false,'message'=>'No active order']); exit; }
 
 // UUID lookup first (secure), fallback to id+device_id only
 if ($orderUuid) {
