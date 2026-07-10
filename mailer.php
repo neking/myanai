@@ -6,15 +6,28 @@
 declare(strict_types=1);
 
 function sendMail(string $to, string $subject, string $htmlBody, string $from = 'noreply@myanai.net'): bool {
-    $headers  = "MIME-Version: 1.0\r\n";
-    $headers .= "Content-Type: text/html; charset=UTF-8\r\n";
-    $headers .= "From: MyanAi Platform <{$from}>\r\n";
-    $headers .= "Reply-To: {$from}\r\n";
-    $headers .= "X-Mailer: PHP/" . phpversion();
-
-    $result = @mail($to, $subject, $htmlBody, $headers);
-    if(!$result) error_log("MyanAi mailer failed: to={$to} subject={$subject}");
-    return $result;
+    require_once __DIR__ . '/vendor/autoload.php';
+    $mail = new \PHPMailer\PHPMailer\PHPMailer(true);
+    try {
+        $mail->isSMTP();
+        $mail->Host       = 'smtp-relay.brevo.com';
+        $mail->SMTPAuth   = true;
+        $mail->Username   = getenv('BREVO_SMTP_USER') ?: 'b18385001@smtp-brevo.com';
+        $mail->Password   = getenv('BREVO_SMTP_PASS') ?: '';
+        $mail->SMTPSecure = 'tls';
+        $mail->Port       = 587;
+        $mail->CharSet    = 'UTF-8';
+        $mail->setFrom('noreply@myanai.net', 'MyanAi POS');
+        $mail->addAddress($to);
+        $mail->isHTML(true);
+        $mail->Subject = $subject;
+        $mail->Body    = $htmlBody;
+        $mail->send();
+        return true;
+    } catch (Exception $e) {
+        error_log("MyanAi mailer failed: to={$to} subject={$subject} err={$mail->ErrorInfo}");
+        return false;
+    }
 }
 
 function upgradeApprovedEmail(string $to, string $tenantName, string $plan): string {

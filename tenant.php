@@ -12,30 +12,47 @@ if (isset($_GET['api'])) {
     $body = $_SERVER['REQUEST_METHOD'] === 'POST'
         ? (json_decode(file_get_contents('php://input'), true) ?? [])
         : [];
-    if ($_GET['api'] === 'change_password' && $_SERVER['REQUEST_METHOD'] === 'POST') {
+    if    if ($_GET['api'] === 'forgot_password' && $_SERVER['REQUEST_METHOD'] === 'POST') {
         $b = json_decode(file_get_contents('php://input'), true);
-        $currentPass = trim($b['current_pass'] ?? '');
-        $newPass     = trim($b['new_pass'] ?? '');
-        if (!isset($_SESSION['tenant_id'])) { ok(['ok'=>false,'msg'=>'Not logged in']); exit; }
-        if (strlen($newPass) < 6) { echo json_encode(['ok'=>false,'msg'=>'Password အနည်းဆုံး 6 လုံး ရှိရပါမည်']); exit; }
-        $pdo = db();
-        $row = $pdo->prepare("SELECT settings FROM tenants WHERE id=?");
-        $row->execute([$_SESSION['tenant_id']]);
+        $email = trim($b['email'] ?? '');
+        if (!$email) { echo json_encode(['ok'=>false,'msg'=>'Email လိုအပ်သည်']); exit; }
+        $pdo = getPDO();
+        $row = $pdo->prepare("SELECT id, name FROM tenants WHERE owner_email=? AND is_active=1");
+        $row->execute([$email]);
         $tenant = $row->fetch();
-        $settings = json_decode($tenant['settings'] ?? '{}', true);
-        $hash = $settings['admin_pass_hash'] ?? '';
-        if (!password_verify($currentPass, $hash)) {
-            echo json_encode(['ok'=>false,'msg'=>'လက်ရှိ password မှားနေသည်']); exit;
-        }
-        $newHash = password_hash($newPass, PASSWORD_BCRYPT, ['cost'=>12]);
-        $settings['admin_pass_hash'] = $newHash;
-        $pdo->prepare("UPDATE tenants SET settings=? WHERE id=?")
-            ->execute([json_encode($settings), $_SESSION['tenant_id']]);
+        if (!$tenant) { echo json_encode(['ok'=>true,'msg'=>'Reset link ပို့ပြီးပါပြီ']); exit; }
+        $token = bin2hex(random_bytes(32));
+        $expires = date('Y-m-d H:i:s', strtotime('+1 hour'));
+        $pdo->prepare("DELETE FROM password_reset_tokens WHERE tenant_id=?")->execute([$tenant['id']]);
+        $pdo->prepare("INSERT INTO password_reset_tokens (tenant_id, token, email, expires_at) VALUES (?,?,?,?)")->execute([$tenant['id'], $token, $email, $expires]);
+        $resetLink = 'https://myanai.net/tenant.php?reset_token=' . $token;
+        $body = "<h2>MyanAi POS — Password Reset</h2><p>မင်္ဂလာပါ {$tenant['name']}၊</p><p><a href='{$resetLink}' style='background:#1565C0;color:#fff;padding:12px 24px;border-radius:8px;text-decoration:none;display:inline-block'>Password Reset လုပ်မည်</a></p><p style='color:#888;font-size:.85rem'>၁ နာရီ သာ သက်တမ်းရှိသည်</p>";
+        require_once __DIR__ . '/mailer.php';
+        sendMail($email, 'MyanAi POS — Password Reset', $body);
+        echo json_encode(['ok'=>true,'msg'=>'Reset link ပို့ပြီးပါပြီ — Email စစ်ပါ']);
+        exit;
+    }
+    if ($_GET['api'] === 'reset_password' && $_SERVER['REQUEST_METHOD'] === 'POST') {
+        $b = json_decode(file_get_contents('php://input'), true);
+        $token   = trim($b['token'] ?? '');
+        $newPass = trim($b['new_pass'] ?? '');
+        if (!$token || strlen($newPass) < 6) { echo json_encode(['ok'=>false,'msg'=>'Password အနည်းဆုံး 6 လုံး']); exit; }
+        $pdo = getPDO();
+        $row = $pdo->prepare("SELECT * FROM password_reset_tokens WHERE token=? AND expires_at>NOW() AND used_at IS NULL");
+        $row->execute([$token]);
+        $reset = $row->fetch();
+        if (!$reset) { echo json_encode(['ok'=>false,'msg'=>'Token မမှန်ဘဲ သို့မဟုတ် သက်တမ်းကုန်ပြီ']); exit; }
+        $tenRow = $pdo->prepare("SELECT settings FROM tenants WHERE id=?");
+        $tenRow->execute([$reset['tenant_id']]);
+        $ten = $tenRow->fetch();
+        $settings = json_decode($ten['settings'] ?? '{}', true);
+        $settings['admin_pass_hash'] = password_hash($newPass, PASSWORD_BCRYPT, ['cost'=>12]);
+        $pdo->prepare("UPDATE tenants SET settings=? WHERE id=?")->execute([json_encode($settings), $reset['tenant_id']]);
+        $pdo->prepare("UPDATE password_reset_tokens SET used_at=NOW() WHERE id=?")->execute([$reset['id']]);
         echo json_encode(['ok'=>true,'msg'=>'Password ပြောင်းပြီးပါပြီ']);
         exit;
     }
-
-    if ($_GET['api'] === 'change_password' && $_SERVER['REQUEST_METHOD'] === 'POST') {
+ ($_GET['api'] === 'change_password' && $_SERVER['REQUEST_METHOD'] === 'POST') {
         if (empty($_SESSION['tenant_id'])) { echo json_encode(['ok'=>false,'msg'=>'Not logged in']); exit; }
         $b = json_decode(file_get_contents('php://input'), true);
         $currentPass = trim($b['current_pass'] ?? '');
@@ -493,6 +510,44 @@ button,select,input[type=checkbox]{
     </div>
     <button class="btn-login" onclick="doTenantLogin()">Login →</button>
     <div class="login-err" id="login-err"></div>
+    <div style="text-align:center;margin-top:.75rem">
+      <a href="#" onclick="showForgotPassword();return false;" style="font-size:.82rem;color:var(--muted);text-decoration:none">🔑 Password မေ့သွားသလား?</a>
+    </div>
+  </div>
+</div>
+
+<!-- Reset Password Modal (from email link) -->
+<div id="reset-pw-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:9999;align-items:center;justify-content:center">
+  <div style="background:#fff;border-radius:16px;padding:2rem;width:90%;max-width:380px;box-shadow:0 20px 60px rgba(0,0,0,.3)">
+    <div style="font-size:1.2rem;font-weight:700;margin-bottom:.5rem">🔑 Password အသစ် သတ်မှတ်ရန်</div>
+    <input type="hidden" id="reset-token-val">
+    <div class="form-group" style="margin-bottom:.75rem">
+      <label style="font-size:.82rem;color:#64748b">Password အသစ်</label>
+      <input id="reset-new-pass" type="password" placeholder="••••••••" style="width:100%;padding:.65rem .85rem;border:1px solid #e2e8f0;border-radius:10px;font-size:.9rem;box-sizing:border-box;margin-top:.3rem">
+    </div>
+    <div class="form-group" style="margin-bottom:.75rem">
+      <label style="font-size:.82rem;color:#64748b">Password အတည်ပြုရန်</label>
+      <input id="reset-confirm-pass" type="password" placeholder="••••••••" style="width:100%;padding:.65rem .85rem;border:1px solid #e2e8f0;border-radius:10px;font-size:.9rem;box-sizing:border-box;margin-top:.3rem">
+    </div>
+    <div id="reset-pw-msg" style="font-size:.78rem;margin-bottom:.75rem;min-height:1.2rem"></div>
+    <button onclick="submitResetPassword()" style="width:100%;padding:.65rem;border:none;border-radius:10px;background:#1565C0;color:#fff;cursor:pointer;font-size:.88rem;font-weight:600">Password ပြောင်းမည် 🔑</button>
+  </div>
+</div>
+
+<!-- Forgot Password Modal -->
+<div id="forgot-pw-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:9999;align-items:center;justify-content:center">
+  <div style="background:#fff;border-radius:16px;padding:2rem;width:90%;max-width:380px;box-shadow:0 20px 60px rgba(0,0,0,.3)">
+    <div style="font-size:1.2rem;font-weight:700;margin-bottom:.5rem">🔑 Password Reset</div>
+    <div style="font-size:.85rem;color:#64748b;margin-bottom:1.2rem">Email ထည့်ပါ — reset link ပို့ပေးပါမည်</div>
+    <input id="forgot-email" type="email" placeholder="your@email.com"
+      style="width:100%;padding:.65rem .85rem;border:1px solid #e2e8f0;border-radius:10px;font-size:.9rem;box-sizing:border-box;margin-bottom:.75rem">
+    <div id="forgot-msg" style="font-size:.78rem;margin-bottom:.75rem;min-height:1.2rem"></div>
+    <div style="display:flex;gap:.5rem">
+      <button onclick="document.getElementById('forgot-pw-modal').style.display='none'"
+        style="flex:1;padding:.65rem;border:1px solid #e2e8f0;border-radius:10px;background:#f8fafc;cursor:pointer;font-size:.88rem">Cancel</button>
+      <button onclick="submitForgotPassword()"
+        style="flex:1;padding:.65rem;border:none;border-radius:10px;background:#1565C0;color:#fff;cursor:pointer;font-size:.88rem;font-weight:600">ပို့မည် ✉️</button>
+    </div>
   </div>
 </div>
 
@@ -1652,6 +1707,8 @@ button,select,input[type=checkbox]{
 <script>
 /* ── Globals ── */
 window.__IS_TENANT      = <?= $loggedIn ? 'true' : 'false' ?>;
+// Check for password reset token in URL
+document.addEventListener('DOMContentLoaded', function(){ if(typeof checkResetToken==='function') checkResetToken(); });
 window.__IMPERSONATING  = <?= !empty($_SESSION['impersonating']) ? 'true' : 'false' ?>;
 window.__IMPERSONATE_ADMIN = <?= json_encode($_SESSION['impersonate_admin'] ?? '') ?>;
 window.__TENANT_ID    = <?= json_encode($tid) ?>;
@@ -1811,6 +1868,66 @@ window.addEventListener('DOMContentLoaded', () => {
     setTimeout(doTenantLogin, 300);
   }
 });
+
+/* ── Forgot Password ── */
+function showForgotPassword(){
+  document.getElementById('forgot-pw-modal').style.display='flex';
+  document.getElementById('forgot-email').value='';
+  document.getElementById('forgot-msg').textContent='';
+}
+
+async function submitForgotPassword(){
+  const email = document.getElementById('forgot-email').value.trim();
+  const msg = document.getElementById('forgot-msg');
+  if(!email){ msg.style.color='#dc2626'; msg.textContent='Email ထည့်ပါ'; return; }
+  msg.style.color='#64748b'; msg.textContent='ပို့နေသည်...';
+  const r = await fetch('tenant.php?api=forgot_password',{
+    method:'POST', headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({email})
+  }).then(r=>r.json()).catch(()=>({ok:false,msg:'Error'}));
+  if(r.ok){
+    msg.style.color='#16a34a';
+    msg.textContent='✅ '+r.msg;
+    setTimeout(()=>{ document.getElementById('forgot-pw-modal').style.display='none'; }, 3000);
+  } else {
+    msg.style.color='#dc2626';
+    msg.textContent='❌ '+(r.msg||'Error');
+  }
+}
+
+/* ── Reset Password (from email link) ── */
+function checkResetToken(){
+  const params = new URLSearchParams(location.search);
+  const token = params.get('reset_token');
+  if(!token) return;
+  // Show reset password modal
+  const modal = document.getElementById('reset-pw-modal');
+  if(modal){ document.getElementById('reset-token-val').value=token; modal.style.display='flex'; }
+}
+
+async function submitResetPassword(){
+  const token = document.getElementById('reset-token-val').value;
+  const newPass = document.getElementById('reset-new-pass').value.trim();
+  const confirm = document.getElementById('reset-confirm-pass').value.trim();
+  const msg = document.getElementById('reset-pw-msg');
+  if(newPass.length < 6){ msg.style.color='#dc2626'; msg.textContent='Password အနည်းဆုံး 6 လုံး'; return; }
+  if(newPass !== confirm){ msg.style.color='#dc2626'; msg.textContent='Password မတူဘဲ'; return; }
+  const r = await fetch('tenant.php?api=reset_password',{
+    method:'POST', headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({token, new_pass:newPass})
+  }).then(r=>r.json()).catch(()=>({ok:false,msg:'Error'}));
+  if(r.ok){
+    msg.style.color='#16a34a';
+    msg.textContent='✅ '+r.msg;
+    setTimeout(()=>{
+      document.getElementById('reset-pw-modal').style.display='none';
+      history.replaceState({}, '', '/tenant.php');
+    }, 2000);
+  } else {
+    msg.style.color='#dc2626';
+    msg.textContent='❌ '+(r.msg||'Error');
+  }
+}
 
 /* ── Shop URL + QR Code ── */
 function initShopUrl(){
