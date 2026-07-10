@@ -12,7 +12,7 @@ if (isset($_GET['api'])) {
     $body = $_SERVER['REQUEST_METHOD'] === 'POST'
         ? (json_decode(file_get_contents('php://input'), true) ?? [])
         : [];
-    if    if ($_GET['api'] === 'forgot_password' && $_SERVER['REQUEST_METHOD'] === 'POST') {
+    if ($_GET['api'] === 'forgot_password' && $_SERVER['REQUEST_METHOD'] === 'POST') {
         $b = json_decode(file_get_contents('php://input'), true);
         $email = trim($b['email'] ?? '');
         if (!$email) { echo json_encode(['ok'=>false,'msg'=>'Email လိုအပ်သည်']); exit; }
@@ -52,7 +52,7 @@ if (isset($_GET['api'])) {
         echo json_encode(['ok'=>true,'msg'=>'Password ပြောင်းပြီးပါပြီ']);
         exit;
     }
- ($_GET['api'] === 'change_password' && $_SERVER['REQUEST_METHOD'] === 'POST') {
+    if ($_GET['api'] === 'change_password' && $_SERVER['REQUEST_METHOD'] === 'POST') {
         if (empty($_SESSION['tenant_id'])) { echo json_encode(['ok'=>false,'msg'=>'Not logged in']); exit; }
         $b = json_decode(file_get_contents('php://input'), true);
         $currentPass = trim($b['current_pass'] ?? '');
