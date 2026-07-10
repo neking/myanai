@@ -406,6 +406,44 @@ header{
 .success-icon{font-size:3rem;margin-bottom:.8rem}
 .success-screen h2{font-size:1.3rem;font-weight:700;margin-bottom:.4rem}
 .success-screen p{font-size:.85rem;color:var(--muted);margin-bottom:.8rem}
+/* Dark Mode */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #0f172a; --card: #1e293b; --ink: #f1f5f9;
+    --muted: #94a3b8; --border: #334155; --paper: #1e293b;
+    --warm: #1e293b; --accent2: #1e3a5f;
+  }
+  body { background: #0f172a; color: #f1f5f9; }
+  header { background: #1e293b !important; }
+  .cat-wrap { background: #0f172a; }
+  .cat-pill { background: #1e293b; color: #94a3b8; }
+  .cat-pill.active { background: var(--accent); color: #fff; }
+  .card { background: #1e293b; border-color: #334155; }
+  .card-name { color: #f1f5f9; }
+  .card-desc { color: #94a3b8; }
+  .cart-bar { background: #1e293b; border-color: #334155; }
+  .modal { background: #1e293b; color: #f1f5f9; }
+  .modal-overlay { background: rgba(0,0,0,.7); }
+  input, textarea, select { background: #0f172a; color: #f1f5f9; border-color: #334155; }
+  .skeleton { background: linear-gradient(90deg,#1e293b 25%,#334155 50%,#1e293b 75%); background-size:200% 100%; }
+}
+
+[data-theme="dark"] {
+  --bg: #0f172a; --card: #1e293b; --ink: #f1f5f9;
+  --muted: #94a3b8; --border: #334155; --paper: #1e293b;
+  --warm: #1e293b;
+}
+[data-theme="dark"] body { background: #0f172a !important; color: #f1f5f9 !important; }
+[data-theme="dark"] header { background: #1e293b !important; }
+[data-theme="dark"] .card { background: #1e293b !important; border-color: #334155 !important; }
+[data-theme="dark"] .card-name { color: #f1f5f9 !important; }
+[data-theme="dark"] .card-desc { color: #94a3b8 !important; }
+[data-theme="dark"] .cat-pill { background: #1e293b !important; color: #94a3b8 !important; }
+[data-theme="dark"] .cat-pill.active { background: var(--accent) !important; color: #fff !important; }
+[data-theme="dark"] .cart-bar { background: #1e293b !important; }
+[data-theme="dark"] input, [data-theme="dark"] textarea { background: #0f172a !important; color: #f1f5f9 !important; border-color: #334155 !important; }
+[data-theme="dark"] .modal { background: #1e293b !important; color: #f1f5f9 !important; }
+
 /* Skeleton Loading */
 .skeleton{background:linear-gradient(90deg,#f0f0f0 25%,#e0e0e0 50%,#f0f0f0 75%);background-size:200% 100%;animation:shimmer 1.5s infinite;border-radius:8px}
 @keyframes shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
@@ -660,6 +698,7 @@ header{
   <div class="header-right">
     <button id="lang-toggle" onclick="toggleLang()" style="background:none;border:1px solid var(--border);border-radius:20px;padding:.2rem .7rem;font-size:.75rem;cursor:pointer;color:var(--text);opacity:.7">EN</button>
     <span id="header-status" style="display:none"></span>
+    <button id="dark-toggle" onclick="toggleDarkMode()" style="background:none;border:none;cursor:pointer;font-size:1.2rem;padding:.25rem;line-height:1" title="Dark/Light mode">🌙</button>
 
   </div>
 </header>
@@ -1318,6 +1357,30 @@ function filterCat(cat) {
   renderMenu();
   document.getElementById('menu-title').textContent = cat === 'All' ? (currentLang==='mm'?'အကုန်လုံး':'All Menu') : ((window._catT&&window._catT[cat])||cat);
 }
+
+/* ── Dark Mode ── */
+function toggleDarkMode(){
+  const isDark = document.documentElement.getAttribute('data-theme')==='dark';
+  const newTheme = isDark ? 'light' : 'dark';
+  document.documentElement.setAttribute('data-theme', newTheme);
+  document.getElementById('dark-toggle').textContent = newTheme==='dark' ? '☀️' : '🌙';
+  try { localStorage.setItem('theme', newTheme); } catch(e){}
+}
+
+function initDarkMode(){
+  // Check saved preference or system preference
+  let theme = 'light';
+  try { theme = localStorage.getItem('theme') || 'light'; } catch(e){}
+  if(theme==='light' && window.matchMedia?.('(prefers-color-scheme: dark)').matches) theme='dark';
+  if(theme==='dark'){
+    document.documentElement.setAttribute('data-theme','dark');
+    const btn = document.getElementById('dark-toggle');
+    if(btn) btn.textContent='☀️';
+  }
+}
+
+// Init on load
+document.addEventListener('DOMContentLoaded', initDarkMode);
 
 function showSkeletonMenu(count=8){
   const grid = document.getElementById('menu-grid');
