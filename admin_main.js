@@ -2792,7 +2792,7 @@ function editPlan(code, price, branches, staff, items, name){
   document.getElementById('ep-staff').value = staff;
   document.getElementById('ep-items').value = items;
   document.getElementById('ep-modal-title').textContent = '✏️ Edit Plan — '+name;
-  openModal('modal-edit-plan');
+  document.getElementById('modal-edit-plan').style.display = 'flex';
 }
 
 async function savePlan(){
@@ -2808,7 +2808,7 @@ async function savePlan(){
   }).then(r=>r.json()).catch(()=>({ok:false}));
   if(d.ok){
     toast('✅ Plan updated','ok');
-    closeModal('modal-edit-plan');
+    document.getElementById('modal-edit-plan').style.display = 'none';
     loadPlans();
   } else {
     toast(d.msg||'Error','err');
