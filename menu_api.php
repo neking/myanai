@@ -202,7 +202,9 @@ $items = array_map(fn($r) => [
     'price'      => (int)$r['price'],
     'stock'      => (int)$r['stock_qty'],
     'emoji'      => $r['emoji'] ?: '🍽️',
-    'image_path' => $r['image_path'] ?: null,
+    'image_path'  => $r['image_path'] ?: null,
+    'is_popular'  => (int)($r['is_popular'] ?? 0),
+    'is_featured' => (int)($r['is_featured'] ?? 0),
 ], $rows);
 
 /* ── Site settings ── */
