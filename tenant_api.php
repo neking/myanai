@@ -128,10 +128,20 @@ if ($action === 'signup' && $_SERVER['REQUEST_METHOD'] === 'POST') {
         // Save password hash + admin credentials in tenant settings
         $passHash = password_hash($pass, PASSWORD_BCRYPT);
         $settings = json_encode([
-            'admin_email' => $email,
-            'admin_pass_hash' => $passHash,
-            'onboarded' => false,
-        ]);
+            'admin_email'    => $email,
+            'admin_pass_hash'=> $passHash,
+            'onboarded'      => false,
+            'storefront'     => [
+                'store_name'    => $name,
+                'emoji'         => '🏪',
+                'tagline'       => '',
+                'primary_color' => '#1565C0',
+                'currency'      => 'MMK',
+                'show_photos'   => '1',
+                'show_desc'     => '1',
+                'allow_notes'   => '1',
+            ],
+        ], JSON_UNESCAPED_UNICODE);
         $pdo->prepare("UPDATE tenants SET settings=? WHERE id=?")->execute([$settings, $tenantId]);
 
         // Seed default menu items from template (optional)
