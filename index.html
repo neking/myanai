@@ -60,7 +60,7 @@ header{
   display:flex;align-items:center;justify-content:center;flex-shrink:0;
 }
 .cb-items{font-size:.78rem;color:#b8a48a;
-  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:160px}
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:130px}
 .cb-total{font-size:.88rem;font-weight:700;color:var(--accent2);white-space:nowrap}
 .cb-checkout{
   background:var(--accent);color:#fff;border:none;border-radius:50px;
@@ -294,7 +294,7 @@ header{
   .card-img{height:110px}
   .card-emoji{font-size:2.2rem}
   .card-body{padding:.6rem}
-  .card-name{font-size:.8rem}
+  .card-name{font-size:.85rem}
   .card-desc{display:none}
   .card-price{font-size:.8rem}
   .add-btn{padding:.22rem .55rem;font-size:.72rem}
@@ -369,6 +369,16 @@ header{
 .form-group input:focus,.form-group select:focus,.form-group textarea:focus{border-color:var(--ink)}
 .form-row{display:grid;grid-template-columns:1fr 1fr;gap:.8rem}
 @media(max-width:500px){.form-row{grid-template-columns:1fr}}
+@media(max-width:400px){
+  header{padding:0 .5rem;}
+  .logo span{font-size:1rem;}
+  .menu-grid{grid-template-columns:repeat(2,1fr);gap:.5rem;}
+  .card-name{font-size:.78rem;}
+  .card-price{font-size:.82rem;}
+  .add-btn{font-size:.72rem;padding:.25rem .5rem;}
+  #dark-toggle{font-size:1rem;padding:.2rem;}
+  .cat-pill{font-size:.72rem;padding:.3rem .6rem;}
+}
 
 /* ── PAYMENT ── */
 .pay-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:.6rem;margin-top:.5rem}
@@ -490,14 +500,14 @@ header{
 @media(max-width:768px){
   .hero{padding:2rem 1.2rem;min-height:200px;}
   .hero h1{font-size:clamp(1.4rem,5vw,2rem);}
-  .menu-grid{grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:.7rem;}
+  .menu-grid{grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:.6rem;}
   .pay-grid{grid-template-columns:repeat(3,1fr);}
 }
 
 /* Mobile (≤600px) */
 @media(max-width:600px){
   /* Header */
-  header{height:52px;padding:0 1rem;}
+  header{height:52px;padding:0 .75rem;}
   .logo{font-size:1.1rem;}
   .logo-emoji{font-size:1.2rem;}
   #header-status{display:none !important;}

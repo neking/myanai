@@ -1,5 +1,5 @@
 // MyanAi POS Service Worker
-const CACHE_NAME = 'myanai-v11';
+const CACHE_NAME = 'myanai-v12';
 const STATIC_ASSETS = [
   '/tenant.php',
   '/index.html',
