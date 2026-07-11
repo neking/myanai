@@ -317,6 +317,18 @@ if ($action === 'resolve' && $_SERVER['REQUEST_METHOD'] === 'GET') {
         'show_photos'    => $sf['show_photos']    ?? '1',
         'show_desc'      => $sf['show_desc']      ?? '1',
         'allow_notes'    => $sf['allow_notes']    ?? '1',
+        'about'          => $sf['about']          ?? '',
+        'facebook'       => $sf['facebook']       ?? '',
+        'instagram'      => $sf['instagram']      ?? '',
+        'viber'          => $sf['viber']          ?? '',
+        'telegram'       => $sf['telegram']       ?? '',
+        'kpay_phone'     => $sf['kpay_phone']     ?? '',
+        'kpay_qr'        => $sf['kpay_qr']        ?? '',
+        'wave_phone'     => $sf['wave_phone']      ?? '',
+        'wave_qr'        => $sf['wave_qr']         ?? '',
+        'cash_enabled'   => $sf['cash_enabled']   ?? '1',
+        'logo_path'      => $sf['logo_path']      ?? '',
+        'cover_path'     => $sf['cover_path']      ?? '',
     ];
 
     ok([
@@ -562,9 +574,12 @@ if ($action === 'save_storefront' && $_SERVER['REQUEST_METHOD'] === 'POST') {
     if (!$sf)  fail('settings required');
 
     // Sanitize
-    $allowed = ['store_name','tagline','phone','address','emoji','primary_color',
+    $allowed = ['store_name','tagline','about','phone','address','emoji','primary_color',
                 'font_style','bg_style','layout','currency','min_order_amount',
-                'banner_msg','footer_msg','show_photos','show_desc','allow_notes'];
+                'banner_msg','footer_msg','show_photos','show_desc','allow_notes',
+                'facebook','instagram','viber','telegram',
+                'kpay_phone','kpay_qr','wave_phone','wave_qr','cash_enabled',
+                'logo_path','cover_path'];
     $clean = array_intersect_key($sf, array_flip($allowed));
 
     // Load existing tenant settings JSON
