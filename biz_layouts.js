@@ -121,7 +121,7 @@ renderMenu(items){
   return `<div class="bl-dr-grid">${items.map((i,n)=>`
     <div class="bl-dr-item" onclick="window._blAdd(${i.id})">
       <div class="bl-dr-img" style="border-color:${c[n%c.length]}44;box-shadow:0 4px 20px ${c[n%c.length]}22">
-        <img src="${i.image_path?'/uploads/menu/'+i.image_path:'https://images.unsplash.com/photo-1558857563-b371033873b8?w=300&q=80'}" alt="${i.name}"/>
+        <img src="${i.image_path?i.image_path.startsWith('/')?i.image_path:'/uploads/menu/'+i.image_path:'https://images.unsplash.com/photo-1558857563-b371033873b8?w=300&q=80'}" alt="${i.name}"/>
       </div>
       <div class="bl-dr-nm">${i.name}</div>
       <div class="bl-dr-pr" style="color:${c[n%c.length]}">${(i.price||0).toLocaleString()} ကျပ်</div>
