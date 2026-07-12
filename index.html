@@ -253,7 +253,7 @@ header{
   gap:.75rem;
 }
 @media(max-width:600px){
-  .menu-grid{grid-template-columns:repeat(2,1fr);gap:.65rem}
+  .menu-grid{grid-template-columns:repeat(3,1fr);gap:.5rem}
   .menu-wrap{padding:.8rem}
   .section-title{font-size:1rem}
 }
@@ -266,13 +266,13 @@ header{
 }
 .card:hover{transform:translateY(-2px)}
 .card-img{
-  width:100%;height:140px;display:flex;align-items:center;justify-content:center;
+  width:100%;height:110px;display:flex;align-items:center;justify-content:center;
   background:var(--warm);overflow:hidden;
 }
 .card-img img{width:100%;height:100%;object-fit:cover}
 .card-emoji{font-size:3rem}
 .card-body{padding:.8rem}
-.card-name{font-weight:700;font-size:.9rem;margin-bottom:.2rem}
+.card-name{font-weight:700;font-size:.82rem;margin-bottom:.15rem}
 .card-desc{font-size:.75rem;color:var(--muted);margin-bottom:.5rem;
   display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
 .card-footer{display:flex;align-items:center;justify-content:space-between;margin-top:.5rem}
@@ -295,7 +295,8 @@ header{
   .card-img{height:110px}
   .card-emoji{font-size:2.2rem}
   .card-body{padding:.6rem}
-  .card-name{font-size:.85rem}
+  .card-name{font-size:.75rem}
+  .card-desc{display:none}
   .card-desc{display:none}
   .card-price{font-size:.8rem}
   .add-btn{padding:.22rem .55rem;font-size:.72rem}
@@ -373,10 +374,10 @@ header{
 @media(max-width:400px){
   header{padding:0 .5rem;}
   .logo span{font-size:1rem;}
-  .menu-grid{grid-template-columns:repeat(2,1fr);gap:.5rem;}
-  .card-name{font-size:.78rem;}
-  .card-price{font-size:.82rem;}
-  .add-btn{font-size:.72rem;padding:.25rem .5rem;}
+  .menu-grid{grid-template-columns:repeat(3,1fr);gap:.35rem;}
+  .card-name{font-size:.68rem;}
+  .card-price{font-size:.68rem;}
+  .add-btn{font-size:.65rem;padding:.2rem .3rem;}
   #dark-toggle{font-size:1rem;padding:.2rem;}
   .cat-pill{font-size:.72rem;padding:.3rem .6rem;}
 }
