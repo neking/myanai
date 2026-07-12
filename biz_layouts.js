@@ -109,7 +109,7 @@ css:`
 .bl-dr-scroll{display:flex;gap:1.4rem;overflow-x:auto;padding:0 1.5rem 1rem;scrollbar-width:none;-webkit-overflow-scrolling:touch}
 .bl-dr-scroll::-webkit-scrollbar{display:none}
 .bl-dr-item{flex-shrink:0;width:150px;display:flex;flex-direction:column;align-items:center;cursor:pointer}
-.bl-dr-img{width:130px;height:130px;border-radius:50%;overflow:hidden;border:3px solid;margin-bottom:.85rem;transition:transform .25s}
+.bl-dr-img{width:100%;max-width:150px;height:150px;border-radius:50%;overflow:hidden;border:3px solid;margin-bottom:.85rem;transition:transform .25s;margin-left:auto;margin-right:auto}
 .bl-dr-item:hover .bl-dr-img{transform:scale(1.05) translateY(-4px)}
 .bl-dr-img img{width:100%;height:100%;object-fit:cover}
 .bl-dr-nm{font-weight:700;font-size:.85rem;text-align:center;margin-bottom:.2rem}
@@ -132,8 +132,9 @@ renderMenu(items){
 bakery:{
 css:`
 #menu-grid,.menu-grid{display:none!important}
-.bl-bk-grid{columns:3 180px;column-gap:1rem;padding:0 1rem}
-@media(max-width:600px){.bl-bk-grid{columns:2 150px}}
+.bl-bk-grid{columns:2 160px;column-gap:1rem;padding:0 1rem}
+@media(max-width:600px){.bl-bk-grid{columns:2 140px}}
+@media(max-width:400px){.bl-bk-grid{columns:1;padding:0 .5rem}}
 .bl-bk-card{break-inside:avoid;margin-bottom:1rem;border:2px solid #f0d9b5;box-shadow:4px 4px 0 #e5c99e;background:#fffcf7;overflow:hidden;transition:transform .2s,box-shadow .2s;cursor:pointer}
 .bl-bk-card:hover{transform:translate(-2px,-2px);box-shadow:6px 6px 0 #c4763c}
 .bl-bk-card img{width:100%;display:block;object-fit:cover;filter:sepia(8%)}
