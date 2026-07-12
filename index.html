@@ -2511,21 +2511,19 @@ function applyStorefront(sf) {
   if (lt && sf.store_name) lt.textContent = sf.store_name;
 
   // ── Hero title ──
-  const ht = document.getElementById('hero-title');
-  if (ht) {
-    if (sf.tagline) {
-      ht.innerHTML = sf.tagline;
-    } else if (sf.store_name) {
-      ht.innerHTML = sf.store_name;
-    }
-  }
-  // Hero badge - show opening status or hide marketing text
+  // Force override hero with tenant storefront data
   const hbadge = document.getElementById('hero-badge');
-  if (hbadge) {
-    if (sf.store_name) hbadge.textContent = sf.emoji ? sf.emoji + ' ' + sf.store_name : sf.store_name;
-  }
+  if (hbadge) hbadge.textContent = (sf.emoji||'🏪') + ' ' + (sf.store_name||'');
+  const ht = document.getElementById('hero-title');
+  if (ht) ht.innerHTML = sf.tagline || sf.store_name || '';
   const hsub = document.getElementById('hero-subtitle');
-  if (hsub) hsub.textContent = sf.tagline || sf.about || '';
+  if (hsub) hsub.textContent = sf.about || '';
+  // Re-apply after theme override (delayed)
+  setTimeout(()=>{
+    const b=document.getElementById('hero-badge'); if(b) b.textContent=(sf.emoji||'🏪')+' '+(sf.store_name||'');
+    const t=document.getElementById('hero-title'); if(t) t.innerHTML=sf.tagline||sf.store_name||'';
+    const s=document.getElementById('hero-subtitle'); if(s) s.textContent=sf.about||'';
+  }, 300);
 
   // ── Background ──
   const bgMap = {
