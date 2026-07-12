@@ -106,19 +106,19 @@ renderMenu(items){
 drinks:{
 css:`
 #menu-grid,.menu-grid{display:none!important}
-.bl-dr-scroll{display:flex;gap:1.4rem;overflow-x:auto;padding:0 1.5rem 1rem;scrollbar-width:none;-webkit-overflow-scrolling:touch}
-.bl-dr-scroll::-webkit-scrollbar{display:none}
-.bl-dr-item{flex-shrink:0;width:150px;display:flex;flex-direction:column;align-items:center;cursor:pointer}
-.bl-dr-img{width:100%;max-width:150px;height:150px;border-radius:50%;overflow:hidden;border:3px solid;margin-bottom:.85rem;transition:transform .25s;margin-left:auto;margin-right:auto}
-.bl-dr-item:hover .bl-dr-img{transform:scale(1.05) translateY(-4px)}
+.bl-dr-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:1rem;padding:0 1rem 1rem}
+@media(max-width:400px){.bl-dr-grid{gap:.65rem;padding:0 .65rem .65rem}}
+.bl-dr-item{display:flex;flex-direction:column;align-items:center;cursor:pointer;background:#fff;border-radius:16px;padding:.85rem .5rem 1rem;box-shadow:0 2px 12px rgba(0,0,0,.08)}
+.bl-dr-img{width:100%;aspect-ratio:1;border-radius:50%;overflow:hidden;border:3px solid;margin-bottom:.65rem;transition:transform .25s}
+.bl-dr-item:hover .bl-dr-img{transform:scale(1.04)}
 .bl-dr-img img{width:100%;height:100%;object-fit:cover}
-.bl-dr-nm{font-weight:700;font-size:.85rem;text-align:center;margin-bottom:.2rem}
-.bl-dr-pr{font-weight:800;font-size:.88rem;margin-bottom:.5rem}
-.bl-dr-add{border:none;border-radius:20px;color:#fff;padding:.28rem .8rem;font-size:.72rem;font-weight:700;cursor:pointer}
+.bl-dr-nm{font-weight:700;font-size:.82rem;text-align:center;margin-bottom:.2rem;padding:0 .25rem}
+.bl-dr-pr{font-weight:800;font-size:.85rem;margin-bottom:.5rem;text-align:center}
+.bl-dr-add{border:none;border-radius:20px;color:#fff;padding:.35rem 1rem;font-size:.75rem;font-weight:700;cursor:pointer;width:80%}
 `,
 renderMenu(items){
   const c=['#0ea5e9','#10b981','#f59e0b','#e11d48','#7c3aed','#0891b2','#ca8a04','#059669'];
-  return `<div class="bl-dr-scroll">${items.map((i,n)=>`
+  return `<div class="bl-dr-grid">${items.map((i,n)=>`
     <div class="bl-dr-item" onclick="window._blAdd(${i.id})">
       <div class="bl-dr-img" style="border-color:${c[n%c.length]}44;box-shadow:0 4px 20px ${c[n%c.length]}22">
         <img src="${i.image_path?'/uploads/menu/'+i.image_path:'https://images.unsplash.com/photo-1558857563-b371033873b8?w=300&q=80'}" alt="${i.name}"/>
