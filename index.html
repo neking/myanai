@@ -2505,10 +2505,19 @@ function applyStorefront(sf) {
   // ── Hero title ──
   const ht = document.getElementById('hero-title');
   if (ht) {
-    if (sf.store_name) ht.innerHTML = sf.store_name + (sf.tagline ? '<span>' + sf.tagline + '</span>' : '');
+    if (sf.tagline) {
+      ht.innerHTML = sf.tagline;
+    } else if (sf.store_name) {
+      ht.innerHTML = sf.store_name;
+    }
+  }
+  // Hero badge - show opening status or hide marketing text
+  const hbadge = document.getElementById('hero-badge');
+  if (hbadge) {
+    if (sf.store_name) hbadge.textContent = sf.emoji ? sf.emoji + ' ' + sf.store_name : sf.store_name;
   }
   const hsub = document.getElementById('hero-subtitle');
-  if (hsub && sf.tagline) hsub.textContent = sf.tagline;
+  if (hsub) hsub.textContent = sf.tagline || sf.about || '';
 
   // ── Background ──
   const bgMap = {
