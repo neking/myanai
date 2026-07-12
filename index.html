@@ -2536,9 +2536,14 @@ function applyStorefront(sf) {
     if (sf.layout === 'list') {
       menuGrid.style.gridTemplateColumns = '1fr';
     } else if (sf.layout === 'card') {
-      menuGrid.style.gridTemplateColumns = 'repeat(auto-fill,minmax(280px,1fr))';
+      menuGrid.style.gridTemplateColumns = window.innerWidth <= 600
+        ? 'repeat(2,1fr)'
+        : 'repeat(auto-fill,minmax(280px,1fr))';
     } else {
-      menuGrid.style.gridTemplateColumns = 'repeat(auto-fill,minmax(160px,1fr))';
+      // Responsive: 3 cols on mobile, auto on desktop
+      menuGrid.style.gridTemplateColumns = window.innerWidth <= 600
+        ? 'repeat(3,1fr)'
+        : 'repeat(auto-fill,minmax(200px,1fr))';
     }
     window._SF_LAYOUT = sf.layout;
   }
