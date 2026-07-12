@@ -2417,8 +2417,11 @@ function applySettings() {
   const hb = document.getElementById('hero-badge');
   if (hb && s.hero_badge) { hb.textContent = s.hero_badge; hb.style.color = s.hero_badge_color||''; }
   const ht = document.getElementById('hero-title');
-  if (ht) ht.innerHTML = `${s.hero_title_line1||'Authentic Asian'}<span>${s.hero_title_line2||'Noodles & More'}</span>`;
-  if (s.hero_title_color) ht.style.color = s.hero_title_color;
+  // Only override hero if LPE has explicit custom content
+  if (ht && s.hero_title_line1) {
+    ht.innerHTML = `${s.hero_title_line1}<span>${s.hero_title_line2||''}</span>`;
+  }
+  if (ht && s.hero_title_color) ht.style.color = s.hero_title_color;
   const hsub = document.getElementById('hero-subtitle');
   if (hsub && s.hero_subtitle) { hsub.textContent = s.hero_subtitle; hsub.style.color = s.hero_subtitle_color||''; }
   // Announcement
