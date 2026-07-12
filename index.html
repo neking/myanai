@@ -1368,22 +1368,9 @@ window.applyTheme = function(bizType) {
   // Hero gradient overlay
   const heroBg = document.getElementById('hero-bg-img');
   if (heroBg) heroBg.style.background = t.gradient;
-  // Hero text
+  // Hero font only - text is set by applyStorefront exclusively
   const heroTitle = document.getElementById('hero-title');
-  if (heroTitle) {
-    heroTitle.style.fontFamily = t.titleFont;
-    // Only set theme text if tenant storefront hasn't set it
-    if (!window._SF || !window._SF.tagline) {
-      heroTitle.innerHTML = t.hero.emoji + ' ' + t.hero.title;
-    }
-  }
-  const heroSub = document.getElementById('hero-subtitle');
-  if (heroSub) {
-    // Only set theme sub if tenant storefront hasn't set it
-    if (!window._SF || (!window._SF.tagline && !window._SF.about)) {
-      heroSub.textContent = t.hero.sub;
-    }
-  }
+  if (heroTitle) heroTitle.style.fontFamily = t.titleFont;
   // Page title emoji
   const logoEl = document.querySelector('.logo');
   if (logoEl && t.hero.emoji) {
