@@ -1372,10 +1372,18 @@ window.applyTheme = function(bizType) {
   const heroTitle = document.getElementById('hero-title');
   if (heroTitle) {
     heroTitle.style.fontFamily = t.titleFont;
-    heroTitle.innerHTML = t.hero.emoji + ' ' + t.hero.title;
+    // Only set theme text if tenant storefront hasn't set it
+    if (!window._SF || !window._SF.tagline) {
+      heroTitle.innerHTML = t.hero.emoji + ' ' + t.hero.title;
+    }
   }
   const heroSub = document.getElementById('hero-subtitle');
-  if (heroSub) heroSub.textContent = t.hero.sub;
+  if (heroSub) {
+    // Only set theme sub if tenant storefront hasn't set it
+    if (!window._SF || (!window._SF.tagline && !window._SF.about)) {
+      heroSub.textContent = t.hero.sub;
+    }
+  }
   // Page title emoji
   const logoEl = document.querySelector('.logo');
   if (logoEl && t.hero.emoji) {
