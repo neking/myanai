@@ -714,7 +714,7 @@ window.applyBizLayout = function(bizType, items) {
     id = +id;
     const item = items.find(m=>m.id===id);
     if(!item) return;
-    try{ if(typeof addItem==='function') addItem(item); } catch(e){}
+    try{ if(typeof addToCart==='function') addToCart(item.id); else if(typeof addItem==='function') addItem(item); } catch(e){}
     try{ if(typeof renderCartUI==='function') renderCartUI(); } catch(e){}
     try{ if(typeof toast==='function') toast('✅ '+item.name+' cart ထဲထည့်ပြီ'); } catch(e){}
   };
