@@ -167,6 +167,7 @@ if ($action === 'adjust' && $_SERVER['REQUEST_METHOD'] === 'POST') {
     $reason    = trim($d['reason']      ?? 'manual_adjust');
     $note      = trim($d['note']        ?? '');
     $staffName = trim($d['staff_name']  ?? 'Admin');
+    $tid       = (int)($d['tenant_id'] ?? $_TID ?? 1);
 
     if (!$itemId || $changeQty === 0) fail('item_id and change_qty required');
 
@@ -175,14 +176,15 @@ if ($action === 'adjust' && $_SERVER['REQUEST_METHOD'] === 'POST') {
 
     $pdo->beginTransaction();
     try {
-        // Get current stock (branch-aware)
-        $cur = $pdo->prepare("SELECT name, stock_qty FROM menu_items WHERE id = ? FOR UPDATE");
-        $cur->execute([$itemId]);
+        // Get current stock (branch-aware) — tenant_id check is required here:
+        // without it, any authenticated tenant could adjust another tenant's
+        // stock just by passing that tenant's item_id (confirmed exploitable).
+        $cur = $pdo->prepare("SELECT name, stock_qty FROM menu_items WHERE id = ? AND tenant_id = ? FOR UPDATE");
+        $cur->execute([$itemId, $tid]);
         $item = $cur->fetch(PDO::FETCH_ASSOC);
         if (!$item) { $pdo->rollBack(); fail('Item not found'); }
 
         $bid = (int)($d['branch_id'] ?? $_BID ?? 0);
-        $tid = (int)($d['tenant_id'] ?? $_TID ?? 1);
 
         if ($bid > 0) {
             // Per-branch stock update
@@ -202,8 +204,8 @@ if ($action === 'adjust' && $_SERVER['REQUEST_METHOD'] === 'POST') {
         } else {
             // Tenant-level stock update
             $newQty = max(0, (int)$item['stock_qty'] + $changeQty);
-            $pdo->prepare("UPDATE menu_items SET stock_qty=? WHERE id=?")
-                ->execute([$newQty, $itemId]);
+            $pdo->prepare("UPDATE menu_items SET stock_qty=? WHERE id=? AND tenant_id=?")
+                ->execute([$newQty, $itemId, $tid]);
         }
 
         // Log with branch context

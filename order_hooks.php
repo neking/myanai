@@ -74,6 +74,18 @@ function hookShiftAssign(PDO $pdo, int $orderId): void {
 /**
  * Hook 3: Stock Auto-Deduct (Phase 5E)
  */
+/**
+ * Hook 3: Stock Deduction Log (Phase 5C)
+ *
+ * IMPORTANT: this does NOT deduct stock. order_handler.php's own transaction
+ * already deducts stock_qty safely (with a FOR UPDATE lock and a stock_qty
+ * check, to prevent overselling under concurrent orders) before this hook
+ * ever runs. This hook used to deduct AGAIN on top of that — confirmed via a
+ * live test (ordering 1 unit dropped stock by 2) — silently halving every
+ * item's real remaining stock on every single order since this hook was
+ * added. Now it only reads the already-correct stock_qty and writes the
+ * stock_log entry, since the transaction itself doesn't log.
+ */
 function hookStockDeduct(PDO $pdo, int $orderId, array $items): void {
     try {
         foreach ($items as $item) {
@@ -81,9 +93,6 @@ function hookStockDeduct(PDO $pdo, int $orderId, array $items): void {
             $name   = trim($item['name'] ?? '');
             $qty    = max(1, (int)($item['qty'] ?? 1));
             if (!$itemId) continue;
-
-            $pdo->prepare("UPDATE menu_items SET stock_qty = GREATEST(0, stock_qty - ?) WHERE id = ?")
-                ->execute([$qty, $itemId]);
 
             $newQty = (int)$pdo->query("SELECT stock_qty FROM menu_items WHERE id = $itemId")->fetchColumn();
 
