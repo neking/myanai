@@ -221,6 +221,20 @@ try {
     $settings = [];
 }
 
+// Payment QR/merchant fields must NEVER fall back to the global site_settings
+// value — that table has no tenant_id and is meant for platform-wide
+// branding only. Confirmed live: a legacy admin.php upload (upload_kpay_qr)
+// had set a KPay QR image in site_settings, and every tenant without their
+// own configured QR was silently showing THAT SAME image to their customers
+// — meaning a customer paying via any such tenant would send money to
+// whichever account that QR actually belongs to, not the tenant's own
+// business. These keys are unset here so the merge below can only ever be
+// filled in from the tenant's own settings (tenants.settings JSON), never
+// from the shared table.
+foreach (['kpay_qr_image','kpay_merchant_id','wave_qr_image','wave_merchant_id'] as $paymentKey) {
+    unset($settings[$paymentKey]);
+}
+
 // Output buffering ရှင်းပြီး clean output ပို့
 if (ob_get_level()) ob_end_clean();
 
@@ -236,7 +250,8 @@ try {
     if (!empty($tSettings['wave_qr_image']))    $tenantKpay['wave_qr_image']    = $tSettings['wave_qr_image'];
 } catch (\Exception $e) {}
 
-// Merge tenant kpay into settings (tenant overrides global)
+// Merge tenant kpay into settings (tenant overrides global — and global can
+// no longer supply these keys at all, see above)
 $settings = array_merge($settings, $tenantKpay);
 
 $json = json_encode([
