@@ -76,6 +76,24 @@ $deliveryFee   = (int)$body['delivery_fee'];
 $total         = (int)$body['total'];
 $deviceId      = sanitizeStr($body['device_id'] ?? '');
 $branchId      = (int)($body['branch_id'] ?? 0);
+
+// ── Resolve tenant_id from the JSON body ──────────────────────────────────
+// tenantId()/getCurrentTenantId() (tenant_helper.php) can't see this: it only
+// checks $_GET, $_SESSION, and the raw $_POST superglobal — none of which are
+// populated for a JSON request body read via php://input. Previously this
+// silently fell through to tenant_id=1 for every single customer order
+// regardless of which tenant's storefront it came from, so real tenants never
+// saw their own orders. The frontend now sends tenant_id explicitly; validate
+// it against the tenants table rather than trusting it blindly.
+$requestedTenantId = (int)($body['tenant_id'] ?? 0);
+$tenantId = 0;
+if ($requestedTenantId > 0) {
+    $tRow = $pdo->prepare("SELECT id FROM tenants WHERE id = ? AND is_active = 1");
+    $tRow->execute([$requestedTenantId]);
+    $tenantId = (int)($tRow->fetchColumn() ?: 0);
+}
+if (!$tenantId) jsonError('Invalid or inactive tenant');
+
 $orderType     = in_array(($body['order_type']??''), ['delivery','dine_in']) ? $body['order_type'] : 'delivery';
 $tableId       = strtoupper(sanitizeStr($body['table_id'] ?? ''));
 if ($orderType === 'dine_in' && !$tableId && strpos($deviceId,'kiosk')===false) $orderType = 'delivery';
@@ -102,8 +120,8 @@ try {
     $tableStatus = $orderType === 'dine_in' ? 'open' : null;
 
     if ($orderType === 'dine_in' && $tableId) {
-        $chk = $pdo->prepare("SELECT id FROM orders WHERE table_id=:tid AND table_status='open' AND deleted_at IS NULL ORDER BY id DESC LIMIT 1");
-        $chk->execute([':tid' => $tableId]);
+        $chk = $pdo->prepare("SELECT id FROM orders WHERE table_id=:tid AND tenant_id=:tenant AND table_status='open' AND deleted_at IS NULL ORDER BY id DESC LIMIT 1");
+        $chk->execute([':tid' => $tableId, ':tenant' => $tenantId]);
         $existingId = $chk->fetchColumn();
         if ($existingId) {
             $orderId  = (int)$existingId;
@@ -125,7 +143,7 @@ try {
                  'pending',:device_id,:order_type,:table_id,:table_status,UUID(),NOW())
         ");
         $s->execute([
-            ':tenant_id'    => tenantId(),
+            ':tenant_id'    => $tenantId,
             ':branch_id'    => $branchId ?: 1,
             ':name'         => sanitizeStr($customer['name']),
             ':phone'        => sanitizeStr($customer['phone']    ?? ''),
@@ -235,10 +253,10 @@ try {
             if ($kqId) {
                 $pdo->prepare("UPDATE kds_queue SET status='pending',pushed_at=NOW() WHERE id=:id")->execute([':id'=>$kqId]);
             } else {
-                $pdo->prepare("INSERT INTO kds_queue (order_id,station,status,branch_id,tenant_id,pushed_at) VALUES (:oid,:st,'pending',:bid,:tid,NOW())")->execute([':oid'=>$orderId, ':st'=>$st, ':bid'=>$branchId, ':tid'=>tenantId()]);
+                $pdo->prepare("INSERT INTO kds_queue (order_id,station,status,branch_id,tenant_id,pushed_at) VALUES (:oid,:st,'pending',:bid,:tid,NOW())")->execute([':oid'=>$orderId, ':st'=>$st, ':bid'=>$branchId, ':tid'=>$tenantId]);
             }
         } else {
-            $pdo->prepare("INSERT INTO kds_queue (order_id,station,status,branch_id,tenant_id,pushed_at) VALUES (:oid,:st,'pending',:bid,:tid,NOW())")->execute([':oid'=>$orderId, ':st'=>$st, ':bid'=>$branchId, ':tid'=>tenantId()]);
+            $pdo->prepare("INSERT INTO kds_queue (order_id,station,status,branch_id,tenant_id,pushed_at) VALUES (:oid,:st,'pending',:bid,:tid,NOW())")->execute([':oid'=>$orderId, ':st'=>$st, ':bid'=>$branchId, ':tid'=>$tenantId]);
         }
     }
 

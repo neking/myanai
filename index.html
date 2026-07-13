@@ -2127,6 +2127,7 @@ async function submitOrder() {
 
   const payload = {
     device_id:  DEVICE_ID,
+    tenant_id:  window._TENANT_ID || 1,
     branch_id:  BRANCH_ID || window._BRANCH_ID || 1,
     order_type: DINE_IN ? 'dine_in' : 'delivery',
     table_id:   DINE_IN ? TABLE_ID : '',
@@ -2181,7 +2182,7 @@ async function submitOrder() {
     document.getElementById('success-screen').classList.add('show');
     document.getElementById('cart-modal-title').textContent = '✅ Order Placed!';
     // Show review form after short delay
-    setTimeout(()=>{ if(typeof showReviewSection==='function') showReviewSection(newOrderId||null); }, 1000);
+    setTimeout(()=>{ if(typeof showReviewSection==='function') showReviewSection(orderId||null); }, 1000);
 
   } catch(err) {
     toast('❌ ' + err.message);

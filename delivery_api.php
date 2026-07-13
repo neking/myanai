@@ -317,6 +317,7 @@ if ($action === 'webhook' && $_SERVER['REQUEST_METHOD'] === 'POST') {
     $total    = (int)($d['total'] ?? 0);
     $payment  = trim($d['payment_method'] ?? 'cod');
     $notes    = trim($d['notes'] ?? '');
+    $tenantId = (int)($d['tenant_id'] ?? $_REQ_TENANT ?? 1);
 
     if (empty($items) || !$total) fail('Items and total required');
 
@@ -335,6 +336,7 @@ if ($action === 'webhook' && $_SERVER['REQUEST_METHOD'] === 'POST') {
 
     $payload = json_encode([
         'device_id'    => 'webhook-' . $platform,
+        'tenant_id'    => $tenantId,
         'order_type'   => 'delivery',
         'table_id'     => '',
         'customer'     => ['name'=>$name,'phone'=>$phone,'address'=>$address,'township'=>'','city'=>'','notes'=>$notes.' [' . strtoupper($platform) . ($extId?" #$extId":'') . ']'],
