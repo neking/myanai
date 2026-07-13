@@ -1398,6 +1398,11 @@ window._applyThemeLoaded = true;
       const _td = await (await fetch('tenant_api.php?action=resolve&slug=' + encodeURIComponent(_slug))).json();
       if (_td.ok) {
         window._TENANT_ID = _td.tenant_id;
+        // resolve() already looks up this tenant's branch server-side — use it
+        // unless the URL explicitly specified one (e.g. a branch-specific QR code).
+        // Previously this was ignored, so orders always fell back to branch_id=1
+        // in submitOrder(), which is wrong for any tenant whose branch isn't id 1.
+        if (!window._BRANCH_ID && _td.branch_id) window._BRANCH_ID = _td.branch_id;
         window._TENANT_NAME = _td.name;
         window._TENANT_BIZ  = _td.business_type || 'restaurant';
         document.title = (_td.storefront?.store_name || _td.name) + ' — Online Order';
