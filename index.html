@@ -2152,7 +2152,6 @@ async function submitOrder() {
     promo_code:   activePromo?.code || '',
     discount:     promoDiscount,
     total:        cartTotal(),
-    branch_id:    BRANCH_ID || 0,
   };
 
   try {
