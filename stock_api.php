@@ -126,11 +126,12 @@ if ($action === 'log' && $_SERVER['REQUEST_METHOD'] === 'GET') {
     $per    = min(100, max(10, (int)($_GET['per'] ?? 30)));
     $offset = ($page - 1) * $per;
 
-    $where  = '1=1';
-    $params = [];
-    if ($itemId) { $where = 'sl.menu_item_id = ?'; $params[] = $itemId; }
+    $where  = ['sl.tenant_id = ?'];
+    $params = [$_TID];
+    if ($itemId) { $where[] = 'sl.menu_item_id = ?'; $params[] = $itemId; }
+    $whereSQL = implode(' AND ', $where);
 
-    $total = $pdo->prepare("SELECT COUNT(*) FROM stock_log sl WHERE $where");
+    $total = $pdo->prepare("SELECT COUNT(*) FROM stock_log sl WHERE $whereSQL");
     $total->execute($params);
     $totalRows = (int)$total->fetchColumn();
 
@@ -138,7 +139,7 @@ if ($action === 'log' && $_SERVER['REQUEST_METHOD'] === 'GET') {
         SELECT sl.*, mi.emoji
         FROM   stock_log sl
         LEFT JOIN menu_items mi ON mi.id = sl.menu_item_id
-        WHERE  $where
+        WHERE  $whereSQL
         ORDER  BY sl.created_at DESC
         LIMIT  $per OFFSET $offset
     ");

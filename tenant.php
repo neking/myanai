@@ -2624,7 +2624,7 @@ async function loadStockLogs(){
     const to   = new Date().toISOString().slice(0,10);
     const tid  = window.__TENANT_ID;
     const bid  = window.__BRANCH_ID || 0;
-    const r = await fetch(`stock_log_api.php?action=list&tenant_id=${tid}&branch_id=${bid}&date_from=${from}&date_to=${to}&per=50`,{credentials:'include'});
+    const r = await fetch(`stock_log_api.php?action=list&tenant_id=${tid}&branch_id=${bid}&date_from=${from}&date_to=${to}&limit=50`,{credentials:'include'});
     const d = await r.json();
     const logs = d.logs || d.data || [];
     if(!logs.length){ el.innerHTML='<div style="color:var(--muted);padding:2rem;text-align:center">No stock changes in last 30 days</div>'; return; }
