@@ -117,6 +117,7 @@ if ($action === 'create' && $_SERVER['REQUEST_METHOD'] === 'POST') {
     requireAdmin();
 
     $d    = json_decode(file_get_contents('php://input'), true) ?? [];
+    $tid  = (int)($d['tenant_id'] ?? 0);
     $name = trim($d['name'] ?? '');
     $code = strtoupper(trim($d['code'] ?? ''));
     $addr = trim($d['address'] ?? '') ?: null;
@@ -124,18 +125,25 @@ if ($action === 'create' && $_SERVER['REQUEST_METHOD'] === 'POST') {
     $open  = trim($d['opening_time'] ?? '10:00');
     $close = trim($d['closing_time'] ?? '23:00');
 
+    if (!$tid) fail('tenant_id required');
     if (!$name || !$code) fail('Name and code required');
     if (strlen($code) > 20) fail('Code too long (max 20)');
 
-    // Check unique code
+    // Check unique code — this is a GLOBAL unique constraint at the DB level
+    // (confirmed via SHOW CREATE TABLE: UNIQUE KEY uq_code on code alone, not
+    // scoped to tenant_id), so the check here must match that or an insert
+    // could still fail with a raw DB error after passing this check. Flagging
+    // as a known limitation: two tenants can't both use a code like "MAIN" —
+    // would need a schema migration (composite unique key on tenant_id+code)
+    // to relax this, which isn't done here.
     $exists = $pdo->prepare("SELECT id FROM branches WHERE code = ?");
     $exists->execute([$code]);
-    if ($exists->fetchColumn()) fail('Branch code already exists');
+    if ($exists->fetchColumn()) fail('Branch code already exists (branch codes must be unique platform-wide)');
 
     $pdo->prepare("
-        INSERT INTO branches (name, code, address, phone, opening_time, closing_time)
-        VALUES (?, ?, ?, ?, ?, ?)
-    ")->execute([$name, $code, $addr, $phone, $open, $close]);
+        INSERT INTO branches (tenant_id, name, code, address, phone, opening_time, closing_time)
+        VALUES (?, ?, ?, ?, ?, ?, ?)
+    ")->execute([$tid, $name, $code, $addr, $phone, $open, $close]);
 
     $branchId = (int)$pdo->lastInsertId();
 
