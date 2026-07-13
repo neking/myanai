@@ -2142,6 +2142,28 @@ async function doLogin() {
   </div>
 </div>
 
+<script>
+// Set CSRF token + tenant context for admin_main.js — moved here (was
+// previously emitted much later in the page), AFTER this very script tag had
+// already executed and captured `const CSRF_TOKEN = window.__CSRF_TOKEN`.
+// Since window.__CSRF_TOKEN didn't exist yet at that point, CSRF_TOKEN was
+// permanently locked in as an empty string for the rest of the page's life —
+// meaning every POST request (which relies on admin_main.js's fetch wrapper
+// to inject this header) has been sent with an empty/invalid CSRF token,
+// failing verifyCsrf() on the server. This affected BOTH super-admin and
+// tenant sessions, since admin.php serves both.
+window.__CSRF_TOKEN    = '<?= $csrfToken ?>';
+window.__TENANT_ID     = <?= json_encode($_SESS_TENANT_ID) ?>;
+window.__TENANT_NAME   = <?= json_encode($_SESS_TENANT_NAME) ?>;
+window.__TENANT_PLAN   = <?= json_encode($_SESS_TENANT_PLAN) ?>;
+window.__PLAN_EXPIRES  = <?= json_encode($_SESS_PLAN_EXPIRES) ?>;
+window.__IS_TENANT     = <?= json_encode($_IS_TENANT) ?>;
+window.__USER_ROLE     = <?= json_encode($_SESSION['admin']['role'] ?? 'superadmin') ?>;
+// Auto-set branch context for tenant login
+if(window.__TENANT_ID > 0 && window.__IS_TENANT) {
+  window._currentTenant = window.__TENANT_ID;
+}
+</script>
 <script src="admin_main.js?v=1781768650<?= time() ?>"></script>
 <script src="admin_lpe.js?v=<?= time() ?>"></script>
 <script>
@@ -3356,19 +3378,6 @@ document.addEventListener('DOMContentLoaded', function() {
 <div class="toast" id="toast"></div>
 
 <script>
-// Set CSRF token for admin_main.js
-window.__CSRF_TOKEN    = '<?= $csrfToken ?>';
-window.__TENANT_ID     = <?= json_encode($_SESS_TENANT_ID) ?>;
-window.__TENANT_NAME   = <?= json_encode($_SESS_TENANT_NAME) ?>;
-window.__TENANT_PLAN   = <?= json_encode($_SESS_TENANT_PLAN) ?>;
-window.__PLAN_EXPIRES  = <?= json_encode($_SESS_PLAN_EXPIRES) ?>;
-window.__IS_TENANT     = <?= json_encode($_IS_TENANT) ?>;
-window.__USER_ROLE     = <?= json_encode($_SESSION['admin']['role'] ?? 'superadmin') ?>;
-// Auto-set branch context for tenant login
-if(window.__TENANT_ID > 0 && window.__IS_TENANT) {
-  window._currentTenant = window.__TENANT_ID;
-}
-
 /* ── Theme Toggle: Warm Sand (light) / Midnight Black (dark) ── */
 (function initTheme(){
   const saved = localStorage.getItem('myanai_theme');

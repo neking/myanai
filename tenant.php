@@ -1910,6 +1910,13 @@ button,select,input[type=checkbox]{
 <script>
 /* ── Globals ── */
 window.__IS_TENANT      = <?= $loggedIn ? 'true' : 'false' ?>;
+// CSRF token for POST requests — generated at the top of this file
+// (generateCsrfToken(), line 6) but previously never actually exposed to JS,
+// so every POST to a requireCsrf()-protected endpoint (expense_api.php,
+// stock_api.php, staff_api.php, crm_api.php) sent no token at all and always
+// failed with "Invalid CSRF token". admin.php already does this correctly
+// (window.__CSRF_TOKEN) — tenant.php was just missing the equivalent line.
+window.__CSRF_TOKEN     = <?= json_encode($csrfToken) ?>;
 // Check for password reset token in URL
 document.addEventListener('DOMContentLoaded', function(){ if(typeof checkResetToken==='function') checkResetToken(); });
 window.__IMPERSONATING  = <?= !empty($_SESSION['impersonating']) ? 'true' : 'false' ?>;
@@ -2422,28 +2429,28 @@ async function loadCrossBranchChart(){ return loadDashboardChart(); }
 async function loadMenuItems(){
   const d = await api('items');
   if(!d.ok) return;
-  allItems = d.items||[];
+  _tenantMenuItems = d.items||[];
   // Plan usage bar
   const planMax={free:20,basic:50,pro:200,enterprise:500};
   const max=planMax[window.__TENANT_PLAN]||20;
-  const pct=Math.round((allItems.length/max)*100);
+  const pct=Math.round((_tenantMenuItems.length/max)*100);
   const bar=document.getElementById('menu-usage-bar');
   const lbl=document.getElementById('menu-usage-lbl');
   if(bar) bar.style.width=Math.min(pct,100)+'%';
   if(bar) bar.style.background=pct>=100?'#dc2626':pct>=80?'#d97706':'#059669';
-  if(lbl) lbl.textContent=`${allItems.length} / ${max} items (${window.__TENANT_PLAN?.toUpperCase()})`;
+  if(lbl) lbl.textContent=`${_tenantMenuItems.length} / ${max} items (${window.__TENANT_PLAN?.toUpperCase()})`;
   // Menu count badge
   const badge=document.getElementById('menu-count-badge');
-  if(badge) badge.textContent=allItems.length;
+  if(badge) badge.textContent=_tenantMenuItems.length;
   renderMenuItems();
 }
 
-var allItems=[];
+var _tenantMenuItems=[];
 function renderMenuItems(){
   const tbody=document.getElementById('menu-tbody');
   if(!tbody) return;
-  if(!allItems.length){tbody.innerHTML='<tr><td colspan="5" style="text-align:center;padding:2rem;color:var(--muted)">Menu items မရှိသေး</td></tr>';return;}
-  tbody.innerHTML=allItems.map(it=>`<tr>
+  if(!_tenantMenuItems.length){tbody.innerHTML='<tr><td colspan="5" style="text-align:center;padding:2rem;color:var(--muted)">Menu items မရှိသေး</td></tr>';return;}
+  tbody.innerHTML=_tenantMenuItems.map(it=>`<tr>
     <td>${it.emoji||'🍽'} ${it.name}</td>
     <td style="color:var(--muted)">${it.category||'-'}</td>
     <td style="font-weight:600">${parseInt(it.price||0).toLocaleString()}</td>
@@ -3322,6 +3329,7 @@ async function saveStorefront(){
 
 </script>
 <script src="/session-timeout.js"></script>
+<script src="admin_main.js?v=<?= time() ?>"></script>
 <script src="admin_modules.js?v=<?= time() ?>"></script>
 <script>
 if('serviceWorker' in navigator){
