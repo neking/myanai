@@ -2876,7 +2876,7 @@ async function saveNewTable(){
   const seats = parseInt(document.getElementById('add-table-seats').value)||4;
   if(!code||!label){ toast('Code and label required','err'); return; }
   const bid = window._currentBranch||0;
-  const d = await fetch(`table_api.php?action=add&tenant_id=${window.__TENANT_ID}`,{
+  const d = await fetch(`table_api.php?action=add_table&tenant_id=${window.__TENANT_ID}`,{
     method:'POST', headers:{'Content-Type':'application/json'}, credentials:'include',
     body: JSON.stringify({table_code:code, label, seats, branch_id:bid})
   }).then(r=>r.json()).catch(()=>({ok:false}));

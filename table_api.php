@@ -1,43 +1,34 @@
 <?php
 /**
  * table_api.php — Table/Dine-in API
- * GET  ?action=status&table=T01     → table current order status
- * GET  ?action=list                 → all tables + current orders (admin)
- * POST ?action=add_items            → add items to existing dine-in order
- * POST ?action=request_bill         → customer requests bill
+ * GET  ?action=status&table=T01     → table current order status (public — QR scan)
+ * GET  ?action=list                 → all tables + current orders (tenant/admin)
+ * POST ?action=request_bill         → customer requests bill (public — QR scan)
  * POST ?action=close_table          → admin closes table (mark paid)
  * POST ?action=open_table           → admin opens new session for table
+ * POST ?action=add_table            → add/update a table
+ * POST ?action=remove_table         → deactivate a table
+ *
+ * Admin/tenant actions are tenant-scoped via requireTenantAccess() (tenant_helper.php):
+ * a tenant session may only act on its own tables/orders. Previously these checked
+ * $_SESSION['admin'] only, which meant ordinary tenant owners (not the platform
+ * super-admin) could not manage their own tables at all — that's fixed here too.
  */
 declare(strict_types=1);
 
 require_once __DIR__ . '/db_connect.php';
+require_once __DIR__ . '/tenant_helper.php';
+
+if (session_status() === PHP_SESSION_NONE) session_start();
 
 $_BID = (int)($_GET['branch_id'] ?? $_POST['branch_id'] ?? 0);
-$_TID = (int)($_GET['tenant_id'] ?? $_POST['tenant_id'] ?? $_SESSION['tenant_id'] ?? 1);
-$_BWHERE = $_BID > 0 ? " AND t.branch_id = $_BID" : ($_TID > 0 ? " AND t.tenant_id = $_TID" : "");
-$pdo = getPDO();
-
-session_start();
-
-// ── Branch/Tenant context from request ──────────────────────────────
-$_REQ_BRANCH = (int)($_GET['branch_id'] ?? $_POST['branch_id'] ?? 0);
-$_REQ_TENANT = (int)($_GET['tenant_id'] ?? $_POST['tenant_id'] ?? $_SESSION['tenant_id'] ?? 1);
-function branchWhere(string $alias='o'): string {
-    global $_REQ_BRANCH, $_REQ_TENANT;
-    $w = [];
-    if($_REQ_BRANCH > 0) $w[] = "$alias.branch_id = $_REQ_BRANCH";
-    if($_REQ_TENANT > 0) $w[] = "$alias.tenant_id = $_REQ_TENANT";
-    return $w ? ' AND '.implode(' AND ',$w) : '';
-}
-// ─────────────────────────────────────────────────────────────────────
+$_REQ_TENANT_PARAM = (int)($_GET['tenant_id'] ?? $_POST['tenant_id'] ?? 0);
 
 header('Content-Type: application/json; charset=utf-8');
 header('Access-Control-Allow-Origin: *');
 header('Access-Control-Allow-Methods: GET, POST, OPTIONS');
 header('Access-Control-Allow-Headers: Content-Type');
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') { http_response_code(204); exit; }
-
-
 
 function db(): PDO {
     static $pdo = null;
@@ -54,7 +45,7 @@ function jErr(string $msg, int $c=400): void { http_response_code($c); echo json
 $action = $_GET['action'] ?? '';
 $b = $_SERVER['REQUEST_METHOD']==='POST' ? (json_decode(file_get_contents('php://input'),true)??[]) : [];
 
-/* ── GET: table status (public) ── */
+/* ── GET: table status (public — QR scan, no login) ── */
 if ($action === 'status') {
     $code = strtoupper(trim($_GET['table'] ?? ''));
     if (!$code) jErr('No table code');
@@ -87,10 +78,13 @@ if ($action === 'status') {
     ]);
 }
 
-/* ── GET: list all tables + current orders (admin only) ── */
+/* ── GET: list all tables + current orders (tenant/admin) ── */
 if ($action === 'list') {
-    if (empty($_SESSION['admin'])) jErr('Not logged in', 401);
-    $tables = db()->query("SELECT * FROM restaurant_tables WHERE is_active=1" . ($_BID > 0 ? " AND branch_id=$_BID" : ($_TID > 0 ? " AND tenant_id=$_TID" : "")) . " ORDER BY table_code")->fetchAll();
+    $tid = requireTenantAccess($_REQ_TENANT_PARAM);
+    $tables = db()->prepare("SELECT * FROM restaurant_tables WHERE is_active=1" . ($_BID > 0 ? " AND branch_id=?" : "") . " AND tenant_id=? ORDER BY table_code");
+    $params = $_BID > 0 ? [$_BID, $tid] : [$tid];
+    $tables->execute($params);
+    $tables = $tables->fetchAll();
     $result = [];
     foreach ($tables as $t) {
         // Generate QR URL for this table
@@ -106,10 +100,10 @@ if ($action === 'list') {
                    GROUP_CONCAT(oi.item_name,'x',oi.qty SEPARATOR ', ') AS items_summary
             FROM orders o JOIN order_items oi ON oi.order_id=o.id
             WHERE o.table_id COLLATE utf8mb4_unicode_ci=:c AND o.order_type='dine_in'
-              AND o.table_status IN ('open','billed') AND o.deleted_at IS NULL
+              AND o.table_status IN ('open','billed') AND o.deleted_at IS NULL AND o.tenant_id=:t
             GROUP BY o.id ORDER BY o.id DESC LIMIT 1
         ");
-        $ord->execute([':c'=>$t['table_code']]);
+        $ord->execute([':c'=>$t['table_code'], ':t'=>$tid]);
         $active = $ord->fetch(PDO::FETCH_ASSOC);
         // Flat format — merge table + order fields
         $row = [
@@ -138,7 +132,7 @@ if ($action === 'list') {
     jOk(['tables'=>$result]);
 }
 
-/* ── POST: request bill (customer) ── */
+/* ── POST: request bill (public — QR scan, no login) ── */
 if ($action === 'request_bill') {
     $orderId = (int)($b['order_id'] ?? 0);
     if (!$orderId) jErr('No order_id');
@@ -147,9 +141,9 @@ if ($action === 'request_bill') {
     jOk(['msg'=>'Bill requested']);
 }
 
-/* ── POST: close table / mark paid (admin) ── */
+/* ── POST: close table / mark paid (tenant/admin) ── */
 if ($action === 'close_table') {
-    if (empty($_SESSION['admin'])) jErr('Not logged in', 401);
+    $tid = requireTenantAccess($_REQ_TENANT_PARAM);
     $orderId     = (int)($b['order_id'] ?? 0);
     if (!$orderId) jErr('No order_id');
     // Split bill support
@@ -160,42 +154,44 @@ if ($action === 'close_table') {
     if ($splitMethod && $splitAmount > 0) {
         $payMethod = $payMethod . '+' . $splitMethod . ':' . $splitAmount;
     }
-    db()->prepare("UPDATE orders SET table_status='paid', status='delivered', payment_status='paid', payment_method=:pay WHERE id=:id")
-        ->execute([':id'=>$orderId]);
+    db()->prepare("UPDATE orders SET table_status='paid', status='delivered', payment_status='paid', payment_method=:pay WHERE id=:id AND tenant_id=:t")
+        ->execute([':id'=>$orderId, ':t'=>$tid, ':pay'=>$payMethod]);
     // Mark KDS as served
     db()->prepare("UPDATE kds_queue SET status='served' WHERE order_id=:id AND status!='served'")
         ->execute([':id'=>$orderId]);
     jOk(['msg'=>'Table closed']);
 }
 
-/* ── POST: open new table session (admin) ── */
+/* ── POST: open new table session (tenant/admin) ── */
 if ($action === 'open_table') {
-    if (empty($_SESSION['admin'])) jErr('Not logged in', 401);
+    $tid = requireTenantAccess($_REQ_TENANT_PARAM);
     $code = strtoupper(trim($b['table_code'] ?? ''));
     if (!$code) jErr('No table_code');
     // Close any existing open orders for this table
-    db()->prepare("UPDATE orders SET table_status='paid', status='delivered' WHERE table_id=:c AND table_status='open' AND deleted_at IS NULL")
-        ->execute([':c'=>$code]);
+    db()->prepare("UPDATE orders SET table_status='paid', status='delivered' WHERE table_id=:c AND table_status='open' AND deleted_at IS NULL AND tenant_id=:t")
+        ->execute([':c'=>$code, ':t'=>$tid]);
     jOk(['msg'=>'Table reset, ready for new orders']);
 }
 
-/* ── POST: add table to restaurant_tables (admin) ── */
-if ($action === 'add_table') {
-    if (empty($_SESSION['admin'])) jErr('Not logged in', 401);
-    $code  = strtoupper(trim($b['code']  ?? ''));
+/* ── POST: add table to restaurant_tables (tenant/admin) ── */
+if ($action === 'add_table' || $action === 'add') { // 'add' alias kept for tenant.php compatibility
+    $tid = requireTenantAccess($_REQ_TENANT_PARAM);
+    $code  = strtoupper(trim($b['code'] ?? $b['table_code'] ?? ''));
     $label = trim($b['label'] ?? '');
     $seats = (int)($b['seats'] ?? 4);
     if (!$code) jErr('No code');
     db()->prepare("INSERT INTO restaurant_tables (table_code,label,seats,branch_id,tenant_id) VALUES (:c,:l,:s,:b,:t) ON DUPLICATE KEY UPDATE label=:l2,seats=:s2,is_active=1")
-        ->execute([':c'=>$code,':l'=>$label,':s'=>$seats,':b'=>(int)($b['branch_id']??$_BID??1),':t'=>(int)($b['tenant_id']??$_TID??1),':l2'=>$label,':s2'=>$seats]);
+        ->execute([':c'=>$code,':l'=>$label,':s'=>$seats,':b'=>(int)($b['branch_id']??$_BID?:1),':t'=>$tid,':l2'=>$label,':s2'=>$seats]);
     jOk(['msg'=>'Table saved']);
 }
 
-/* ── POST: remove table (admin) ── */
+/* ── POST: remove table (tenant/admin) ── */
 if ($action === 'remove_table') {
-    if (empty($_SESSION['admin'])) jErr('Not logged in', 401);
+    $tid = requireTenantAccess($_REQ_TENANT_PARAM);
     $code = strtoupper(trim($b['table_code'] ?? ''));
-    db()->prepare("UPDATE restaurant_tables SET is_active=0 WHERE table_code=:c")->execute([':c'=>$code]);
+    if (!$code) jErr('No table_code');
+    db()->prepare("UPDATE restaurant_tables SET is_active=0 WHERE table_code=:c AND tenant_id=:t")
+        ->execute([':c'=>$code, ':t'=>$tid]);
     jOk(['msg'=>'Table removed']);
 }
 
