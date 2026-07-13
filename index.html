@@ -2508,12 +2508,7 @@ function applyStorefront(sf) {
   if (ht) ht.innerHTML = sf.tagline || sf.store_name || '';
   const hsub = document.getElementById('hero-subtitle');
   if (hsub) hsub.textContent = sf.about || '';
-  // Re-apply after theme override (delayed)
-  setTimeout(()=>{
-    const b=document.getElementById('hero-badge'); if(b) b.textContent=(sf.emoji||'🏪')+' '+(sf.store_name||'');
-    const t=document.getElementById('hero-title'); if(t) t.innerHTML=sf.tagline||sf.store_name||'';
-    const s=document.getElementById('hero-subtitle'); if(s) s.textContent=sf.about||'';
-  }, 300);
+
 
   // ── Background ──
   const bgMap = {
