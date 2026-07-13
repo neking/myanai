@@ -287,14 +287,20 @@ echo json_encode([
 ]);
 
 // Server-side loyalty stamp
+// NOTE: loyalty_cards.uq_phone is UNIQUE on phone alone (not tenant_id+phone),
+// confirmed via schema check — so this stamp count is still effectively shared
+// across tenants for a given phone number until that unique key is migrated to
+// (tenant_id, phone). Setting tenant_id here at least keeps it pointed at
+// whichever tenant most recently served this customer, rather than staying
+// stuck on whatever tenant happened to create the row first.
 $customerPhone = sanitizeStr($customer['phone'] ?? '');
 if (!empty($customerPhone)) {
     try {
         $cfg = $pdo->query("SELECT setting_key,setting_value FROM site_settings WHERE setting_key IN ('loyalty_enabled','loyalty_stamps_required')")->fetchAll(PDO::FETCH_KEY_PAIR);
         if (($cfg['loyalty_enabled'] ?? '1') === '1') {
-            $pdo->prepare("INSERT INTO loyalty_cards(phone,stamps,last_order_id) VALUES(?,1,?)
-                ON DUPLICATE KEY UPDATE stamps=stamps+1, last_order_id=?, updated_at=NOW()")
-                ->execute([$customerPhone, $orderId, $orderId]);
+            $pdo->prepare("INSERT INTO loyalty_cards(phone,tenant_id,stamps,last_order_id) VALUES(?,?,1,?)
+                ON DUPLICATE KEY UPDATE tenant_id=?, stamps=stamps+1, last_order_id=?, updated_at=NOW()")
+                ->execute([$customerPhone, $tenantId, $orderId, $tenantId, $orderId]);
         }
     } catch(Exception $e) { /* stamp fail သည် order ကို မထိ */ }
 }

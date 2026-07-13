@@ -67,31 +67,40 @@ function cleanPhone(string $p): string {
 if ($action === 'profile' && $_SERVER['REQUEST_METHOD'] === 'GET') {
     $phone = cleanPhone($_GET['phone'] ?? '');
     if (!$phone) fail('No phone');
+    $tid = (int)($_GET['tenant_id'] ?? 0) ?: 1;
 
     // customers profile (may not exist yet for brand-new phone)
+    // NOTE: `customers` has no tenant_id column (confirmed via schema check) —
+    // it's a platform-wide table by current design, so name/tag/total_spent
+    // here reflect activity across ALL tenants, not just this one. Flagged for
+    // a future migration (composite tenant_id+phone key) if per-tenant CRM
+    // profiles are wanted; not changed here to avoid an unreviewed schema change.
     $stmt = $pdo->prepare("SELECT * FROM customers WHERE phone = ?");
     $stmt->execute([$phone]);
     $profile = $stmt->fetch(PDO::FETCH_ASSOC);
 
-    // loyalty card (existing table — read only)
-    $loy = $pdo->prepare("SELECT stamps, total_redeemed FROM loyalty_cards WHERE phone = ?");
-    $loy->execute([$phone]);
+    // loyalty card — tenant-scoped (loyalty_cards.tenant_id exists)
+    $loy = $pdo->prepare("SELECT stamps, total_redeemed FROM loyalty_cards WHERE phone = ? AND tenant_id = ?");
+    $loy->execute([$phone, $tid]);
     $loyalty = $loy->fetch(PDO::FETCH_ASSOC) ?: ['stamps' => 0, 'total_redeemed' => 0];
 
-    // top 5 favourite items
+    // top 5 favourite items — customer_favourite_items has no tenant_id column,
+    // but menu_item_id always belongs to exactly one tenant's menu, so scope via
+    // an INNER JOIN on menu_items.tenant_id instead (also drops any favourite
+    // whose item no longer exists, which is correct — nothing to recommend).
     $fav = $pdo->prepare("
         SELECT cfi.item_name, cfi.order_count, cfi.menu_item_id,
                mi.price, mi.emoji
         FROM   customer_favourite_items cfi
-        LEFT JOIN menu_items mi ON mi.id = cfi.menu_item_id
+        JOIN   menu_items mi ON mi.id = cfi.menu_item_id AND mi.tenant_id = ?
         WHERE  cfi.customer_phone = ?
         ORDER  BY cfi.order_count DESC
         LIMIT  5
     ");
-    $fav->execute([$phone]);
+    $fav->execute([$tid, $phone]);
     $favourites = $fav->fetchAll(PDO::FETCH_ASSOC);
 
-    // recent 5 orders (read-only from orders table)
+    // recent 5 orders — tenant-scoped (orders.tenant_id exists)
     $ord = $pdo->prepare("
         SELECT o.id, o.total_amount, o.status, o.order_type,
                o.payment_method, o.created_at,
@@ -99,12 +108,12 @@ if ($action === 'profile' && $_SERVER['REQUEST_METHOD'] === 'GET') {
                    ORDER BY oi.id SEPARATOR ', ') AS items_summary
         FROM   orders o
         LEFT JOIN order_items oi ON oi.order_id = o.id
-        WHERE  o.customer_phone = ? AND o.deleted_at IS NULL
+        WHERE  o.customer_phone = ? AND o.tenant_id = ? AND o.deleted_at IS NULL
         GROUP  BY o.id
         ORDER  BY o.created_at DESC
         LIMIT  5
     ");
-    $ord->execute([$phone]);
+    $ord->execute([$phone, $tid]);
     $recent_orders = $ord->fetchAll(PDO::FETCH_ASSOC);
 
     ok([
@@ -207,14 +216,17 @@ if ($action === 'last_order' && $_SERVER['REQUEST_METHOD'] === 'GET') {
     $phone = cleanPhone($_GET['phone'] ?? '');
     if (!$phone) fail('No phone');
 
-    // Last order id
+    $tid = (int)($_GET['tenant_id'] ?? 0) ?: 1;
+
+    // Last order id — scoped to this tenant, since a customer's most recent
+    // order platform-wide could belong to a completely different restaurant
     $last = $pdo->prepare("
         SELECT id FROM orders
-        WHERE  customer_phone = ? AND deleted_at IS NULL
+        WHERE  customer_phone = ? AND tenant_id = ? AND deleted_at IS NULL
         ORDER  BY created_at DESC
         LIMIT  1
     ");
-    $last->execute([$phone]);
+    $last->execute([$phone, $tid]);
     $orderId = $last->fetchColumn();
     if (!$orderId) ok(['items' => [], 'order_id' => null]);
 

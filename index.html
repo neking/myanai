@@ -348,9 +348,10 @@ header{
 .ci-price{font-size:.78rem;color:var(--muted)}
 .qty-ctrl{display:flex;align-items:center;gap:.4rem;flex-shrink:0}
 .qty-btn{
-  width:26px;height:26px;border-radius:50%;border:1.5px solid var(--border);
-  background:none;cursor:pointer;font-size:.95rem;
+  width:36px;height:36px;border-radius:50%;border:1.5px solid var(--border);
+  background:none;cursor:pointer;font-size:1.05rem;
   display:flex;align-items:center;justify-content:center;
+  flex-shrink:0;
 }
 .qty-num{font-size:.88rem;font-weight:600;min-width:18px;text-align:center}
 .ci-subtotal{font-size:.85rem;font-weight:700;min-width:40px;text-align:right;flex-shrink:0}
@@ -2067,7 +2068,7 @@ async function crmCheckLastOrder(phone) {
   const lbl = document.getElementById('crm-reorder-label');
   if (!box || !lbl) return;
   try {
-    const r = await fetch('crm_api.php?action=last_order&phone=' + encodeURIComponent(phone));
+    const r = await fetch('crm_api.php?action=last_order&phone=' + encodeURIComponent(phone) + '&tenant_id=' + (window._TENANT_ID||1));
     const d = await r.json();
     if (!d.ok || !d.items || d.items.length === 0) { box.style.display = 'none'; return; }
     // Filter: active items with stock
@@ -2847,15 +2848,17 @@ async function redeemLoyalty() {
 async function addLoyaltyStamp(phone, order_id) {
   if (!phone) return;
   try {
-    const r = await fetch('loyalty.php?action=stamp', {
-      method:'POST', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({phone, order_id})
-    });
+    // order_handler.php already recorded the stamp server-side for this order —
+    // this just reads back the current count to show the customer their progress.
+    // (Previously this POSTed to loyalty.php?action=stamp without tenant_id,
+    // which that endpoint requires, so it silently failed every time and the
+    // customer never saw a stamp-progress toast.)
+    const r = await fetch('loyalty.php?action=get&phone=' + encodeURIComponent(phone) + '&tenant_id=' + (window._TENANT_ID||1));
     const d = await r.json();
-    if (d.ok) {
-      const left = d.required - d.progress;
+    if (d.ok && d.enabled) {
+      const left = d.required - d.stamps;
       if(typeof toast==='function') {
-        if (d.redeemable > 0) toast('🎉 Reward ထုတ်ယူနိုင်ပြီ! Stamp ' + d.stamps + '/' + d.required);
+        if (left <= 0) toast('🎉 Reward ထုတ်ယူနိုင်ပြီ! Stamp ' + d.stamps + '/' + d.required);
         else toast('⭐ Stamp ' + d.stamps + '/' + d.required + ' — နောက်ထပ် ' + left + ' ကြိမ်ဆို reward ရမည်');
       }
     }
@@ -2878,7 +2881,7 @@ async function loadInlineHist(){
   if (!phone) { res.innerHTML='<div style="color:#aaa;text-align:center;padding:.5rem">Phone ထည့်ပါ</div>'; return; }
   res.innerHTML='<div style="text-align:center;padding:.5rem;color:#aaa">Loading...</div>';
   try {
-    const d = await (await fetch('crm_api.php?action=profile&phone='+encodeURIComponent(phone))).json();
+    const d = await (await fetch('crm_api.php?action=profile&phone='+encodeURIComponent(phone)+'&tenant_id='+(window._TENANT_ID||1))).json();
     if (!d.ok || !d.recent_orders?.length) { res.innerHTML='<div style="color:#aaa;text-align:center;padding:.5rem">Order မရှိသေး</div>'; return; }
     res.innerHTML = d.recent_orders.map(o=>`
       <div style="border:1px solid #eee;border-radius:8px;padding:.6rem .8rem;margin-bottom:.5rem">
