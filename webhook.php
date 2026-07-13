@@ -3,9 +3,21 @@
  * MyanAi GitHub Webhook
  * Auto-deploy on push to main branch
  * GitHub → Settings → Webhooks → https://myanai.net/webhook.php
- * Secret: myanai_webhook_2026
+ *
+ * SECURITY FIX: this file used to have the DB password hardcoded in plain
+ * text right here, committed to git — meaning it lives in GitHub history
+ * permanently (findable by anyone with repo access, even after this fix,
+ * unless the history itself is rewritten/purged). Now reads from
+ * db_connect.php's existing environment-variable-based config
+ * (/etc/myanai.env) instead of duplicating a plaintext copy. The webhook
+ * secret below is similarly read from an env var with the current value as
+ * a fallback, so this keeps working even if MYANAI_WEBHOOK_SECRET isn't set
+ * on the server yet — but it should be set, and the DB password that was
+ * exposed here should be rotated.
  */
-$secret = 'myanai_webhook_2026';
+require_once __DIR__ . '/db_connect.php';
+
+$secret = getenv('MYANAI_WEBHOOK_SECRET') ?: 'myanai_webhook_2026';
 $sig    = $_SERVER['HTTP_X_HUB_SIGNATURE_256'] ?? '';
 $body   = file_get_contents('php://input');
 $logFile = '/tmp/webhook_myanai.log';
@@ -53,16 +65,17 @@ wlog("PHP restart: ".trim($restart ?: 'done'));
 
 // Check for new migrations and run them
 $migrations = glob('/var/www/myanai/migrations/*.sql');
-$dbUser = 'myanai_user';
-$dbPass = 'i0It2cUUSHiIbr3v1wZquVWOIZaHuudY';
-$dbName = 'noodlehaus';
+$dbUser = DB_USER;
+$dbPass = DB_PASS;
+$dbName = DB_NAME;
+$dbHost = DB_HOST;
 
 foreach ($migrations as $migration) {
     $fname = basename($migration);
     $ran   = @file_get_contents('/tmp/myanai_migrations.log');
     if (strpos($ran, $fname) !== false) continue; // Already ran
     
-    $result = shell_exec("mysql -h localhost -u{$dbUser} -p{$dbPass} {$dbName} < {$migration} 2>&1");
+    $result = shell_exec("mysql -h {$dbHost} -u{$dbUser} -p{$dbPass} {$dbName} < {$migration} 2>&1");
     if (empty(trim($result))) {
         wlog("✅ Migration: {$fname}");
         file_put_contents('/tmp/myanai_migrations.log', $fname."\n", FILE_APPEND);
