@@ -16,31 +16,36 @@ if (!$slug || !$token) {
 } else {
     try {
         $pdo = getPDO();
-        
-        // Decode token (it's base64 encoded email)
-        $email = base64_decode($token, true);
-        if (!$email) {
-            throw new Exception('Invalid token encoding');
-        }
-        
-        // Find tenant by slug and email
-        $stmt = $pdo->prepare("SELECT id, owner_email FROM tenants WHERE slug = ? AND owner_email = ? LIMIT 1");
-        $stmt->execute([$slug, $email]);
+
+        // Find tenant by slug
+        $stmt = $pdo->prepare("SELECT id, owner_email, settings FROM tenants WHERE slug = ? LIMIT 1");
+        $stmt->execute([$slug]);
         $tenant = $stmt->fetch(PDO::FETCH_ASSOC);
-        
+
         if (!$tenant) {
-            throw new Exception('Tenant not found or email mismatch');
+            throw new Exception('Tenant not found');
         }
-        
-        // Mark as verified in settings
-        $settings = json_decode($pdo->prepare("SELECT settings FROM tenants WHERE id = ?")->execute([$tenant['id']]) ? 
-            $pdo->query("SELECT settings FROM tenants WHERE id = {$tenant['id']}")->fetchColumn() : '{}', true) ?? [];
+
+        $settings = json_decode($tenant['settings'] ?? '{}', true) ?: [];
+        $storedToken = $settings['email_verify_token'] ?? '';
+
+        // Compare against the random token generated at signup time — NOT a
+        // decoded email. Previously the "token" was just base64(email), so
+        // anyone who knew a tenant's slug and email (often publicly visible
+        // on their own storefront) could construct a valid-looking link
+        // themselves without ever receiving the actual email. hash_equals()
+        // for timing-safe comparison.
+        if (!$storedToken || !hash_equals($storedToken, $token)) {
+            throw new Exception('Invalid or expired verification token');
+        }
+
         $settings['email_verified'] = true;
         $settings['verified_at'] = date('Y-m-d H:i:s');
-        
+        unset($settings['email_verify_token']); // one-time use
+
         $pdo->prepare("UPDATE tenants SET settings = ? WHERE id = ?")
-            ->execute([json_encode($settings), $tenant['id']]);
-        
+            ->execute([json_encode($settings, JSON_UNESCAPED_UNICODE), $tenant['id']]);
+
         $verified = true;
         $message = '✅ Email verified successfully!';
     } catch (Exception $e) {

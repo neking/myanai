@@ -127,10 +127,20 @@ if ($action === 'signup' && $_SERVER['REQUEST_METHOD'] === 'POST') {
 
         // Save password hash + admin credentials in tenant settings
         $passHash = password_hash($pass, PASSWORD_BCRYPT);
+        // Real random verification token — previously the "token" sent in the
+        // verification email was just base64(email), which anyone who knows
+        // a tenant's slug and email (often publicly visible on their own
+        // storefront) could reconstruct themselves without ever receiving or
+        // clicking the actual email. This defeated the point of verification
+        // (proving inbox control). Now a random secret is generated here,
+        // stored, and only matches if the recipient actually got the email.
+        $emailVerifyToken = bin2hex(random_bytes(32));
         $settings = json_encode([
             'admin_email'    => $email,
             'admin_pass_hash'=> $passHash,
             'onboarded'      => false,
+            'email_verified' => false,
+            'email_verify_token' => $emailVerifyToken,
             'storefront'     => [
                 'store_name'    => $name,
                 'emoji'         => '🏪',
@@ -180,7 +190,7 @@ if ($action === 'signup' && $_SERVER['REQUEST_METHOD'] === 'POST') {
 
     // 📧 Send welcome email (async-friendly)
     try {
-        sendWelcomeEmail($email, $owner, $slug);
+        sendWelcomeEmail($email, $owner, $slug, $emailVerifyToken);
         error_log("✓ Welcome email sent to {$email} for tenant {$slug}");
     } catch (Exception $e) {
         error_log("⚠️ Email send failed: " . $e->getMessage());

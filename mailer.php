@@ -76,8 +76,8 @@ function upgradeRejectedEmail(string $to, string $tenantName, string $plan): str
 /**
  * ── ONBOARDING EMAILS ──
  */
-function welcomeOnboardingEmail(string $tenantName, string $slug, string $email, string $password = ''): string {
-    $verifyLink = "https://myanai.net/verify-email.php?slug={$slug}&token=" . urlencode(base64_encode($email));
+function welcomeOnboardingEmail(string $tenantName, string $slug, string $email, string $password = '', string $verifyToken = ''): string {
+    $verifyLink = "https://myanai.net/verify-email.php?slug={$slug}&token=" . urlencode($verifyToken);
     $loginLink = "https://myanai.net/admin.php";
     
     return "
@@ -171,9 +171,9 @@ function welcomeOnboardingEmail(string $tenantName, string $slug, string $email,
 /**
  * Welcome email (simplified version for sending immediately)
  */
-function sendWelcomeEmail(string $to, string $tenantName, string $slug): bool {
+function sendWelcomeEmail(string $to, string $tenantName, string $slug, string $verifyToken = ''): bool {
     $subject = "🎉 Welcome to MyanAi — Your POS System is Ready!";
-    $body = welcomeOnboardingEmail($tenantName, $slug, $to);
+    $body = welcomeOnboardingEmail($tenantName, $slug, $to, '', $verifyToken);
     return sendMail($to, $subject, $body);
 }
 
