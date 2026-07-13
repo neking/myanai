@@ -82,24 +82,25 @@ if ($action === 'delete' && $_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 
 /* SUPPLIERS
-   NOTE: the `suppliers` table's schema could not be confirmed during this audit
-   (no other file in the codebase references it, and DB access wasn't available
-   to check for a tenant_id column). Left as a shared/global list for now rather
-   than guessing at a column that might not exist and breaking this feature.
-   Flagged for a schema check before scoping this per-tenant. */
+   The `suppliers` table has no tenant_id column — scoped via branch_id,
+   same pattern as promo_api.php (branch_id -> branches.tenant_id). */
 if ($action === 'suppliers') {
-    requireTenantAccess($_REQ_TENANT_PARAM);
-    $rows = $pdo->query("SELECT * FROM suppliers WHERE is_active=1 ORDER BY name")->fetchAll(PDO::FETCH_ASSOC);
-    ok(['suppliers' => $rows]);
+    $tid = requireTenantAccess($_REQ_TENANT_PARAM);
+    $stmt = $pdo->prepare("SELECT * FROM suppliers WHERE is_active=1 AND branch_id IN (SELECT id FROM branches WHERE tenant_id=?) ORDER BY name");
+    $stmt->execute([$tid]);
+    ok(['suppliers' => $stmt->fetchAll(PDO::FETCH_ASSOC)]);
 }
 
 if ($action === 'supplier_create' && $_SERVER['REQUEST_METHOD'] === 'POST') {
-    requireTenantAccess($_REQ_TENANT_PARAM);
+    $tid = requireTenantAccess($_REQ_TENANT_PARAM);
     $d = json_decode(file_get_contents('php://input'), true) ?? [];
     $name = trim($d['name'] ?? '');
     if (!$name) fail('Name required');
-    $pdo->prepare("INSERT INTO suppliers (name,phone,category) VALUES (?,?,?)")
-        ->execute([$name, trim($d['phone']??'')?:null, trim($d['category']??'')?:null]);
+    $branchRow = $pdo->prepare("SELECT id FROM branches WHERE tenant_id=? ORDER BY id LIMIT 1");
+    $branchRow->execute([$tid]);
+    $bid = (int)($d['branch_id'] ?? $branchRow->fetchColumn() ?: 1);
+    $pdo->prepare("INSERT INTO suppliers (name,phone,category,branch_id) VALUES (?,?,?,?)")
+        ->execute([$name, trim($d['phone']??'')?:null, trim($d['category']??'')?:null, $bid]);
     ok(['supplier_id' => (int)$pdo->lastInsertId()]);
 }
 
