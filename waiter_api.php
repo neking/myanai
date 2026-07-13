@@ -1,4 +1,29 @@
 <?php
+/**
+ * waiter_api.php — Waiter/POS app backend
+ *
+ * IMPORTANT: this whole file previously had almost no tenant/branch scoping
+ * anywhere except an optional filter on login. waiter.html never sent
+ * branch_id at all, so 'tables' showed every tenant's tables/orders mixed
+ * together, 'menu' had a SQL bug (used $pdo->query() with an unbound :tid
+ * placeholder, which cannot work — this action was completely broken and
+ * would either error or return zero rows every time), and 'order' created
+ * new orders WITHOUT setting tenant_id at all (same class of bug fixed
+ * earlier this session in order_handler.php). Fixed by requiring branch_id
+ * (already returned by 'login' and now sent by waiter.html on every
+ * subsequent call) and resolving/verifying tenant_id from it everywhere.
+ *
+ * NOTE ON PIN LOGIN: `staff.pin` has no tenant/branch-scoped uniqueness in
+ * the database — 'add_staff' enforces global PIN uniqueness across ALL
+ * tenants on this platform. That's intentional here, not an oversight: since
+ * waiter.html has no URL-based tenant context (no ?t=slug like the customer
+ * ordering page), a PIN is the ONLY way this app identifies which
+ * tenant/branch a staff member belongs to. If PINs were scoped per-branch
+ * instead, two different tenants' staff could pick the same PIN and there
+ * would be no way for 'login' to know which one is logging in. Do not relax
+ * the global-uniqueness check in 'add_staff' without also adding a tenant
+ * selector to the login screen.
+ */
 require_once __DIR__ . '/db_connect.php';
 header('Content-Type: application/json');
 $allowedOrigins = ['https://myanai.net','https://www.myanai.net','http://localhost','http://127.0.0.1'];
@@ -10,6 +35,15 @@ header('Access-Control-Allow-Headers: Content-Type, X-CSRF-Token');
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') { http_response_code(204); exit; }
 $pdo    = getPDO();
 $action = $_GET['action'] ?? '';
+
+/** Resolve a branch_id to its tenant_id, or null if the branch doesn't exist. */
+function resolveTenantFromBranch(PDO $pdo, int $branchId): ?int {
+    if ($branchId <= 0) return null;
+    $row = $pdo->prepare("SELECT tenant_id FROM branches WHERE id = ?");
+    $row->execute([$branchId]);
+    $tid = $row->fetchColumn();
+    return $tid !== false ? (int)$tid : null;
+}
 
 // ── PIN login ──
 if ($action === 'login' && $_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -30,32 +64,45 @@ if ($action === 'login' && $_SERVER['REQUEST_METHOD'] === 'POST') {
 
 // ── Table list ──
 if ($action === 'tables') {
-    $tables = $pdo->query("
-        SELECT t.*, 
+    $bid = (int)($_GET['branch_id'] ?? 0);
+    if (!$bid) { echo json_encode(['ok'=>false,'msg'=>'branch_id required']); exit; }
+    $tables = $pdo->prepare("
+        SELECT t.*,
                o.id as order_id, o.status as order_status,
                COUNT(oi.id) as item_count,
                COALESCE(SUM(oi.qty * oi.unit_price),0) as subtotal
         FROM restaurant_tables t
         LEFT JOIN orders o ON o.table_id COLLATE utf8mb4_unicode_ci = t.table_code COLLATE utf8mb4_unicode_ci
-            AND o.order_type='dine_in' 
-            AND o.deleted_at IS NULL 
+            AND o.branch_id = t.branch_id
+            AND o.order_type='dine_in'
+            AND o.deleted_at IS NULL
             AND o.status NOT IN ('delivered','cancelled')
         LEFT JOIN order_items oi ON oi.order_id=o.id
+        WHERE t.branch_id = ?
         GROUP BY t.id, o.id
         ORDER BY t.table_code
-    ")->fetchAll(PDO::FETCH_ASSOC);
-    echo json_encode(['ok'=>true,'tables'=>$tables]);
+    ");
+    $tables->execute([$bid]);
+    echo json_encode(['ok'=>true,'tables'=>$tables->fetchAll(PDO::FETCH_ASSOC)]);
     exit;
 }
 
 // ── Menu items ──
 if ($action === 'menu') {
-    $items = $pdo->query("
+    $bid = (int)($_GET['branch_id'] ?? 0);
+    if (!$bid) { echo json_encode(['ok'=>false,'msg'=>'branch_id required']); exit; }
+    $tid = resolveTenantFromBranch($pdo, $bid);
+    if (!$tid) { echo json_encode(['ok'=>false,'msg'=>'Branch not found']); exit; }
+    // Previously this used $pdo->query() with an unbound ':tid' placeholder,
+    // which is not valid — query() doesn't support parameter binding at all.
+    // This action has been broken (error or zero rows) until this fix.
+    $stmt = $pdo->prepare("
         SELECT id, name, category, price, stock_qty, emoji, image_path
-        FROM menu_items WHERE is_active=1 AND stock_qty>0 AND (tenant_id=:tid OR :tid=0)
+        FROM menu_items WHERE is_active=1 AND stock_qty>0 AND tenant_id=?
         ORDER BY category, sort_order, name
-    ")->fetchAll(PDO::FETCH_ASSOC);
-    echo json_encode(['ok'=>true,'items'=>$items]);
+    ");
+    $stmt->execute([$tid]);
+    echo json_encode(['ok'=>true,'items'=>$stmt->fetchAll(PDO::FETCH_ASSOC)]);
     exit;
 }
 
@@ -64,32 +111,36 @@ if ($action === 'order' && $_SERVER['REQUEST_METHOD'] === 'POST') {
     $d       = json_decode(file_get_contents('php://input'), true) ?? [];
     $table   = trim($d['table_code'] ?? '');
     $staffId = (int)($d['staff_id'] ?? 0);
+    $bid     = (int)($d['branch_id'] ?? 0);
     $items   = $d['items'] ?? [];
     $note    = trim($d['note'] ?? '');
 
-    if (!$table || !$staffId || empty($items)) {
+    if (!$table || !$staffId || !$bid || empty($items)) {
         echo json_encode(['ok'=>false,'msg'=>'Missing params']); exit;
     }
+    $tid = resolveTenantFromBranch($pdo, $bid);
+    if (!$tid) { echo json_encode(['ok'=>false,'msg'=>'Branch not found']); exit; }
 
-    // Staff verify
-    $s = $pdo->prepare("SELECT name FROM staff WHERE id=? AND is_active=1");
-    $s->execute([$staffId]);
+    // Staff verify — scoped to this branch, so a PIN valid at one branch
+    // can't place orders against a different branch's table/menu.
+    $s = $pdo->prepare("SELECT name FROM staff WHERE id=? AND branch_id=? AND is_active=1");
+    $s->execute([$staffId, $bid]);
     $staffName = $s->fetchColumn();
     if (!$staffName) { echo json_encode(['ok'=>false,'msg'=>'Staff not found']); exit; }
 
-    // Table verify
-    $t = $pdo->prepare("SELECT id FROM restaurant_tables WHERE table_code=?");
-    $t->execute([$table]);
+    // Table verify — scoped to this branch
+    $t = $pdo->prepare("SELECT id FROM restaurant_tables WHERE table_code=? AND branch_id=?");
+    $t->execute([$table, $bid]);
     if (!$t->fetchColumn()) { echo json_encode(['ok'=>false,'msg'=>'Table not found']); exit; }
 
-    // Calc total
+    // Calc total — items must belong to this tenant's menu
     $subtotal = 0;
     $itemRows = [];
     foreach ($items as $item) {
         $itemId = (int)($item['id'] ?? 0);
         $qty    = max(1,(int)($item['qty'] ?? 1));
-        $mi = $pdo->prepare("SELECT name,price,stock_qty FROM menu_items WHERE id=? AND is_active=1");
-        $mi->execute([$itemId]);
+        $mi = $pdo->prepare("SELECT name,price,stock_qty FROM menu_items WHERE id=? AND tenant_id=? AND is_active=1");
+        $mi->execute([$itemId, $tid]);
         $mi = $mi->fetch(PDO::FETCH_ASSOC);
         if (!$mi) continue;
         if ($mi['stock_qty'] < $qty) {
@@ -103,9 +154,10 @@ if ($action === 'order' && $_SERVER['REQUEST_METHOD'] === 'POST') {
     try {
         $pdo->beginTransaction();
 
-        // Check existing open order for table
-        $ex = $pdo->prepare("SELECT id FROM orders WHERE table_id=? AND order_type='dine_in' AND deleted_at IS NULL AND status NOT IN ('delivered','cancelled') LIMIT 1");
-        $ex->execute([$table]);
+        // Check existing open order for table — scoped to this branch, since
+        // table_code alone can collide across tenants/branches.
+        $ex = $pdo->prepare("SELECT id FROM orders WHERE table_id=? AND branch_id=? AND order_type='dine_in' AND deleted_at IS NULL AND status NOT IN ('delivered','cancelled') LIMIT 1");
+        $ex->execute([$table, $bid]);
         $existingOrderId = $ex->fetchColumn();
 
         if ($existingOrderId) {
@@ -113,9 +165,12 @@ if ($action === 'order' && $_SERVER['REQUEST_METHOD'] === 'POST') {
             $orderId   = $existingOrderId;
             $isAppend  = true;
         } else {
-            // New order
-            $pdo->prepare("INSERT INTO orders (customer_name,customer_phone,delivery_address,township,special_notes,payment_method,subtotal,delivery_fee,total_amount,status,order_type,table_id) VALUES (?,?,?,?,?,'cash',?,0,?,  'pending','dine_in',?)")
-                ->execute([$staffName.' (Waiter)','','','', $note, $subtotal, $subtotal, $table]);
+            // New order — tenant_id/branch_id set explicitly (previously
+            // omitted entirely, so every waiter-placed order fell back to
+            // the tenant_id column default, same bug class fixed earlier
+            // this session for the customer ordering page).
+            $pdo->prepare("INSERT INTO orders (tenant_id,branch_id,customer_name,customer_phone,delivery_address,township,special_notes,payment_method,subtotal,delivery_fee,total_amount,status,order_type,table_id) VALUES (?,?,?,?,?,?,?,'cash',?,0,?,  'pending','dine_in',?)")
+                ->execute([$tid, $bid, $staffName.' (Waiter)','','','', $note, $subtotal, $subtotal, $table]);
             $orderId  = (int)$pdo->lastInsertId();
             $isAppend = false;
         }
@@ -134,9 +189,9 @@ if ($action === 'order' && $_SERVER['REQUEST_METHOD'] === 'POST') {
                 ->execute([$subtotal,$subtotal,$orderId]);
         }
 
-        // KDS push
-        $pdo->prepare("INSERT INTO kds_queue (order_id,station,status,pushed_at) VALUES (?,'kitchen','pending',NOW())")
-            ->execute([$orderId]);
+        // KDS push — tenant_id/branch_id set explicitly (same reasoning as above)
+        $pdo->prepare("INSERT INTO kds_queue (order_id,station,status,tenant_id,branch_id,pushed_at) VALUES (?,'kitchen','pending',?,?,NOW())")
+            ->execute([$orderId, $tid, $bid]);
 
         $pdo->commit();
 
@@ -153,17 +208,18 @@ if ($action === 'order' && $_SERVER['REQUEST_METHOD'] === 'POST') {
 // ── Table current order ──
 if ($action === 'table_order') {
     $table = trim($_GET['table'] ?? '');
-    if (!$table) { echo json_encode(['ok'=>false,'msg'=>'No table']); exit; }
+    $bid   = (int)($_GET['branch_id'] ?? 0);
+    if (!$table || !$bid) { echo json_encode(['ok'=>false,'msg'=>'No table']); exit; }
     $order = $pdo->prepare("
         SELECT o.id, o.status, o.total_amount, o.created_at,
                GROUP_CONCAT(oi.qty,'x ',oi.item_name ORDER BY oi.id SEPARATOR ' · ') as items_summary
         FROM orders o
         LEFT JOIN order_items oi ON oi.order_id=o.id
-        WHERE o.table_id COLLATE utf8mb4_unicode_ci=? AND o.order_type='dine_in' 
+        WHERE o.table_id COLLATE utf8mb4_unicode_ci=? AND o.branch_id=? AND o.order_type='dine_in'
           AND o.deleted_at IS NULL AND o.status NOT IN ('delivered','cancelled')
         GROUP BY o.id ORDER BY o.id DESC LIMIT 1
     ");
-    $order->execute([$table]);
+    $order->execute([$table, $bid]);
     $row = $order->fetch(PDO::FETCH_ASSOC);
     echo json_encode(['ok'=>true,'order'=>$row]);
     exit;
@@ -171,18 +227,22 @@ if ($action === 'table_order') {
 
 
 // ── Add staff ──
+// NOTE: PIN uniqueness is intentionally GLOBAL (see file-level note above) —
+// do not scope this check to branch_id without also giving waiter.html a
+// tenant-selection step at login.
 if ($action === 'add_staff' && $_SERVER['REQUEST_METHOD'] === 'POST') {
     $d    = json_decode(file_get_contents('php://input'), true) ?? [];
     $name = trim($d['name'] ?? '');
     $pin  = trim($d['pin'] ?? '');
+    $bid  = (int)($d['branch_id'] ?? 1);
     $role = in_array($d['role']??'', ['waiter','manager']) ? $d['role'] : 'waiter';
     if (!$name || !$pin) { echo json_encode(['ok'=>false,'msg'=>'Name + PIN required']); exit; }
     if (!preg_match('/^\d{4,6}$/', $pin)) { echo json_encode(['ok'=>false,'msg'=>'PIN must be 4-6 digits']); exit; }
-    // Check duplicate PIN
+    // Check duplicate PIN (global on purpose)
     $exist = $pdo->prepare("SELECT id FROM staff WHERE pin=?");
     $exist->execute([$pin]);
     if ($exist->fetch()) { echo json_encode(['ok'=>false,'msg'=>'PIN already in use']); exit; }
-    $pdo->prepare("INSERT INTO staff (name,pin,role,is_active) VALUES (?,?,?,1)")->execute([$name,$pin,$role]);
+    $pdo->prepare("INSERT INTO staff (name,pin,role,branch_id,is_active) VALUES (?,?,?,?,1)")->execute([$name,$pin,$role,$bid]);
     echo json_encode(['ok'=>true]);
     exit;
 }
@@ -210,9 +270,9 @@ if ($action === 'delete_staff' && $_SERVER['REQUEST_METHOD'] === 'POST') {
 
 // ── Staff list (for admin) ──
 if ($action === 'staff_list') {
-    session_start();
+    if (session_status() === PHP_SESSION_NONE) session_start();
     if (empty($_SESSION['admin'])) { echo json_encode(['ok'=>false,'msg'=>'Unauthorized']); exit; }
-    $rows = $pdo->query("SELECT id,name,pin,role,is_active FROM staff ORDER BY role,name")->fetchAll(PDO::FETCH_ASSOC);
+    $rows = $pdo->query("SELECT id,name,pin,role,is_active,branch_id FROM staff ORDER BY role,name")->fetchAll(PDO::FETCH_ASSOC);
     echo json_encode(['ok'=>true,'staff'=>$rows]);
     exit;
 }

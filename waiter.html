@@ -247,7 +247,7 @@ function showTab(tab) {
 
 // ══ TABLES ══
 async function loadTables() {
-  const d = await fetch(API+'?action=tables').then(r=>r.json());
+  const d = await fetch(API+'?action=tables&branch_id='+staff.branch_id).then(r=>r.json());
   if (!d.ok) return;
   const grid = document.getElementById('tables-grid');
   grid.innerHTML = d.tables.map(t => {
@@ -285,7 +285,7 @@ function backToTables() {
 
 // ══ MENU ══
 async function loadMenu() {
-  const d = await fetch(API+'?action=menu').then(r=>r.json());
+  const d = await fetch(API+'?action=menu&branch_id='+staff.branch_id).then(r=>r.json());
   if (!d.ok) return;
   allMenuItems = d.items;
 }
@@ -360,7 +360,7 @@ async function submitWaiterOrder() {
   const note = document.getElementById('order-note').value.trim();
   const r = await fetch(API+'?action=order',{
     method:'POST',headers:{'Content-Type':'application/json'},
-    body:JSON.stringify({table_code:selectedTable.code,staff_id:staff.id,items:items.map(i=>({id:i.id,qty:i.qty})),note})
+    body:JSON.stringify({table_code:selectedTable.code,staff_id:staff.id,branch_id:staff.branch_id,items:items.map(i=>({id:i.id,qty:i.qty})),note})
   });
   const d = await r.json();
   btn.disabled = false; btn.textContent = '📤 Send to Kitchen';
@@ -385,7 +385,7 @@ async function submitWaiterOrder() {
 async function loadCurrentOrders() {
   const el = document.getElementById('current-orders-list');
   el.innerHTML = '<div class="empty-state"><div class="icon">⏳</div><p>Loading...</p></div>';
-  const tables = await fetch(API+'?action=tables').then(r=>r.json());
+  const tables = await fetch(API+'?action=tables&branch_id='+staff.branch_id).then(r=>r.json());
   if (!tables.ok) return;
   const active = tables.tables.filter(t=>t.order_id);
   if (!active.length) {
