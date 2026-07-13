@@ -14,7 +14,8 @@ $secret = $_GET['secret'] ?? '';
 
 // Security: allow cron (CLI) or secret key
 $isCLI    = php_sapi_name() === 'cli';
-$validKey = hash_equals('myanai_report_2026', $secret);
+$reportSecret = getenv('MYANAI_REPORT_SECRET') ?: 'myanai_report_2026';
+$validKey = hash_equals($reportSecret, $secret);
 if (!$isCLI && !$validKey) {
     http_response_code(403); echo json_encode(['ok'=>false,'msg'=>'Unauthorized']); exit;
 }

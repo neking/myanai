@@ -304,7 +304,8 @@ if ($action === 'stats') {
 if ($action === 'webhook' && $_SERVER['REQUEST_METHOD'] === 'POST') {
     // API key validation — set in site_settings or env
     $apiKey = trim($_SERVER['HTTP_X_API_KEY'] ?? $_GET['api_key'] ?? '');
-    $validKey = 'nh_webhook_' . md5('noodlehaus_secret_2026');
+    $secretSeed = getenv('MYANAI_DELIVERY_WEBHOOK_SEED') ?: 'noodlehaus_secret_2026';
+    $validKey = 'nh_webhook_' . md5($secretSeed);
     if ($apiKey !== $validKey) fail('Invalid API key', 403);
 
     $d = json_decode(file_get_contents('php://input'), true) ?? [];

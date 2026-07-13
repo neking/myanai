@@ -18,7 +18,8 @@ $isCLI  = php_sapi_name() === 'cli';
 $secret = $_GET['secret'] ?? '';
 $action = $_GET['action'] ?? 'cron';
 
-if (!$isCLI && !hash_equals('myanai_drip_2026', $secret)) {
+$dripSecret = getenv('MYANAI_DRIP_SECRET') ?: 'myanai_drip_2026';
+if (!$isCLI && !hash_equals($dripSecret, $secret)) {
     http_response_code(403); echo json_encode(['ok'=>false,'msg'=>'Unauthorized']); exit;
 }
 

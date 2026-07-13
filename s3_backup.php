@@ -15,7 +15,8 @@ declare(strict_types=1);
 
 $secret = $_GET['secret'] ?? '';
 $isCLI  = php_sapi_name() === 'cli';
-if (!$isCLI && !hash_equals('myanai_s3_backup_2026', $secret)) {
+$s3Secret = getenv('MYANAI_S3_BACKUP_SECRET') ?: 'myanai_s3_backup_2026';
+if (!$isCLI && !hash_equals($s3Secret, $secret)) {
     http_response_code(403); echo json_encode(['ok'=>false,'msg'=>'Unauthorized']); exit;
 }
 
