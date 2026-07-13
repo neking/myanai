@@ -11,21 +11,24 @@ declare(strict_types=1);
 
 /**
  * Hook 1: CRM Profile Sync (Phase 5A)
+ * tenant_id required as of migration 008 — customers is now keyed on
+ * (tenant_id, phone), so a customer ordering from a new tenant gets their
+ * own separate row instead of updating another tenant's record.
  */
-function hookCrmUpsert(PDO $pdo, string $phone, string $name, string $payment, int $orderId, int $total, array $items): void {
+function hookCrmUpsert(PDO $pdo, int $tenantId, string $phone, string $name, string $payment, int $orderId, int $total, array $items): void {
     if (!$phone) return;
     try {
         // Upsert customer
         $pdo->prepare("
-            INSERT INTO customers (phone, name, preferred_payment, total_orders, total_spent, last_order_at)
-            VALUES (?, ?, ?, 1, ?, NOW())
+            INSERT INTO customers (tenant_id, phone, name, preferred_payment, total_orders, total_spent, last_order_at)
+            VALUES (?, ?, ?, ?, 1, ?, NOW())
             ON DUPLICATE KEY UPDATE
                 name              = IF(? <> '', ?, name),
                 preferred_payment = IF(? <> '', ?, preferred_payment),
                 total_orders      = total_orders + 1,
                 total_spent       = total_spent + ?,
                 last_order_at     = NOW()
-        ")->execute([$phone, $name, $payment, $total,
+        ")->execute([$tenantId, $phone, $name, $payment, $total,
                      $name, $name, $payment, $payment, $total]);
 
         // Auto-tag
@@ -34,10 +37,12 @@ function hookCrmUpsert(PDO $pdo, string $phone, string $name, string $payment, i
                 WHEN total_orders >= 10 OR total_spent >= 100000 THEN 'vip'
                 WHEN total_orders >= 3 THEN 'regular'
                 ELSE tag END
-            WHERE phone = ? AND tag NOT IN ('blocked')
-        ")->execute([$phone]);
+            WHERE phone = ? AND tenant_id = ? AND tag NOT IN ('blocked')
+        ")->execute([$phone, $tenantId]);
 
-        // Update favourite items
+        // Update favourite items — no tenant_id column here, but menu_item_id
+        // always belongs to exactly one tenant's menu so no cross-tenant
+        // collision risk on the (phone, menu_item_id) unique key.
         foreach ($items as $item) {
             $menuItemId = (int)($item['item_id'] ?? 0);
             $itemName   = trim($item['name'] ?? '');

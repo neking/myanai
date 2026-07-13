@@ -35,15 +35,15 @@ function hookStockRestore(PDO $pdo, int $orderId): void {
 /**
  * Adjust CRM customer stats
  */
-function hookCrmReverse(PDO $pdo, string $phone, int $totalAmount): void {
+function hookCrmReverse(PDO $pdo, int $tenantId, string $phone, int $totalAmount): void {
     if (!$phone) return;
     try {
         $pdo->prepare("
             UPDATE customers SET
                 total_orders = GREATEST(0, total_orders - 1),
                 total_spent  = GREATEST(0, total_spent - ?)
-            WHERE phone = ?
-        ")->execute([$totalAmount, $phone]);
+            WHERE phone = ? AND tenant_id = ?
+        ")->execute([$totalAmount, $phone, $tenantId]);
 
         // Re-evaluate tag
         $pdo->prepare("
@@ -52,8 +52,8 @@ function hookCrmReverse(PDO $pdo, string $phone, int $totalAmount): void {
                 WHEN total_orders >= 3 THEN 'regular'
                 ELSE 'normal'
             END
-            WHERE phone = ? AND tag NOT IN ('blocked')
-        ")->execute([$phone]);
+            WHERE phone = ? AND tenant_id = ? AND tag NOT IN ('blocked')
+        ")->execute([$phone, $tenantId]);
     } catch (Exception $e) { /* CRM reverse fail */ }
 }
 

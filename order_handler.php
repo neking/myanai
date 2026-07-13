@@ -52,7 +52,7 @@ if (($_GET['action'] ?? '') === 'cancel') {
     // Reverse hooks
     require_once __DIR__ . '/order_cancel_hooks.php';
     hookStockRestore($pdo, $orderId);
-    hookCrmReverse($pdo, $o['customer_phone'], (int)$o['total_amount']);
+    hookCrmReverse($pdo, (int)$o['tenant_id'], $o['customer_phone'], (int)$o['total_amount']);
     hookDeliveryCancel($pdo, $orderId);
     hookShiftRemove($pdo, $orderId);
 
@@ -308,7 +308,7 @@ if (!empty($customerPhone)) {
 // ── Order Hooks (direct PHP — no HTTP overhead) ──
 require_once __DIR__ . '/order_hooks.php';
 
-hookCrmUpsert($pdo, $customerPhone ?? '', sanitizeStr($customer['name'] ?? ''),
+hookCrmUpsert($pdo, $tenantId, $customerPhone ?? '', sanitizeStr($customer['name'] ?? ''),
     $paymentMethod, $orderId, $total, $items);
 
 hookShiftAssign($pdo, $orderId);

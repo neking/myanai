@@ -14,9 +14,18 @@ if ($action === 'update' && $_SERVER['REQUEST_METHOD'] === 'POST') {
     $phone     = trim($d['phone'] ?? '');
     $stamps    = max(0, (int)($d['stamps'] ?? 0));
     $redeemed  = max(0, (int)($d['total_redeemed'] ?? 0));
+    $tid       = (int)($d['tenant_id'] ?? 0);
     if (!$origPhone || !$phone) { echo json_encode(['ok'=>false,'msg'=>'Missing params']); exit; }
-    $pdo->prepare("UPDATE loyalty_cards SET phone=?, stamps=?, total_redeemed=?, updated_at=NOW() WHERE phone=?")
-        ->execute([$phone, $stamps, $redeemed, $origPhone]);
+    // tenant_id optional for backward compatibility (see crm_api.php update_tag) —
+    // if provided, only that tenant's card is touched; loyalty_cards is now
+    // keyed on (tenant_id, phone) as of migration 008.
+    if ($tid > 0) {
+        $pdo->prepare("UPDATE loyalty_cards SET phone=?, stamps=?, total_redeemed=?, updated_at=NOW() WHERE phone=? AND tenant_id=?")
+            ->execute([$phone, $stamps, $redeemed, $origPhone, $tid]);
+    } else {
+        $pdo->prepare("UPDATE loyalty_cards SET phone=?, stamps=?, total_redeemed=?, updated_at=NOW() WHERE phone=?")
+            ->execute([$phone, $stamps, $redeemed, $origPhone]);
+    }
     echo json_encode(['ok'=>true]);
     exit;
 }
@@ -25,8 +34,13 @@ if ($action === 'update' && $_SERVER['REQUEST_METHOD'] === 'POST') {
 if ($action === 'delete' && $_SERVER['REQUEST_METHOD'] === 'POST') {
     $d = json_decode(file_get_contents('php://input'), true) ?? [];
     $phone = trim($d['phone'] ?? '');
+    $tid   = (int)($d['tenant_id'] ?? 0);
     if (!$phone) { echo json_encode(['ok'=>false,'msg'=>'No phone']); exit; }
-    $pdo->prepare("DELETE FROM loyalty_cards WHERE phone=?")->execute([$phone]);
+    if ($tid > 0) {
+        $pdo->prepare("DELETE FROM loyalty_cards WHERE phone=? AND tenant_id=?")->execute([$phone, $tid]);
+    } else {
+        $pdo->prepare("DELETE FROM loyalty_cards WHERE phone=?")->execute([$phone]);
+    }
     echo json_encode(['ok'=>true]);
     exit;
 }

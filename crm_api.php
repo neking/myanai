@@ -70,13 +70,10 @@ if ($action === 'profile' && $_SERVER['REQUEST_METHOD'] === 'GET') {
     $tid = (int)($_GET['tenant_id'] ?? 0) ?: 1;
 
     // customers profile (may not exist yet for brand-new phone)
-    // NOTE: `customers` has no tenant_id column (confirmed via schema check) —
-    // it's a platform-wide table by current design, so name/tag/total_spent
-    // here reflect activity across ALL tenants, not just this one. Flagged for
-    // a future migration (composite tenant_id+phone key) if per-tenant CRM
-    // profiles are wanted; not changed here to avoid an unreviewed schema change.
-    $stmt = $pdo->prepare("SELECT * FROM customers WHERE phone = ?");
-    $stmt->execute([$phone]);
+    // As of migration 008, customers is keyed on (tenant_id, phone), so this
+    // is now correctly scoped to just this tenant's relationship with them.
+    $stmt = $pdo->prepare("SELECT * FROM customers WHERE phone = ? AND tenant_id = ?");
+    $stmt->execute([$phone, $tid]);
     $profile = $stmt->fetch(PDO::FETCH_ASSOC);
 
     // loyalty card — tenant-scoped (loyalty_cards.tenant_id exists)
@@ -142,7 +139,7 @@ if ($action === 'list' && $_SERVER['REQUEST_METHOD'] === 'GET') {
     $where  = ['1=1'];
     $params = [];
     if ($tenantId > 0) {
-        $where[]  = 'EXISTS (SELECT 1 FROM orders o WHERE o.customer_phone=c.phone AND o.tenant_id=?)';
+        $where[]  = 'c.tenant_id = ?';
         $params[] = $tenantId;
     }
 
@@ -167,7 +164,7 @@ if ($action === 'list' && $_SERVER['REQUEST_METHOD'] === 'GET') {
                lc.stamps,
                lc.total_redeemed
         FROM   customers c
-        LEFT JOIN loyalty_cards lc ON lc.phone = c.phone
+        LEFT JOIN loyalty_cards lc ON lc.phone = c.phone AND lc.tenant_id = c.tenant_id
         WHERE  $whereSQL
         ORDER  BY c.last_order_at DESC, c.total_spent DESC
         LIMIT  $per OFFSET $offset
@@ -191,17 +188,18 @@ if ($action === 'list' && $_SERVER['REQUEST_METHOD'] === 'GET') {
 if ($action === 'top_items' && $_SERVER['REQUEST_METHOD'] === 'GET') {
     $phone = cleanPhone($_GET['phone'] ?? '');
     if (!$phone) fail('No phone');
+    $tid = (int)($_GET['tenant_id'] ?? 0) ?: 1;
 
     $stmt = $pdo->prepare("
         SELECT cfi.menu_item_id, cfi.item_name, cfi.order_count,
                mi.price, mi.emoji, mi.is_active, mi.stock_qty
         FROM   customer_favourite_items cfi
-        LEFT JOIN menu_items mi ON mi.id = cfi.menu_item_id
+        JOIN   menu_items mi ON mi.id = cfi.menu_item_id AND mi.tenant_id = ?
         WHERE  cfi.customer_phone = ?
         ORDER  BY cfi.order_count DESC
         LIMIT  8
     ");
-    $stmt->execute([$phone]);
+    $stmt->execute([$tid, $phone]);
     $items = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
     ok(['items' => $items]);
@@ -257,6 +255,7 @@ if ($action === 'last_order' && $_SERVER['REQUEST_METHOD'] === 'GET') {
    ════════════════════════════════════════════════════════════════ */
 if ($action === 'upsert' && $_SERVER['REQUEST_METHOD'] === 'POST') {
     $d       = json_decode(file_get_contents('php://input'), true) ?? [];
+    $tid     = (int)($d['tenant_id']           ?? 0) ?: 1;
     $phone   = cleanPhone($d['phone']          ?? '');
     $name    = trim($d['name']                 ?? '');
     $payment = trim($d['payment_method']       ?? '');
@@ -269,16 +268,16 @@ if ($action === 'upsert' && $_SERVER['REQUEST_METHOD'] === 'POST') {
     // Upsert customer profile — counters increment, name/payment update
     $pdo->prepare("
         INSERT INTO customers
-            (phone, name, preferred_payment, total_orders, total_spent, last_order_at)
+            (tenant_id, phone, name, preferred_payment, total_orders, total_spent, last_order_at)
         VALUES
-            (?, ?, ?, 1, ?, NOW())
+            (?, ?, ?, ?, 1, ?, NOW())
         ON DUPLICATE KEY UPDATE
             name              = IF(? <> '', ?, name),
             preferred_payment = IF(? <> '', ?, preferred_payment),
             total_orders      = total_orders + 1,
             total_spent       = total_spent + ?,
             last_order_at     = NOW()
-    ")->execute([$phone, $name, $payment, $total,
+    ")->execute([$tid, $phone, $name, $payment, $total,
                  $name, $name, $payment, $payment, $total]);
 
     // Auto-tag: regular (≥3 orders), vip (≥10 orders or ≥100k spent)
@@ -289,8 +288,8 @@ if ($action === 'upsert' && $_SERVER['REQUEST_METHOD'] === 'POST') {
                    WHEN total_orders >= 3                           THEN 'regular'
                    ELSE tag
                END
-        WHERE  phone = ? AND tag NOT IN ('blocked')
-    ")->execute([$phone]);
+        WHERE  phone = ? AND tenant_id = ? AND tag NOT IN ('blocked')
+    ")->execute([$phone, $tid]);
 
     // Update favourite items
     foreach ($items as $item) {
@@ -324,13 +323,26 @@ if ($action === 'update_tag' && $_SERVER['REQUEST_METHOD'] === 'POST') {
     $phone = cleanPhone($d['phone'] ?? '');
     $tag   = trim($d['tag']         ?? '');
     $notes = trim($d['notes']       ?? '');
+    $tid   = (int)($d['tenant_id']  ?? 0);
 
     if (!$phone) fail('No phone');
     if (!in_array($tag, ['normal','regular','vip','blocked'])) fail('Invalid tag');
 
-    $pdo->prepare("
-        UPDATE customers SET tag = ?, notes = ?, updated_at = NOW() WHERE phone = ?
-    ")->execute([$tag, $notes ?: null, $phone]);
+    // tenant_id is optional here for backward compatibility with the current
+    // super-admin caller (admin_modules.js), which doesn't send one yet — if
+    // provided, scope to that tenant's row; otherwise fall back to matching
+    // by phone alone (affects every tenant's row for that phone, same as
+    // before migration 008 — fine for a trusted super-admin tool, but should
+    // be updated to always pass tenant_id once that UI has a tenant selector).
+    if ($tid > 0) {
+        $pdo->prepare("
+            UPDATE customers SET tag = ?, notes = ?, updated_at = NOW() WHERE phone = ? AND tenant_id = ?
+        ")->execute([$tag, $notes ?: null, $phone, $tid]);
+    } else {
+        $pdo->prepare("
+            UPDATE customers SET tag = ?, notes = ?, updated_at = NOW() WHERE phone = ?
+        ")->execute([$tag, $notes ?: null, $phone]);
+    }
 
     ok();
 }
