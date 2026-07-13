@@ -23,7 +23,8 @@ function fail($m,$c=400){ http_response_code($c); echo json_encode(['ok'=>false,
 
 // ── List reviews (tenant) ──────────────────────────────────────
 if ($action === 'list') {
-    $tid  = (int)($_GET['tenant_id'] ?? $_SESSION['tenant_id'] ?? 0);
+    require_once __DIR__ . '/tenant_helper.php';
+    $tid  = requireTenantAccess((int)($_GET['tenant_id'] ?? 0));
     $limit= min((int)($_GET['limit'] ?? 20), 100);
     $page = max(1, (int)($_GET['page'] ?? 1));
     $off  = ($page-1)*$limit;
@@ -70,21 +71,23 @@ if ($action === 'submit' && $_SERVER['REQUEST_METHOD'] === 'POST') {
     ok(['msg' => 'Review submitted. Thank you!']);
 }
 
-// ── Toggle public/private ──────────────────────────────────────
+// ── Toggle public/private (tenant admin only) ──────────────────
 if ($action === 'toggle_public' && $_SERVER['REQUEST_METHOD'] === 'POST') {
+    require_once __DIR__ . '/tenant_helper.php';
     $b  = json_decode(file_get_contents('php://input'), true) ?? [];
     $id = (int)($b['id'] ?? 0);
-    $tid= (int)($b['tenant_id'] ?? $_SESSION['tenant_id'] ?? 0);
+    $tid = requireTenantAccess((int)($b['tenant_id'] ?? 0));
     if (!$id) fail('id required');
     $pdo->prepare("UPDATE reviews SET is_public=NOT is_public WHERE id=? AND tenant_id=?")->execute([$id,$tid]);
     ok(['msg'=>'Updated']);
 }
 
-// ── Delete review ──────────────────────────────────────────────
+// ── Delete review (tenant admin only) ───────────────────────────
 if ($action === 'delete' && $_SERVER['REQUEST_METHOD'] === 'POST') {
+    require_once __DIR__ . '/tenant_helper.php';
     $b  = json_decode(file_get_contents('php://input'), true) ?? [];
     $id = (int)($b['id'] ?? 0);
-    $tid= (int)($b['tenant_id'] ?? $_SESSION['tenant_id'] ?? 0);
+    $tid = requireTenantAccess((int)($b['tenant_id'] ?? 0));
     if (!$id) fail('id required');
     $pdo->prepare("DELETE FROM reviews WHERE id=? AND tenant_id=?")->execute([$id,$tid]);
     ok(['msg'=>'Deleted']);
