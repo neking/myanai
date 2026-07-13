@@ -2005,7 +2005,7 @@ function showPage(page){
   // Per-page action buttons in topbar
   const actions = {
     menu:     `<button class="btn btn-primary btn-sm" onclick="openAddItem()">+ Add item</button>`,
-    tables:   `<div style="display:flex;gap:.4rem"><a id="kds-link" href="kds.html?tenant=${window.__TENANT_ID}&branch=${window._currentBranch||0}" target="_blank" class="btn btn-ghost btn-sm">👨‍🍳 KDS</a><button class="btn btn-primary btn-sm" onclick="openAddTable()">+ Add table</button></div>`,
+    tables:   `<div style="display:flex;gap:.4rem"><a id="kds-link" href="kds.html?tenant_id=${window.__TENANT_ID}&branch_id=${window._currentBranch||0}" target="_blank" class="btn btn-ghost btn-sm">👨‍🍳 KDS</a><button class="btn btn-primary btn-sm" onclick="openAddTable()">+ Add table</button></div>`,
     expenses: `<button class="btn btn-primary btn-sm" onclick="openAddExpense()">+ Add expense</button>`,
     promos:   `<button class="btn btn-primary btn-sm" onclick="openAddPromo()">+ Add promo</button>`,
     reserve:  `<button class="btn btn-primary btn-sm" onclick="openAddReserve()">+ New reservation</button>`,
@@ -2857,7 +2857,7 @@ async function loadTables(){
 
   // Update KDS link
   const kdsLink = document.getElementById('kds-link');
-  if(kdsLink) kdsLink.href = `kds.html?branch=${bid}&tenant=${window.__TENANT_ID}`;
+  if(kdsLink) kdsLink.href = `kds.html?branch_id=${bid}&tenant_id=${window.__TENANT_ID}`;
 
   if(!d.ok||!d.tables?.length){
     grid.innerHTML=`<div style="grid-column:1/-1;text-align:center;padding:2.5rem;color:var(--muted)">
@@ -3003,7 +3003,7 @@ async function branchLoad(){
       <div style="font-size:.8rem;color:var(--muted)">${escH(b.address||'')}</div>
       <div style="font-size:.78rem;color:var(--muted);margin-top:.25rem">${escH(b.phone||'')} ${b.open_time?'· '+b.open_time+'-'+b.close_time:''}</div>
       <div style="margin-top:.75rem;display:flex;gap:.35rem">
-        <a href="kds.html?branch=${b.id}&tenant=${window.__TENANT_ID}" target="_blank" class="btn btn-ghost btn-sm">👨‍🍳 KDS</a>
+        <a href="kds.html?branch_id=${b.id}&tenant_id=${window.__TENANT_ID}" target="_blank" class="btn btn-ghost btn-sm">👨‍🍳 KDS</a>
         <a href="index.html?t=${window.__TENANT_SLUG||'demo'}&branch=${b.id}" target="_blank" class="btn btn-ghost btn-sm">🛒 Order</a>
       </div>
     </div>`).join('');

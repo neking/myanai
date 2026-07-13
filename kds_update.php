@@ -17,22 +17,21 @@ $reason = trim($b['cancel_reason'] ?? '');
 $tid    = (int)($b['tenant_id'] ?? 0);
 
 if (!$kdsId) { echo json_encode(['ok'=>false,'msg'=>'No kds_id']); exit; }
+if (!$tid)   { echo json_encode(['ok'=>false,'msg'=>'tenant_id required']); exit; }
 
-// ★ Verify kds entry belongs to tenant ★
-if ($tid) {
-    $verify = $pdo->prepare("SELECT kq.id FROM kds_queue kq JOIN orders o ON o.id=kq.order_id WHERE kq.id=? AND o.tenant_id=?");
-    $verify->execute([$kdsId, $tid]);
-    if (!$verify->fetchColumn()) { echo json_encode(['ok'=>false,'msg'=>'Unauthorized']); exit; }
-}
-
-
-
+// Verify kds entry belongs to tenant — previously this check only ran when
+// `$tid` was truthy, so any caller that simply omitted tenant_id skipped it
+// entirely. kds.html (the only real caller) never sent tenant_id at all
+// until this session's fix, so in practice this check has never actually
+// been enforced — any kitchen display could update/cancel any tenant's order.
+$verify = $pdo->prepare("SELECT kq.id FROM kds_queue kq JOIN orders o ON o.id=kq.order_id WHERE kq.id=? AND o.tenant_id=?");
+$verify->execute([$kdsId, $tid]);
+if (!$verify->fetchColumn()) { echo json_encode(['ok'=>false,'msg'=>'Unauthorized']); exit; }
 
 
 // ── Save note ──
 if ($note && !$status) {
     // Append note to order special_notes
-    $row = $pdo->prepare("SELECT order_id FROM kds_queue WHERE id=:id")->execute([':id'=>$kdsId]);
     $row = $pdo->prepare("SELECT order_id FROM kds_queue WHERE id=:id");
     $row->execute([':id'=>$kdsId]);
     $r = $row->fetch();

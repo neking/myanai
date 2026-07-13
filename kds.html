@@ -169,6 +169,18 @@ const STATION_LABEL = {
   kitchen: '— Kitchen', drinks: '— Drinks', counter: '— Counter',
   bar: '— Bar', grill: '— Grill', all: ''
 }[STATION] || '';
+
+/* ── Tenant + branch context (must run before connect() below) ──
+   Previously this was at the bottom of the file, parsed AFTER connect() had
+   already been called — so the very first SSE connection always lacked this
+   context. Also previously only read 'branch_id', never 'tenant'/'tenant_id'
+   at all, while tenant.php's links use ?tenant=X&branch=Y — accepting both
+   naming conventions here since existing bookmarks/links may use either. */
+window._kdsTenant = parseInt(URL_P.get('tenant_id') || URL_P.get('tenant') || localStorage.getItem('kds_tenant') || '0');
+window._kdsBranch = parseInt(URL_P.get('branch_id') || URL_P.get('branch') || localStorage.getItem('kds_branch') || '0');
+if (window._kdsTenant > 0) localStorage.setItem('kds_tenant', window._kdsTenant);
+if (window._kdsBranch > 0) localStorage.setItem('kds_branch', window._kdsBranch);
+
 document.addEventListener('DOMContentLoaded', () => {
   const lbl = document.getElementById('station-label');
   if (lbl && STATION_LABEL) lbl.textContent = STATION_LABEL;
@@ -227,7 +239,8 @@ function connect() {
 
   const stnQ = STATION !== 'all' ? '&station=' + encodeURIComponent(STATION) : '';
   const branchQ = window._kdsBranch > 0 ? '&branch_id=' + window._kdsBranch : '';
-  es = new EventSource('kds_stream.php?lastId=' + maxId + stnQ + branchQ);
+  const tenantQ = window._kdsTenant > 0 ? '&tenant_id=' + window._kdsTenant : '';
+  es = new EventSource('kds_stream.php?lastId=' + maxId + stnQ + branchQ + tenantQ);
 
   es.addEventListener('init', e => {
     const list = JSON.parse(e.data);
@@ -381,7 +394,7 @@ async function saveNote(id) {
   if (!inp || !inp.value.trim()) return;
   try {
     await fetch('kds_update.php',{method:'POST',headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({kds_id:id, note:inp.value.trim()})});
+      body:JSON.stringify({kds_id:id, note:inp.value.trim(), tenant_id:window._kdsTenant||0})});
     inp.value=''; toggleNote(id);
   } catch(e){}
 }
@@ -391,7 +404,7 @@ async function cancelOrder(id, ref) {
   if (reason === null) return;
   try {
     const r = await fetch('kds_update.php',{method:'POST',headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({kds_id:id, status:'cancelled', cancel_reason:reason||'Cancelled by kitchen'})});
+      body:JSON.stringify({kds_id:id, status:'cancelled', cancel_reason:reason||'Cancelled by kitchen', tenant_id:window._kdsTenant||0})});
     const d = await r.json();
     if (d.ok) {
       const tk = document.getElementById('tk-'+id);
@@ -407,7 +420,7 @@ async function doUpdate(kdsId, newStatus) {
     const res  = await fetch('kds_update.php', {
       method: 'POST',
       headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify({kds_id: kdsId, status: newStatus})
+      body: JSON.stringify({kds_id: kdsId, status: newStatus, tenant_id: window._kdsTenant||0})
     });
     const data = await res.json();
     if (!data.ok && !data.success) throw new Error(data.msg || data.message || 'Failed');
@@ -481,11 +494,4 @@ function showToast(msg, type) {
 connect();
 </script>
 
-<script>
-// Branch context for KDS
-window._kdsBranch = parseInt(new URLSearchParams(location.search).get('branch_id') || localStorage.getItem('kds_branch') || '0');
-// If branch_id in URL, save it
-if(window._kdsBranch > 0) localStorage.setItem('kds_branch', window._kdsBranch);
-</script>
-</body>
-</html>
+
