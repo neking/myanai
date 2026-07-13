@@ -3151,7 +3151,7 @@ async function sfUploadImage(type, input){
   fd.append('type', type);
   fd.append('tenant_id', window.__TENANT_ID);
   try {
-    const r = await fetch('menu_api.php?action=upload_image',{method:'POST',credentials:'include',body:fd}).then(r=>r.json());
+    const r = await fetch('tenant_api.php?action=upload_storefront_image',{method:'POST',credentials:'include',body:fd}).then(r=>r.json());
     if(r.ok && r.path){
       if(type==='logo'){
         _sfData.logo_path = r.path;

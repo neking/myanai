@@ -539,6 +539,10 @@ if ($action === 'delete' && $_SERVER['REQUEST_METHOD'] === 'POST') {
 if ($action === 'get_storefront') {
     $tid = (int)($_GET['tenant_id'] ?? 0);
     if (!$tid) fail('tenant_id required');
+    $sessionTid = (int)($_SESSION['tenant_id'] ?? 0);
+    if (empty($_SESSION['admin']) && (empty($_SESSION['tenant_admin']) || $sessionTid !== $tid)) {
+        fail('Unauthorized', 401);
+    }
 
     // Load all storefront-related site_settings for this tenant
     // site_settings is global but we store per-tenant via tenant.settings JSON
@@ -572,6 +576,10 @@ if ($action === 'save_storefront' && $_SERVER['REQUEST_METHOD'] === 'POST') {
     $sf   = $body['settings'] ?? [];
     if (!$tid) fail('tenant_id required');
     if (!$sf)  fail('settings required');
+    $sessionTid = (int)($_SESSION['tenant_id'] ?? 0);
+    if (empty($_SESSION['admin']) && (empty($_SESSION['tenant_admin']) || $sessionTid !== $tid)) {
+        fail('Unauthorized', 401);
+    }
 
     // Sanitize
     $allowed = ['store_name','tagline','about','phone','address','emoji','primary_color',
@@ -596,6 +604,47 @@ if ($action === 'save_storefront' && $_SERVER['REQUEST_METHOD'] === 'POST') {
     // ★ Tenant storefront saved to tenant.settings JSON only
     // Do NOT overwrite global site_settings (that's for platform branding)
     ok(['msg' => 'Storefront saved']);
+}
+
+/* ════════════════════════════════════════════════════════
+   STOREFRONT IMAGE UPLOAD (logo / cover photo)
+   POST ?action=upload_storefront_image  multipart: image, type(logo|cover), tenant_id
+════════════════════════════════════════════════════════ */
+if ($action === 'upload_storefront_image' && $_SERVER['REQUEST_METHOD'] === 'POST') {
+    $tid = (int)($_POST['tenant_id'] ?? 0);
+    if (!$tid) fail('tenant_id required');
+
+    $sessionTid = (int)($_SESSION['tenant_id'] ?? 0);
+    if (empty($_SESSION['admin']) && (empty($_SESSION['tenant_admin']) || $sessionTid !== $tid)) {
+        fail('Unauthorized', 401);
+    }
+
+    $type = trim($_POST['type'] ?? '');
+    if (!in_array($type, ['logo', 'cover'], true)) fail('Invalid type');
+
+    if (empty($_FILES['image']) || $_FILES['image']['error'] !== UPLOAD_ERR_OK) {
+        fail('No file uploaded');
+    }
+    $file = $_FILES['image'];
+    if ($file['size'] > 5 * 1024 * 1024) fail('Max file size is 5MB');
+
+    $allowedMime = ['image/jpeg'=>'jpg','image/png'=>'png','image/gif'=>'gif','image/webp'=>'webp'];
+    $mime = function_exists('mime_content_type') ? mime_content_type($file['tmp_name']) : $file['type'];
+    if (!isset($allowedMime[$mime])) fail('Only JPG/PNG/GIF/WEBP images allowed');
+
+    $dir = __DIR__ . '/uploads/storefront/';
+    if (!is_dir($dir)) mkdir($dir, 0755, true);
+
+    // Remove any previous logo/cover for this tenant to avoid orphaned files
+    foreach (glob($dir . $type . '_' . $tid . '_*') as $old) { @unlink($old); }
+
+    $ext  = $allowedMime[$mime];
+    $name = $type . '_' . $tid . '_' . time() . '.' . $ext;
+    $dest = $dir . $name;
+
+    if (!move_uploaded_file($file['tmp_name'], $dest)) fail('Failed to save file');
+
+    ok(['path' => 'uploads/storefront/' . $name]);
 }
 
 /* ════════════════════════════════════════════════════════
