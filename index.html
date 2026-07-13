@@ -2493,6 +2493,8 @@ function applyStorefront(sf) {
     rounded: "system-ui,'Noto Sans Myanmar',sans-serif",
     serif:   "'Cormorant Garamond','Playfair Display','Noto Sans Myanmar',serif",
     mono:    "'DM Mono',monospace",
+    playful: "'Fredoka One','Noto Sans Myanmar',cursive",
+    script:  "'Pacifico','Noto Sans Myanmar',cursive",
   };
   if (sf.font_style && fontMap[sf.font_style]) {
     document.documentElement.style.fontFamily = fontMap[sf.font_style];
@@ -2521,6 +2523,8 @@ function applyStorefront(sf) {
     dark:     { body: '#1a1a2e', header: '#0f0f1a', hero: '#0f0f1a' },
     light:    { body: '#f8fafc', header: '#ffffff', hero: '#f1f5f9' },
     gradient: { body: '#f0f0ff', header: '', hero: 'linear-gradient(135deg,#667eea,#764ba2)' },
+    pastel:   { body: 'linear-gradient(135deg,#ffe4ec,#e0f2fe)', header: '', hero: '' },
+    minimal:  { body: '#ffffff', header: '#ffffff', hero: '#fafafa' },
   };
   if (sf.bg_style && bgMap[sf.bg_style]) {
     const bg = bgMap[sf.bg_style];
@@ -2544,6 +2548,11 @@ function applyStorefront(sf) {
       menuGrid.style.gridTemplateColumns = window.innerWidth <= 600
         ? 'repeat(3,1fr)'
         : 'repeat(auto-fill,minmax(250px,1fr))';
+    } else if (sf.layout === 'compact') {
+      menuGrid.style.gridTemplateColumns = window.innerWidth <= 600
+        ? 'repeat(4,1fr)'
+        : 'repeat(auto-fill,minmax(140px,1fr))';
+      menuGrid.style.gap = '.5rem';
     } else {
       // Responsive: 3 cols on mobile, auto on desktop
       menuGrid.style.gridTemplateColumns = window.innerWidth <= 600

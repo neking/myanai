@@ -1571,6 +1571,8 @@ button,select,input[type=checkbox]{
             <button onclick="sfSetColor('#1D4ED8')" style="width:30px;height:30px;border-radius:50%;background:#1D4ED8;border:2px solid transparent;cursor:pointer" title="Indigo"></button>
             <button onclick="sfSetColor('#92400E')" style="width:30px;height:30px;border-radius:50%;background:#92400E;border:2px solid transparent;cursor:pointer" title="Brown"></button>
             <button onclick="sfSetColor('#1565C0')" style="width:30px;height:30px;border-radius:50%;background:#1565C0;border:2px solid transparent;cursor:pointer" title="Navy"></button>
+            <button onclick="sfSetColor('#18181B')" style="width:30px;height:30px;border-radius:50%;background:#18181B;border:2px solid transparent;cursor:pointer" title="Black"></button>
+            <button onclick="sfSetColor('#EAB308')" style="width:30px;height:30px;border-radius:50%;background:#EAB308;border:2px solid transparent;cursor:pointer" title="Gold"></button>
             <div style="display:flex;align-items:center;gap:.35rem">
               <input type="color" id="sf-color" value="#E84C2B" oninput="sfSetColor(this.value)"
                 style="width:30px;height:30px;border-radius:50%;border:2px solid var(--border);cursor:pointer;padding:0">
@@ -1582,7 +1584,7 @@ button,select,input[type=checkbox]{
         <!-- Font -->
         <div style="margin-bottom:1rem">
           <label style="font-size:.75rem;color:var(--muted);display:block;margin-bottom:.5rem">Font Style</label>
-          <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:.5rem">
+          <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:.5rem">
             <button onclick="sfSetFont('default')" id="sfont-default" class="sf-font-btn sf-btn-active"
               style="padding:.5rem;border:1.5px solid var(--accent);border-radius:8px;font-size:.78rem;cursor:pointer;background:var(--warm)">Default</button>
             <button onclick="sfSetFont('rounded')" id="sfont-rounded" class="sf-font-btn"
@@ -1591,26 +1593,32 @@ button,select,input[type=checkbox]{
               style="padding:.5rem;border:1px solid var(--border);border-radius:8px;font-size:.78rem;cursor:pointer;background:var(--warm);font-family:Georgia,serif">Classic</button>
             <button onclick="sfSetFont('mono')" id="sfont-mono" class="sf-font-btn"
               style="padding:.5rem;border:1px solid var(--border);border-radius:8px;font-size:.78rem;cursor:pointer;background:var(--warm);font-family:monospace">Tech</button>
+            <button onclick="sfSetFont('playful')" id="sfont-playful" class="sf-font-btn"
+              style="padding:.5rem;border:1px solid var(--border);border-radius:8px;font-size:.78rem;cursor:pointer;background:var(--warm);font-family:'Fredoka One',cursive">Playful</button>
+            <button onclick="sfSetFont('script')" id="sfont-script" class="sf-font-btn"
+              style="padding:.5rem;border:1px solid var(--border);border-radius:8px;font-size:.78rem;cursor:pointer;background:var(--warm);font-family:'Pacifico',cursive">Script</button>
           </div>
         </div>
 
         <!-- Layout -->
         <div style="margin-bottom:1rem">
           <label style="font-size:.75rem;color:var(--muted);display:block;margin-bottom:.5rem">Menu Layout</label>
-          <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:.5rem">
+          <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:.5rem">
             <button onclick="sfSetLayout('grid')" id="slayout-grid" class="sf-layout-btn sf-btn-active"
               style="padding:.5rem;border:1.5px solid var(--accent);border-radius:8px;font-size:.78rem;cursor:pointer;background:var(--warm)">⊞ Grid</button>
             <button onclick="sfSetLayout('list')" id="slayout-list" class="sf-layout-btn"
               style="padding:.5rem;border:1px solid var(--border);border-radius:8px;font-size:.78rem;cursor:pointer;background:var(--warm)">☰ List</button>
             <button onclick="sfSetLayout('card')" id="slayout-card" class="sf-layout-btn"
               style="padding:.5rem;border:1px solid var(--border);border-radius:8px;font-size:.78rem;cursor:pointer;background:var(--warm)">▣ Cards</button>
+            <button onclick="sfSetLayout('compact')" id="slayout-compact" class="sf-layout-btn"
+              style="padding:.5rem;border:1px solid var(--border);border-radius:8px;font-size:.78rem;cursor:pointer;background:var(--warm)">▦ Compact</button>
           </div>
         </div>
 
         <!-- Background -->
         <div>
           <label style="font-size:.75rem;color:var(--muted);display:block;margin-bottom:.5rem">Background Style</label>
-          <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:.5rem">
+          <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:.5rem">
             <button onclick="sfSetBg('warm')" id="sbg-warm" class="sf-bg-btn sf-btn-active"
               style="padding:.5rem;border:1.5px solid var(--accent);border-radius:8px;font-size:.72rem;cursor:pointer;background:#fdf8f3">🌅 Warm</button>
             <button onclick="sfSetBg('dark')" id="sbg-dark" class="sf-bg-btn"
@@ -1619,6 +1627,10 @@ button,select,input[type=checkbox]{
               style="padding:.5rem;border:1px solid var(--border);border-radius:8px;font-size:.72rem;cursor:pointer;background:#f8fafc">☀️ Light</button>
             <button onclick="sfSetBg('gradient')" id="sbg-gradient" class="sf-bg-btn"
               style="padding:.5rem;border:1px solid var(--border);border-radius:8px;font-size:.72rem;cursor:pointer;background:linear-gradient(135deg,#667eea,#764ba2);color:#fff">✨ Vivid</button>
+            <button onclick="sfSetBg('pastel')" id="sbg-pastel" class="sf-bg-btn"
+              style="padding:.5rem;border:1px solid var(--border);border-radius:8px;font-size:.72rem;cursor:pointer;background:linear-gradient(135deg,#ffe4ec,#e0f2fe)">🌸 Pastel</button>
+            <button onclick="sfSetBg('minimal')" id="sbg-minimal" class="sf-bg-btn"
+              style="padding:.5rem;border:1px solid var(--border);border-radius:8px;font-size:.72rem;cursor:pointer;background:#ffffff">◽ Minimal</button>
           </div>
         </div>
       </div>
@@ -3198,7 +3210,7 @@ function sfSetColor(hex, update=true){
 
 function sfSetFont(font, update=true){
   _sfData.font_style = font;
-  const fontMap = {default:'inherit', rounded:'system-ui', serif:'Georgia,serif', mono:'monospace'};
+  const fontMap = {default:'inherit', rounded:'system-ui', serif:'Georgia,serif', mono:'monospace', playful:"'Fredoka One',cursive", script:"'Pacifico',cursive"};
   const preview = document.getElementById('sf-preview');
   if(preview) preview.style.fontFamily = fontMap[font] || 'inherit';
   document.querySelectorAll('.sf-font-btn').forEach(b => {
@@ -3223,6 +3235,8 @@ function sfSetBg(bg, update=true){
     dark: {bg:'#1a1a2e', itemBg:'#2d2d44'},
     light: {bg:'#f8fafc', itemBg:'#fff'},
     gradient: {bg:'linear-gradient(135deg,#667eea,#764ba2)', itemBg:'rgba(255,255,255,.95)'},
+    pastel: {bg:'linear-gradient(135deg,#ffe4ec,#e0f2fe)', itemBg:'rgba(255,255,255,.9)'},
+    minimal: {bg:'#ffffff', itemBg:'#fafafa'},
   };
   const bgEl = document.getElementById('sf-preview');
   if(bgEl && bgMap[bg]){
