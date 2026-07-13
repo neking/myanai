@@ -3,6 +3,7 @@ require_once __DIR__ . '/db_connect.php';
 $pdo = getPDO();
 $settings = $pdo->query("SELECT setting_key,setting_value FROM site_settings WHERE setting_key IN ('store_name','store_emoji')")->fetchAll(PDO::FETCH_KEY_PAIR);
 $store = ($settings['store_emoji']??'🍜').' '.($settings['store_name']??'NoodleHaus');
+$tenantId = (int)($_GET['tenant_id'] ?? 1);
 ?><!DOCTYPE html>
 <html lang="en">
 <head>
@@ -80,8 +81,8 @@ async function trackOrders() {
   if (!phone) { alert('ဖုန်းနံပါတ် ထည့်ပါ'); return; }
 
   const [histRes, loyRes] = await Promise.all([
-    fetch('customer_history.php?phone=' + encodeURIComponent(phone)).then(r=>r.json()),
-    fetch('loyalty.php?action=get&phone=' + encodeURIComponent(phone)).then(r=>r.json()),
+    fetch('customer_history.php?phone=' + encodeURIComponent(phone) + '&tenant_id=<?= $tenantId ?>').then(r=>r.json()),
+    fetch('loyalty.php?action=get&phone=' + encodeURIComponent(phone) + '&tenant_id=<?= $tenantId ?>').then(r=>r.json()),
   ]);
 
   document.getElementById('search-box').style.display = 'none';

@@ -3,18 +3,26 @@ require_once __DIR__ . '/db_connect.php';
 session_start();
 header('Content-Type: application/json; charset=utf-8');
 
-// ★ Require tenant session ★
-if (empty($_SESSION['tenant_id']) && empty($_SESSION['admin'])) {
-    echo json_encode(['ok'=>false,'msg'=>'Unauthorized']); exit;
-}
-
 $phone = trim($_GET['phone'] ?? '');
 if (!$phone) { echo json_encode(['ok'=>false,'msg'=>'No phone']); exit; }
 
-$pdo = getPDO();
+// Two access modes:
+// 1. Logged-in tenant/admin session (tenant.php's CRM page, admin.php) — uses
+//    the session's own tenant_id, ignoring any tenant_id in the request.
+// 2. Public customer-facing callers (index.html, track_orders.php) — no
+//    session exists (customers aren't logged in), so a tenant_id must be
+//    supplied directly. This was previously hard-required to have a session,
+//    which meant this endpoint always returned "Unauthorized" for the two
+//    actual public callers that use it — the customer-facing order-history
+//    lookup has never worked.
+if (!empty($_SESSION['tenant_id']) || !empty($_SESSION['admin'])) {
+    $tid = (int)($_SESSION['tenant_id'] ?? (int)($_GET['tenant_id'] ?? 0));
+} else {
+    $tid = (int)($_GET['tenant_id'] ?? 0);
+}
+if (!$tid) { echo json_encode(['ok'=>false,'msg'=>'tenant_id required']); exit; }
 
-// ★ Always filter by tenant_id ★
-$tid = (int)($_SESSION['tenant_id'] ?? 0);
+$pdo = getPDO();
 
 $orders = $pdo->prepare("
     SELECT o.id, o.total_amount, o.payment_method, o.status, o.order_type,

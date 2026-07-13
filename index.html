@@ -2717,7 +2717,7 @@ function showTrackModal() {
         <span style="font-weight:700;font-size:.95rem">📋 Track Your Order</span>
         <button onclick="document.getElementById('track-overlay').remove()" style="background:none;border:none;font-size:1.2rem;cursor:pointer;color:#888">✕</button>
       </div>
-      <iframe src="track_orders.php" style="flex:1;border:none;width:100%" loading="lazy"></iframe>
+      <iframe src="track_orders.php?tenant_id=${window._TENANT_ID||1}" style="flex:1;border:none;width:100%" loading="lazy"></iframe>
     </div>`;
   document.body.appendChild(overlay);
   overlay.addEventListener('click', e => { if(e.target===overlay) overlay.remove(); });

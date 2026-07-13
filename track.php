@@ -42,6 +42,12 @@ if ($orderUuid) {
 $o = $order->fetch();
 if (!$o) { echo json_encode(['success'=>false,'message'=>'Order not found']); exit; }
 
+// Use the resolved order's own id from here on — previously $orderId stayed
+// at its initial value (0, unless ?id= was also passed) when the lookup was
+// done via UUID, so the items and KDS status below always queried
+// order_id=0 and came back empty even though the order itself was found.
+$orderId = (int)$o['id'];
+
 $items = $pdo->prepare("SELECT item_name, qty, unit_price, subtotal FROM order_items WHERE order_id = :id");
 $items->execute([':id' => $orderId]);
 
