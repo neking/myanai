@@ -16,6 +16,7 @@ declare(strict_types=1);
 if(session_status()===PHP_SESSION_NONE) session_start();
 require_once __DIR__ . '/db_connect.php';
 require_once __DIR__ . '/auth_helper.php';
+require_once __DIR__ . '/tenant_helper.php';
 header('Content-Type: application/json; charset=utf-8');
 if ($_SERVER['REQUEST_METHOD'] === 'POST') requireCsrf();
 $allowedOrigins = ['https://myanai.net','https://www.myanai.net','http://localhost','http://127.0.0.1'];
@@ -62,19 +63,6 @@ function fail(string $msg, int $code = 400): never {
 }
 function requireAdmin(): void {
     if (session_status() === PHP_SESSION_NONE) session_start();
-
-// ── Branch/Tenant context from request ──────────────────────────────
-$_REQ_BRANCH = (int)($_GET['branch_id'] ?? $_POST['branch_id'] ?? 0);
-$_REQ_TENANT = (int)($_GET['tenant_id'] ?? $_POST['tenant_id'] ?? $_SESSION['tenant_id'] ?? 1);
-function branchWhere(string $alias='o'): string {
-    global $_REQ_BRANCH, $_REQ_TENANT;
-    $w = [];
-    if($_REQ_BRANCH > 0) $w[] = "$alias.branch_id = $_REQ_BRANCH";
-    if($_REQ_TENANT > 0) $w[] = "$alias.tenant_id = $_REQ_TENANT";
-    return $w ? ' AND '.implode(' AND ',$w) : '';
-}
-// ─────────────────────────────────────────────────────────────────────
-
     if (empty($_SESSION['admin']) && empty($_SESSION['tenant_id'])) fail('Unauthorized', 401);
 }
 
@@ -84,10 +72,11 @@ function branchWhere(string $alias='o'): string {
    ════════════════════════════════════════════════════════════════ */
 if ($action === 'overview' && $_SERVER['REQUEST_METHOD'] === 'GET') {
     requireAdmin();
+    $tid = requireTenantAccess($_TID);
 
     $threshold = max(1, (int)($_GET['low_threshold'] ?? 10));
 
-    $items = getStockByBranch($pdo, $_BID, $_TID);
+    $items = getStockByBranch($pdo, $_BID, $tid);
     $lowStock  = [];
     $outOfStock = [];
     foreach ($items as $item) {
@@ -120,6 +109,7 @@ if ($action === 'overview' && $_SERVER['REQUEST_METHOD'] === 'GET') {
    ════════════════════════════════════════════════════════════════ */
 if ($action === 'log' && $_SERVER['REQUEST_METHOD'] === 'GET') {
     requireAdmin();
+    $tid = requireTenantAccess($_TID);
 
     $itemId = (int)($_GET['item_id'] ?? 0);
     $page   = max(1, (int)($_GET['page'] ?? 1));
@@ -127,7 +117,7 @@ if ($action === 'log' && $_SERVER['REQUEST_METHOD'] === 'GET') {
     $offset = ($page - 1) * $per;
 
     $where  = ['sl.tenant_id = ?'];
-    $params = [$_TID];
+    $params = [$tid];
     if ($itemId) { $where[] = 'sl.menu_item_id = ?'; $params[] = $itemId; }
     $whereSQL = implode(' AND ', $where);
 
@@ -168,7 +158,7 @@ if ($action === 'adjust' && $_SERVER['REQUEST_METHOD'] === 'POST') {
     $reason    = trim($d['reason']      ?? 'manual_adjust');
     $note      = trim($d['note']        ?? '');
     $staffName = trim($d['staff_name']  ?? 'Admin');
-    $tid       = (int)($d['tenant_id'] ?? $_TID ?? 1);
+    $tid       = requireTenantAccess((int)($d['tenant_id'] ?? 0));
 
     if (!$itemId || $changeQty === 0) fail('item_id and change_qty required');
 
