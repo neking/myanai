@@ -199,11 +199,15 @@ if ($action === 'adjust' && $_SERVER['REQUEST_METHOD'] === 'POST') {
                 ->execute([$newQty, $itemId, $tid]);
         }
 
-        // Log with branch context
+        // Log with branch + tenant context — previously omitted tenant_id
+        // entirely, so every log entry silently landed under the column's
+        // default (tenant_id=1) regardless of which tenant actually made the
+        // adjustment, making stock_log_api.php's tenant-scoped list always
+        // come back empty for every real tenant.
         $pdo->prepare("
-            INSERT INTO stock_log (menu_item_id, item_name, change_qty, new_qty, reason, note, staff_name, branch_id)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-        ")->execute([$itemId, $item['name'], $changeQty, $newQty, $reason, $note ?: null, $staffName, $bid]);
+            INSERT INTO stock_log (menu_item_id, item_name, change_qty, new_qty, reason, note, staff_name, branch_id, tenant_id)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+        ")->execute([$itemId, $item['name'], $changeQty, $newQty, $reason, $note ?: null, $staffName, $bid, $tid]);
 
         $pdo->commit();
 
@@ -225,6 +229,14 @@ if ($action === 'adjust' && $_SERVER['REQUEST_METHOD'] === 'POST') {
    POST order_deduct
    order_handler.php hook — auto deduct stock on order
    Body: { order_id, items:[{item_id, name, qty}] }
+
+   NOTE: confirmed this session that nothing actually calls this HTTP
+   endpoint — order_handler.php deducts stock directly in its own
+   transaction and calls hookStockDeduct() (order_hooks.php) in-process
+   for logging, not this action. Left in place but not actively used;
+   the tenant_id gap below (never set on the stock_log insert) is
+   flagged rather than fixed since fixing dead code isn't worth the
+   risk of a typo in code nothing exercises.
    ════════════════════════════════════════════════════════════════ */
 if ($action === 'order_deduct' && $_SERVER['REQUEST_METHOD'] === 'POST') {
     $d       = json_decode(file_get_contents('php://input'), true) ?? [];
