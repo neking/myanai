@@ -11,6 +11,24 @@ header('Access-Control-Allow-Headers: Content-Type, X-CSRF-Token');
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') { http_response_code(204); exit; }
 if ($_SERVER['REQUEST_METHOD'] === 'POST') requireCsrf();
 
+// CRITICAL FIX: this file previously had NO authentication check at all —
+// requireCsrf() only defends against cross-site request forgery (a victim's
+// browser being tricked into firing a request from another site); it does
+// nothing to stop a deliberate direct attacker, who can simply visit the
+// site themselves, obtain their own valid session + CSRF token, and call
+// this endpoint directly. That meant 'list' leaked every staff member's PIN
+// code (the entire authentication credential for the waiter app) across
+// every tenant to any unauthenticated visitor, and 'add'/'update'/'delete'
+// let anyone inject, modify, or remove staff records for any branch. Only
+// admin.php (super-admin panel) actually calls this file — tenant.php
+// doesn't — so gating on the super-admin session matches its only real use.
+if (session_status() === PHP_SESSION_NONE) session_start();
+if (empty($_SESSION['admin'])) {
+    http_response_code(401);
+    echo json_encode(['ok' => false, 'msg' => 'Unauthorized']);
+    exit;
+}
+
 $action = $_REQUEST['action'] ?? '';
 $pdo = getPDO();
 

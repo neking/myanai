@@ -20,6 +20,7 @@ declare(strict_types=1);
 
 require_once __DIR__ . '/db_connect.php';
 require_once __DIR__ . '/auth_helper.php';
+require_once __DIR__ . '/tenant_helper.php';
 header('Content-Type: application/json; charset=utf-8');
 if ($_SERVER['REQUEST_METHOD'] === 'POST') requireCsrf();
 $allowedOrigins = ['https://myanai.net','https://www.myanai.net','http://localhost','http://127.0.0.1'];
@@ -254,6 +255,11 @@ if ($action === 'last_order' && $_SERVER['REQUEST_METHOD'] === 'GET') {
    Body: { phone, name, payment_method, order_id, total, items:[{menu_item_id,item_name,qty}] }
    ════════════════════════════════════════════════════════════════ */
 if ($action === 'upsert' && $_SERVER['REQUEST_METHOD'] === 'POST') {
+    // Defensive gate: nothing currently calls this HTTP endpoint (confirmed
+    // this session — order_handler.php calls hookCrmUpsert() directly
+    // in-process instead), but a reachable POST action with zero auth is
+    // bad practice regardless of whether anything currently uses it.
+    requireAdmin();
     $d       = json_decode(file_get_contents('php://input'), true) ?? [];
     $tid     = (int)($d['tenant_id']           ?? 0) ?: 1;
     $phone   = cleanPhone($d['phone']          ?? '');
@@ -425,8 +431,7 @@ if ($action === 'reorder_template' && $_SERVER['REQUEST_METHOD'] === 'GET') {
    GET  segment?tenant_id=&type=vip|regular|at_risk|new|churned
    ════════════════════════════════════════════════════════════════ */
 if ($action === 'segment') {
-    requireAdmin();
-    $tenantId = (int)($_GET['tenant_id'] ?? 0);
+    $tenantId = requireTenantAccess((int)($_GET['tenant_id'] ?? 0));
     $type     = trim($_GET['type'] ?? 'all');
     if (!$tenantId) fail('tenant_id required');
 
@@ -479,8 +484,7 @@ if ($action === 'segment') {
    POST  auto_tag?tenant_id=
    ════════════════════════════════════════════════════════════════ */
 if ($action === 'auto_tag' && $_SERVER['REQUEST_METHOD'] === 'POST') {
-    requireAdmin();
-    $tenantId = (int)($_GET['tenant_id'] ?? 0);
+    $tenantId = requireTenantAccess((int)($_GET['tenant_id'] ?? 0));
     if (!$tenantId) fail('tenant_id required');
 
     // Update VIP: 10+ orders or 100k+ spent
