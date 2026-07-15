@@ -58,8 +58,8 @@ if ($action === 'create' && $_SERVER['REQUEST_METHOD'] === 'POST') {
     // Public action — a customer booking a table doesn't have a login.
     // tenant_id comes from the request (e.g. the storefront the customer is on),
     // same trust model as the public ordering page.
-    $tid   = $_REQ_TENANT_PARAM ?: 1;
     $d     = json_decode(file_get_contents('php://input'), true) ?? [];
+    $tid   = (int)($d['tenant_id'] ?? 0) ?: ($_REQ_TENANT_PARAM ?: 1);
     $name  = trim($d['customer_name']  ?? '');
     $phone = trim($d['customer_phone'] ?? '');
     $size  = max(1, (int)($d['party_size'] ?? 2));
