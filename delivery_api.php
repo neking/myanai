@@ -22,6 +22,7 @@
 
 declare(strict_types=1);
 require_once __DIR__ . '/db_connect.php';
+require_once __DIR__ . '/tenant_helper.php';
 
 header('Content-Type: application/json; charset=utf-8');
 $allowedOrigins = ['https://myanai.net','https://www.myanai.net','http://localhost','http://127.0.0.1'];
@@ -65,12 +66,21 @@ function branchWhere(string $alias='o'): string {
 
 /* ── DRIVERS ── */
 if ($action === 'drivers') {
-    $rows = $pdo->query("
-        SELECT d.*,
+    // SECURITY FIX: previously selected d.* which included the pin column in
+    // plaintext to any caller (no auth required) - same class of leak found
+    // in staff_api.php earlier this audit. Also had zero tenant/branch
+    // scoping, so every tenant's drivers were shown mixed together.
+    $bid = (int)($_GET['branch_id'] ?? $_REQ_BRANCH ?? 0);
+    $sql = "
+        SELECT d.id, d.name, d.phone, d.vehicle_type, d.status, d.is_active, d.branch_id, d.total_deliveries,
             (SELECT COUNT(*) FROM delivery_tracking dt WHERE dt.driver_id=d.id AND dt.status NOT IN ('delivered','cancelled')) AS active_orders
-        FROM drivers d WHERE d.is_active=1 ORDER BY d.status='available' DESC, d.name
-    ")->fetchAll(PDO::FETCH_ASSOC);
-    ok(['drivers' => $rows]);
+        FROM drivers d WHERE d.is_active=1";
+    $params = [];
+    if ($bid > 0) { $sql .= " AND d.branch_id=?"; $params[] = $bid; }
+    $sql .= " ORDER BY d.status='available' DESC, d.name";
+    $stmt = $pdo->prepare($sql);
+    $stmt->execute($params);
+    ok(['drivers' => $stmt->fetchAll(PDO::FETCH_ASSOC)]);
 }
 
 if ($action === 'driver_create' && $_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -121,6 +131,11 @@ if ($action === 'zone_save' && $_SERVER['REQUEST_METHOD'] === 'POST') {
 /* ── ACTIVE DELIVERIES ── */
 if ($action === 'active') {
     requireAdmin();
+    // SECURITY FIX: previously had NO tenant filter at all - every tenant's
+    // pending deliveries (including customer names, phone numbers, order
+    // details) were shown mixed together to any caller with any tenant_id,
+    // or none at all. Now scoped by requireTenantAccess().
+    $tid = requireTenantAccess((int)($_GET['tenant_id'] ?? 0));
     $rows = $pdo->prepare("
         SELECT dt.*, o.customer_name, o.customer_phone, o.total_amount,
                o.payment_method, o.special_notes,
@@ -132,10 +147,11 @@ if ($action === 'active') {
         LEFT JOIN order_items oi ON oi.order_id = o.id
         WHERE dt.status NOT IN ('delivered','cancelled')
           AND o.deleted_at IS NULL
+          AND dt.tenant_id = ?
         GROUP BY dt.id
         ORDER BY dt.created_at DESC
     ");
-    $rows->execute();
+    $rows->execute([$tid]);
     ok(['deliveries' => $rows->fetchAll(PDO::FETCH_ASSOC)]);
 }
 
@@ -143,6 +159,8 @@ if ($action === 'active') {
 /* ── PENDING ORDERS (unassigned — awaiting driver) ── */
 if ($action === 'pending_orders') {
     requireAdmin();
+    // SECURITY FIX: same missing-tenant-filter bug as 'active' above.
+    $tid = requireTenantAccess((int)($_GET['tenant_id'] ?? 0));
     $rows = $pdo->prepare("
         SELECT dt.id AS tracking_id, dt.order_id, dt.status, dt.created_at,
                o.customer_name, o.customer_phone, o.total_amount,
@@ -154,10 +172,11 @@ if ($action === 'pending_orders') {
         WHERE dt.status = 'pending'
           AND dt.driver_id IS NULL
           AND o.deleted_at IS NULL
+          AND dt.tenant_id = ?
         GROUP BY dt.id
         ORDER BY dt.created_at ASC
     ");
-    $rows->execute();
+    $rows->execute([$tid]);
     ok(['orders' => $rows->fetchAll(PDO::FETCH_ASSOC)]);
 }
 
@@ -185,6 +204,14 @@ if ($action === 'assign' && $_SERVER['REQUEST_METHOD'] === 'POST') {
         }
     }
     if (!$trackingId) fail('tracking_id or order_id required');
+
+    // SECURITY FIX: verify this tracking row actually belongs to the
+    // requesting tenant before assigning a driver to it - previously this
+    // trusted trackingId/order_id with no ownership check at all.
+    $tidForAssign = requireTenantAccess((int)($d['tenant_id'] ?? 0));
+    $own = $pdo->prepare("SELECT dt.id FROM delivery_tracking dt WHERE dt.id=? AND dt.tenant_id=?");
+    $own->execute([$trackingId, $tidForAssign]);
+    if (!$own->fetchColumn()) fail('Not authorized for this delivery');
 
     $pdo->prepare("UPDATE delivery_tracking SET driver_id=?, status='assigned', assigned_at=NOW() WHERE id=?")
         ->execute([$driverId, $trackingId]);
@@ -244,7 +271,14 @@ if ($action === 'auto_track' && $_SERVER['REQUEST_METHOD'] === 'POST') {
     $exists->execute([$orderId]);
     if ($exists->fetchColumn()) ok(['exists' => true]);
 
-    $pdo->prepare("INSERT INTO delivery_tracking (order_id) VALUES (?)")->execute([$orderId]);
+    // FIX: tenant_id was never set here (fell back to the column default,
+    // same "forgot tenant_id on insert" bug found repeatedly this audit).
+    // Look it up from the order itself so it can't be spoofed by the caller.
+    $ownerRow = $pdo->prepare("SELECT tenant_id FROM orders WHERE id=?");
+    $ownerRow->execute([$orderId]);
+    $ownerTid = (int)$ownerRow->fetchColumn() ?: 1;
+
+    $pdo->prepare("INSERT INTO delivery_tracking (order_id, tenant_id) VALUES (?, ?)")->execute([$orderId, $ownerTid]);
     ok(['tracking_id' => (int)$pdo->lastInsertId()]);
 }
 
@@ -289,14 +323,17 @@ if ($action === 'driver_orders') {
 /* ── STATS ── */
 if ($action === 'stats') {
     requireAdmin();
-    $stats = $pdo->query("
+    // SECURITY FIX: same missing-tenant-filter bug - counts were platform-wide.
+    $tid = requireTenantAccess((int)($_GET['tenant_id'] ?? 0));
+    $stmt = $pdo->prepare("
         SELECT
-            (SELECT COUNT(*) FROM delivery_tracking WHERE status NOT IN ('delivered','cancelled')) AS active,
-            (SELECT COUNT(*) FROM delivery_tracking WHERE status='delivered' AND DATE(delivered_at)=CURDATE()) AS today_delivered,
+            (SELECT COUNT(*) FROM delivery_tracking WHERE status NOT IN ('delivered','cancelled') AND tenant_id=?) AS active,
+            (SELECT COUNT(*) FROM delivery_tracking WHERE status='delivered' AND DATE(delivered_at)=CURDATE() AND tenant_id=?) AS today_delivered,
             (SELECT COUNT(*) FROM drivers WHERE status='available' AND is_active=1) AS drivers_available,
-            (SELECT COUNT(*) FROM delivery_tracking WHERE status='pending') AS pending_assign
-    ")->fetch(PDO::FETCH_ASSOC);
-    ok(['stats' => $stats]);
+            (SELECT COUNT(*) FROM delivery_tracking WHERE status='pending' AND tenant_id=?) AS pending_assign
+    ");
+    $stmt->execute([$tid, $tid, $tid]);
+    ok(['stats' => $stmt->fetch(PDO::FETCH_ASSOC)]);
 }
 
 
