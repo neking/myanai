@@ -76,7 +76,7 @@ $ACTIVE_SQL = "
     FROM kds_queue   kq
     JOIN orders      o  ON o.id = kq.order_id
     JOIN order_items oi ON oi.order_id = o.id
-    WHERE kq.status IN ('pending','preparing','ready') AND kq.tenant_id = {$tenantId}
+    WHERE kq.status IN ('pending','preparing','ready') AND kq.tenant_id = {$tenantId} AND o.deleted_at IS NULL
     {$branchFilter}
     {$stationFilter}
     GROUP BY kq.id
@@ -101,7 +101,7 @@ $NEW_SQL = "
     FROM kds_queue   kq
     JOIN orders      o  ON o.id = kq.order_id
     JOIN order_items oi ON oi.order_id = o.id
-    WHERE kq.id > :last_id AND kq.tenant_id = :tid
+    WHERE kq.id > :last_id AND kq.tenant_id = :tid AND o.deleted_at IS NULL
     {$branchFilter}
     {$stationFilter}
     GROUP BY kq.id
