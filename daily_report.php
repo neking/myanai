@@ -1,13 +1,27 @@
 <?php
 require_once __DIR__ . '/db_connect.php';
+require_once __DIR__ . '/tenant_helper.php';
 session_start();
-if (empty($_SESSION['admin'])) { header('HTTP/1.1 403 Forbidden'); echo 'Unauthorized'; exit; }
+
+// Accept both super-admin and tenant sessions — previously only checked
+// $_SESSION['admin'], so a tenant logging in directly via tenant.php (which
+// sets $_SESSION['tenant_admin'], not $_SESSION['admin']) could never view
+// their own daily report at all.
+if (empty($_SESSION['admin']) && empty($_SESSION['tenant_admin'])) {
+    header('HTTP/1.1 403 Forbidden'); echo 'Unauthorized'; exit;
+}
 
 $pdo   = getPDO();
 $date  = $_GET['date'] ?? date('Y-m-d');
-$tid   = (int)($_GET['tenant_id'] ?? 0); // ★ tenant filter
+// Session is the source of truth for which tenant this report may show —
+// previously a raw $_GET['tenant_id'] was trusted directly with no check
+// against the session, the same regression pattern found and fixed
+// elsewhere this session (stock_api.php, crm_api.php).
+$tid   = requireTenantAccess((int)($_GET['tenant_id'] ?? 0));
 $dateLabel = date('d M Y', strtotime($date));
 $tWhere = $tid ? ' AND tenant_id=' . $tid : '';
+// Same filter, aliased for queries that join through orders as "o"
+$tWhereO = $tid ? ' AND o.tenant_id=' . $tid : '';
 
 $summary = $pdo->prepare("
     SELECT COUNT(*) as total_orders,
@@ -21,34 +35,51 @@ $summary = $pdo->prepare("
 $summary->execute([$date]);
 $s = $summary->fetch(PDO::FETCH_ASSOC);
 
+// Previously had NO tenant filter at all (unlike $summary above), so this
+// showed every tenant's top-selling items mixed together even when a
+// specific tenant's report was requested.
 $top_items = $pdo->prepare("
     SELECT oi.item_name, SUM(oi.qty) as qty, SUM(oi.qty*oi.unit_price) as revenue
     FROM order_items oi
     JOIN orders o ON o.id=oi.order_id
-    WHERE DATE(o.created_at)=? AND o.deleted_at IS NULL AND o.status!='cancelled'
+    WHERE DATE(o.created_at)=? AND o.deleted_at IS NULL AND o.status!='cancelled'{$tWhereO}
     GROUP BY oi.item_name ORDER BY qty DESC LIMIT 8
 ");
 $top_items->execute([$date]);
 $items = $top_items->fetchAll(PDO::FETCH_ASSOC);
 
+// Same missing-filter bug as top_items.
 $payments = $pdo->prepare("
     SELECT payment_method, COUNT(*) as cnt, SUM(total_amount) as total
-    FROM orders WHERE DATE(created_at)=? AND deleted_at IS NULL AND status!='cancelled'
+    FROM orders WHERE DATE(created_at)=? AND deleted_at IS NULL AND status!='cancelled'{$tWhere}
     GROUP BY payment_method
 ");
 $payments->execute([$date]);
 $pays = $payments->fetchAll(PDO::FETCH_ASSOC);
 
+// Same missing-filter bug as top_items.
 $hourly = $pdo->prepare("
     SELECT HOUR(created_at) as hr, COUNT(*) as cnt, SUM(total_amount) as rev
-    FROM orders WHERE DATE(created_at)=? AND deleted_at IS NULL AND status!='cancelled'
+    FROM orders WHERE DATE(created_at)=? AND deleted_at IS NULL AND status!='cancelled'{$tWhere}
     GROUP BY HOUR(created_at) ORDER BY hr
 ");
 $hourly->execute([$date]);
 $hours = $hourly->fetchAll(PDO::FETCH_ASSOC);
 
-$settings = $pdo->query("SELECT setting_key,setting_value FROM site_settings WHERE setting_key IN ('store_name','store_emoji')")->fetchAll(PDO::FETCH_KEY_PAIR);
-$store = ($settings['store_emoji']??'🍜').' '.($settings['store_name']??'NoodleHaus');
+// Show the tenant's own store name/emoji instead of the global platform
+// default — previously always pulled from the global site_settings table
+// regardless of which tenant's report this was.
+if ($tid) {
+    $tRow = $pdo->prepare("SELECT name, settings FROM tenants WHERE id=?");
+    $tRow->execute([$tid]);
+    $tRowData = $tRow->fetch(PDO::FETCH_ASSOC);
+    $tSettings = json_decode($tRowData['settings'] ?? '{}', true) ?: [];
+    $storefront = $tSettings['storefront'] ?? [];
+    $store = ($storefront['emoji'] ?? '🍜') . ' ' . ($storefront['store_name'] ?? $tRowData['name'] ?? 'NoodleHaus');
+} else {
+    $settings = $pdo->query("SELECT setting_key,setting_value FROM site_settings WHERE setting_key IN ('store_name','store_emoji')")->fetchAll(PDO::FETCH_KEY_PAIR);
+    $store = ($settings['store_emoji']??'🍜').' '.($settings['store_name']??'NoodleHaus');
+}
 ?><!DOCTYPE html>
 <html><head>
 <meta charset="utf-8">
