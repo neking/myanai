@@ -239,9 +239,9 @@ if ($action === 'availability' && $_SERVER['REQUEST_METHOD'] === 'GET') {
    Body: { id, status }
    ════════════════════════════════════════════════════════════════ */
 if ($action === 'update_status' && $_SERVER['REQUEST_METHOD'] === 'POST') {
-    $tid = requireTenantAccess($_REQ_TENANT_PARAM);
-
     $d      = json_decode(file_get_contents('php://input'), true) ?? [];
+    $tid = requireTenantAccess((int)($d['tenant_id'] ?? 0) ?: $_REQ_TENANT_PARAM);
+
     $id     = (int)($d['id'] ?? 0);
     $status = trim($d['status'] ?? '');
 
@@ -261,9 +261,9 @@ if ($action === 'update_status' && $_SERVER['REQUEST_METHOD'] === 'POST') {
    Body: { id, customer_name, party_size, table_code, reservation_time, notes }
    ════════════════════════════════════════════════════════════════ */
 if ($action === 'update' && $_SERVER['REQUEST_METHOD'] === 'POST') {
-    $tid = requireTenantAccess($_REQ_TENANT_PARAM);
-
     $d     = json_decode(file_get_contents('php://input'), true) ?? [];
+    $tid = requireTenantAccess((int)($d['tenant_id'] ?? 0) ?: $_REQ_TENANT_PARAM);
+
     $id    = (int)($d['id'] ?? 0);
     if (!$id) fail('id required');
 

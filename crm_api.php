@@ -484,7 +484,8 @@ if ($action === 'segment') {
    POST  auto_tag?tenant_id=
    ════════════════════════════════════════════════════════════════ */
 if ($action === 'auto_tag' && $_SERVER['REQUEST_METHOD'] === 'POST') {
-    $tenantId = requireTenantAccess((int)($_GET['tenant_id'] ?? 0));
+    $autoTagBody = json_decode(file_get_contents('php://input'), true) ?? [];
+    $tenantId = requireTenantAccess((int)($autoTagBody['tenant_id'] ?? 0) ?: (int)($_GET['tenant_id'] ?? 0));
     if (!$tenantId) fail('tenant_id required');
 
     // Update VIP: 10+ orders or 100k+ spent

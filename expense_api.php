@@ -56,8 +56,8 @@ if ($action === 'summary') {
 
 /* CREATE expense */
 if (($action === 'create' || $action === 'add') && $_SERVER['REQUEST_METHOD'] === 'POST') { // ★ 'add' alias for tenant.php compatibility
-    $tid = requireTenantAccess($_REQ_TENANT_PARAM);
     $d = json_decode(file_get_contents('php://input'), true) ?? [];
+    $tid = requireTenantAccess((int)($d['tenant_id'] ?? 0) ?: $_REQ_TENANT_PARAM);
     $cat = trim($d['category'] ?? 'other');
     $amount = (int)($d['amount'] ?? 0);
     $desc = trim($d['description'] ?? '');
@@ -73,8 +73,8 @@ if (($action === 'create' || $action === 'add') && $_SERVER['REQUEST_METHOD'] ==
 
 /* DELETE expense */
 if ($action === 'delete' && $_SERVER['REQUEST_METHOD'] === 'POST') {
-    $tid = requireTenantAccess($_REQ_TENANT_PARAM);
     $d = json_decode(file_get_contents('php://input'), true) ?? [];
+    $tid = requireTenantAccess((int)($d['tenant_id'] ?? 0) ?: $_REQ_TENANT_PARAM);
     $id = (int)($d['id'] ?? 0);
     if (!$id) fail('id required');
     $pdo->prepare("DELETE FROM expenses WHERE id=? AND tenant_id=?")->execute([$id, $tid]);
@@ -92,8 +92,8 @@ if ($action === 'suppliers') {
 }
 
 if ($action === 'supplier_create' && $_SERVER['REQUEST_METHOD'] === 'POST') {
-    $tid = requireTenantAccess($_REQ_TENANT_PARAM);
     $d = json_decode(file_get_contents('php://input'), true) ?? [];
+    $tid = requireTenantAccess((int)($d['tenant_id'] ?? 0) ?: $_REQ_TENANT_PARAM);
     $name = trim($d['name'] ?? '');
     if (!$name) fail('Name required');
     $branchRow = $pdo->prepare("SELECT id FROM branches WHERE tenant_id=? ORDER BY id LIMIT 1");

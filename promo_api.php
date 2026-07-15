@@ -138,8 +138,8 @@ if ($action === 'validate_code') {
 
 /* ── CREATE (tenant/admin) ── */
 if ($action === 'create' && $_SERVER['REQUEST_METHOD'] === 'POST') {
-    $tid = requireTenantAccess($_REQ_TENANT_PARAM);
     $d = json_decode(file_get_contents('php://input'), true) ?? [];
+    $tid = requireTenantAccess((int)($d['tenant_id'] ?? 0) ?: $_REQ_TENANT_PARAM);
     $name = trim($d['name'] ?? '');
     $type = trim($d['type'] ?? 'percent_off');
     if (!$name) fail('Name required');
@@ -181,8 +181,8 @@ if ($action === 'create' && $_SERVER['REQUEST_METHOD'] === 'POST') {
 
 /* ── UPDATE (tenant/admin) ── */
 if ($action === 'update' && $_SERVER['REQUEST_METHOD'] === 'POST') {
-    $tid = requireTenantAccess($_REQ_TENANT_PARAM);
     $d  = json_decode(file_get_contents('php://input'), true) ?? [];
+    $tid = requireTenantAccess((int)($d['tenant_id'] ?? 0) ?: $_REQ_TENANT_PARAM);
     $id = (int)($d['id'] ?? 0);
     if (!$id) fail('id required');
 
@@ -201,8 +201,8 @@ if ($action === 'update' && $_SERVER['REQUEST_METHOD'] === 'POST') {
 
 /* ── TOGGLE (tenant/admin) ── */
 if ($action === 'toggle' && $_SERVER['REQUEST_METHOD'] === 'POST') {
-    $tid = requireTenantAccess($_REQ_TENANT_PARAM);
     $d = json_decode(file_get_contents('php://input'), true) ?? [];
+    $tid = requireTenantAccess((int)($d['tenant_id'] ?? 0) ?: $_REQ_TENANT_PARAM);
     $id = (int)($d['id'] ?? 0);
     if (!$id) fail('id required');
     $pdo->prepare("UPDATE promotions SET is_active = NOT is_active WHERE id = ? AND " . branchFilterSQL())->execute([$id, $tid]);

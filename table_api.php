@@ -80,7 +80,7 @@ if ($action === 'status') {
 
 /* ── GET: list all tables + current orders (tenant/admin) ── */
 if ($action === 'list') {
-    $tid = requireTenantAccess($_REQ_TENANT_PARAM);
+    $tid = requireTenantAccess((int)($b['tenant_id'] ?? 0) ?: $_REQ_TENANT_PARAM);
     $tables = db()->prepare("SELECT * FROM restaurant_tables WHERE is_active=1" . ($_BID > 0 ? " AND branch_id=?" : "") . " AND tenant_id=? ORDER BY table_code");
     $params = $_BID > 0 ? [$_BID, $tid] : [$tid];
     $tables->execute($params);
@@ -143,7 +143,7 @@ if ($action === 'request_bill') {
 
 /* ── POST: close table / mark paid (tenant/admin) ── */
 if ($action === 'close_table') {
-    $tid = requireTenantAccess($_REQ_TENANT_PARAM);
+    $tid = requireTenantAccess((int)($b['tenant_id'] ?? 0) ?: $_REQ_TENANT_PARAM);
     $orderId     = (int)($b['order_id'] ?? 0);
     if (!$orderId) jErr('No order_id');
     // Split bill support
@@ -174,7 +174,7 @@ if ($action === 'close_table') {
 
 /* ── POST: open new table session (tenant/admin) ── */
 if ($action === 'open_table') {
-    $tid = requireTenantAccess($_REQ_TENANT_PARAM);
+    $tid = requireTenantAccess((int)($b['tenant_id'] ?? 0) ?: $_REQ_TENANT_PARAM);
     $code = strtoupper(trim($b['table_code'] ?? ''));
     if (!$code) jErr('No table_code');
     // Close any existing open orders for this table
@@ -185,7 +185,7 @@ if ($action === 'open_table') {
 
 /* ── POST: add table to restaurant_tables (tenant/admin) ── */
 if ($action === 'add_table' || $action === 'add') { // 'add' alias kept for tenant.php compatibility
-    $tid = requireTenantAccess($_REQ_TENANT_PARAM);
+    $tid = requireTenantAccess((int)($b['tenant_id'] ?? 0) ?: $_REQ_TENANT_PARAM);
     $code  = strtoupper(trim($b['code'] ?? $b['table_code'] ?? ''));
     $label = trim($b['label'] ?? '');
     $seats = (int)($b['seats'] ?? 4);
@@ -197,7 +197,7 @@ if ($action === 'add_table' || $action === 'add') { // 'add' alias kept for tena
 
 /* ── POST: remove table (tenant/admin) ── */
 if ($action === 'remove_table') {
-    $tid = requireTenantAccess($_REQ_TENANT_PARAM);
+    $tid = requireTenantAccess((int)($b['tenant_id'] ?? 0) ?: $_REQ_TENANT_PARAM);
     $code = strtoupper(trim($b['table_code'] ?? ''));
     if (!$code) jErr('No table_code');
     db()->prepare("UPDATE restaurant_tables SET is_active=0 WHERE table_code=:c AND tenant_id=:t")
