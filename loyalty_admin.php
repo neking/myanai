@@ -81,15 +81,30 @@ if ($action === 'bulk_delete_orders' && $_SERVER['REQUEST_METHOD'] === 'POST') {
 
 // ── KDS pending count ──
 if ($action === 'kds_pending') {
-    $count = $pdo->query("SELECT COUNT(*) FROM kds_queue WHERE status IN ('pending','preparing','ready')")->fetchColumn();
-    echo json_encode(['ok'=>true, 'count'=>(int)$count]);
+    $tid = (int)($_GET['tenant_id'] ?? 0);
+    $sql = "SELECT COUNT(*) FROM kds_queue WHERE status IN ('pending','preparing','ready')";
+    $params = [];
+    if ($tid > 0) { $sql .= " AND tenant_id=?"; $params[] = $tid; }
+    $count = $pdo->prepare($sql);
+    $count->execute($params);
+    echo json_encode(['ok'=>true, 'count'=>(int)$count->fetchColumn()]);
     exit;
 }
 
 // ── KDS clear ──
 if ($action === 'kds_clear' && $_SERVER['REQUEST_METHOD'] === 'POST') {
-    $stmt = $pdo->prepare("UPDATE kds_queue SET status='served' WHERE status IN ('pending','preparing','ready')");
-    $stmt->execute();
+    // Tenant_id now optional-but-supported — previously this had NO way to
+    // target a single tenant, so calling it cleared EVERY tenant's kitchen
+    // queue platform-wide at once. Still allows the platform-wide clear
+    // (tenant_id omitted) for whatever this was originally built for, but a
+    // caller can now scope it to one tenant instead.
+    $d   = json_decode(file_get_contents('php://input'), true) ?? [];
+    $tid = (int)($d['tenant_id'] ?? 0);
+    $sql = "UPDATE kds_queue SET status='served' WHERE status IN ('pending','preparing','ready')";
+    $params = [];
+    if ($tid > 0) { $sql .= " AND tenant_id=?"; $params[] = $tid; }
+    $stmt = $pdo->prepare($sql);
+    $stmt->execute($params);
     echo json_encode(['ok'=>true, 'cleared'=>$stmt->rowCount()]);
     exit;
 }

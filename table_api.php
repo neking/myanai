@@ -154,11 +154,21 @@ if ($action === 'close_table') {
     if ($splitMethod && $splitAmount > 0) {
         $payMethod = $payMethod . '+' . $splitMethod . ':' . $splitAmount;
     }
-    db()->prepare("UPDATE orders SET table_status='paid', status='delivered', payment_status='paid', payment_method=:pay WHERE id=:id AND tenant_id=:t")
-        ->execute([':id'=>$orderId, ':t'=>$tid, ':pay'=>$payMethod]);
-    // Mark KDS as served
-    db()->prepare("UPDATE kds_queue SET status='served' WHERE order_id=:id AND status!='served'")
-        ->execute([':id'=>$orderId]);
+    $upd = db()->prepare("UPDATE orders SET table_status='paid', status='delivered', payment_status='paid', payment_method=:pay WHERE id=:id AND tenant_id=:t");
+    $upd->execute([':id'=>$orderId, ':t'=>$tid, ':pay'=>$payMethod]);
+    // Confirmed live: without this check, the endpoint always returned
+    // "Table closed" success even when the WHERE clause matched zero rows
+    // (e.g. a different tenant's session naming another tenant's order_id) —
+    // misleading, since nothing was actually closed/paid.
+    if ($upd->rowCount() === 0) { jErr('Order not found or not yours'); }
+    // Mark KDS as served — CRITICAL FIX: this previously had NO tenant check
+    // at all (WHERE order_id=:id only). Confirmed live exploitable: a
+    // different tenant's session could mark another tenant's real,
+    // still-unpaid kitchen order as 'served', making that tenant's kitchen
+    // staff think the order was done and stop paying attention to it, even
+    // though the customer never received it and payment was never taken.
+    db()->prepare("UPDATE kds_queue SET status='served' WHERE order_id=:id AND tenant_id=:t AND status!='served'")
+        ->execute([':id'=>$orderId, ':t'=>$tid]);
     jOk(['msg'=>'Table closed']);
 }
 
