@@ -10,7 +10,7 @@ declare(strict_types=1);
 /**
  * Restore stock quantities
  */
-function hookStockRestore(PDO $pdo, int $orderId): void {
+function hookStockRestore(PDO $pdo, int $tenantId, int $orderId): void {
     try {
         $items = $pdo->prepare("SELECT menu_item_id, item_name, qty FROM order_items WHERE order_id = ?");
         $items->execute([$orderId]);
@@ -25,9 +25,9 @@ function hookStockRestore(PDO $pdo, int $orderId): void {
             $newQty = (int)$pdo->query("SELECT stock_qty FROM menu_items WHERE id = $itemId")->fetchColumn();
 
             $pdo->prepare("
-                INSERT INTO stock_log (menu_item_id, item_name, change_qty, new_qty, reason, note, order_id)
-                VALUES (?, ?, ?, ?, 'returned', 'Order cancelled/deleted', ?)
-            ")->execute([$itemId, $item['item_name'], $qty, $newQty, $orderId]);
+                INSERT INTO stock_log (menu_item_id, item_name, change_qty, new_qty, reason, note, order_id, tenant_id)
+                VALUES (?, ?, ?, ?, 'returned', 'Order cancelled/deleted', ?, ?)
+            ")->execute([$itemId, $item['item_name'], $qty, $newQty, $orderId, $tenantId]);
         }
     } catch (Exception $e) { /* stock restore fail — log but don't block */ }
 }

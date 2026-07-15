@@ -51,7 +51,7 @@ if (($_GET['action'] ?? '') === 'cancel') {
 
     // Reverse hooks
     require_once __DIR__ . '/order_cancel_hooks.php';
-    hookStockRestore($pdo, $orderId);
+    hookStockRestore($pdo, (int)$o['tenant_id'], $orderId);
     hookCrmReverse($pdo, (int)$o['tenant_id'], $o['customer_phone'], (int)$o['total_amount']);
     hookDeliveryCancel($pdo, $orderId);
     hookShiftRemove($pdo, $orderId);
