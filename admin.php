@@ -148,6 +148,11 @@ if($_SERVER['REQUEST_METHOD']==='POST' && isset($_FILES['og_image']) && ($_GET['
     }
     // Reset demo data
     if($_GET['api']==='reset_demo'){
+      // CRITICAL FIX: this action had no authentication check at all — anyone
+      // unauthenticated could wipe the demo tenant's orders/customers. Only
+      // admin_lpe.js (super-admin panel) calls this.
+      if (session_status() === PHP_SESSION_NONE) session_start();
+      if (empty($_SESSION['admin'])) { http_response_code(401); echo json_encode(['ok'=>false,'msg'=>'Unauthorized']); exit; }
       $stmt=getPDO()->prepare("SELECT id FROM tenants WHERE owner_email='demo@myanai.net' LIMIT 1");
       $stmt->execute(); $demo=$stmt->fetch(PDO::FETCH_ASSOC);
       if(!$demo){echo json_encode(['ok'=>false,'msg'=>'Demo tenant not found']);exit;}
@@ -159,6 +164,9 @@ if($_SERVER['REQUEST_METHOD']==='POST' && isset($_FILES['og_image']) && ($_GET['
     }
     // Inject sample data
     if($_GET['api']==='inject_sample'){
+      // Same fix — see reset_demo above.
+      if (session_status() === PHP_SESSION_NONE) session_start();
+      if (empty($_SESSION['admin'])) { http_response_code(401); echo json_encode(['ok'=>false,'msg'=>'Unauthorized']); exit; }
       $b=json_decode(file_get_contents('php://input'),true);
       $type=$b['type']??'orders';
       $stmt=getPDO()->prepare("SELECT id FROM tenants WHERE owner_email='demo@myanai.net' LIMIT 1");
@@ -374,6 +382,16 @@ if($_SERVER['REQUEST_METHOD']==='POST' && isset($_FILES['og_image']) && ($_GET['
         $b  = json_decode(file_get_contents('php://input'), true);
         $item_id = (int)$b['id'];
         $qty_add = (int)$b['qty'];
+        $tid = $GLOBALS['_SESS_TENANT_ID'] ?? 0;
+
+        // Tenant ownership check — was missing entirely, letting a tenant
+        // session restock (or deplete) any other tenant's item by id.
+        if ($tid > 0) {
+            $own = db()->prepare("SELECT id FROM menu_items WHERE id=? AND tenant_id=?");
+            $own->execute([$item_id, $tid]);
+            if (!$own->fetch()) { echo json_encode(['ok'=>false,'msg'=>'Not authorized']); exit; }
+        }
+
         // get current qty and name before update
         $cur = db()->prepare("SELECT name, stock_qty, unit FROM menu_items WHERE id=:id");
         $cur->execute([':id'=>$item_id]);
@@ -406,6 +424,17 @@ if($_SERVER['REQUEST_METHOD']==='POST' && isset($_FILES['og_image']) && ($_GET['
     /* toggle active */
     if ($_GET['api'] === 'toggle') {
         $b = json_decode(file_get_contents('php://input'), true);
+        $tid = $GLOBALS['_SESS_TENANT_ID'] ?? 0;
+
+        // Tenant ownership check — was missing entirely here (present in
+        // update/delete but not this action), letting a tenant session
+        // toggle any other tenant's menu item just by knowing its id.
+        if ($tid > 0) {
+            $own = db()->prepare("SELECT id FROM menu_items WHERE id=? AND tenant_id=?");
+            $own->execute([(int)$b['id'], $tid]);
+            if (!$own->fetch()) { echo json_encode(['ok'=>false,'msg'=>'Not authorized']); exit; }
+        }
+
         db()->prepare("UPDATE menu_items SET is_active = NOT is_active WHERE id=:id")->execute([':id'=>(int)$b['id']]);
         echo json_encode(['ok'=>true]);
         exit;
@@ -442,10 +471,17 @@ if($_SERVER['REQUEST_METHOD']==='POST' && isset($_FILES['og_image']) && ($_GET['
     if ($_GET['api'] === 'reorder') {
         $b    = json_decode(file_get_contents('php://input'), true);
         $ids  = $b['ids'] ?? [];
+        $tid  = $GLOBALS['_SESS_TENANT_ID'] ?? 0;
         if (empty($ids) || !is_array($ids)) { echo json_encode(['ok'=>false,'msg'=>'No ids']); exit; }
-        $stmt = db()->prepare("UPDATE menu_items SET sort_order=:o WHERE id=:id");
+        // Scoped by tenant_id when a tenant session — was previously
+        // unscoped, letting a tenant reorder any other tenant's menu items.
+        $stmt = $tid > 0
+            ? db()->prepare("UPDATE menu_items SET sort_order=:o WHERE id=:id AND tenant_id=:tid")
+            : db()->prepare("UPDATE menu_items SET sort_order=:o WHERE id=:id");
         foreach ($ids as $order => $id) {
-            $stmt->execute([':o' => ($order + 1) * 10, ':id' => (int)$id]);
+            $params = [':o' => ($order + 1) * 10, ':id' => (int)$id];
+            if ($tid > 0) $params[':tid'] = $tid;
+            $stmt->execute($params);
         }
         echo json_encode(['ok'=>true]);
         exit;
@@ -483,6 +519,16 @@ if($_SERVER['REQUEST_METHOD']==='POST' && isset($_FILES['og_image']) && ($_GET['
         $sortOrder= (int)($b['sort_order'] ?? 0);
         $gid      = (int)($b['id'] ?? 0);
         if (!$itemId || !$name) { echo json_encode(['ok'=>false,'msg'=>'Missing fields']); exit; }
+
+        // Tenant ownership check — verify the target menu item belongs to
+        // this tenant before letting them attach/edit a modifier group on it.
+        $tid = $GLOBALS['_SESS_TENANT_ID'] ?? 0;
+        if ($tid > 0) {
+            $own = db()->prepare("SELECT id FROM menu_items WHERE id=? AND tenant_id=?");
+            $own->execute([$itemId, $tid]);
+            if (!$own->fetch()) { echo json_encode(['ok'=>false,'msg'=>'Not authorized']); exit; }
+        }
+
         if ($gid) {
             db()->prepare("UPDATE modifier_groups SET name=:n,type=:t,required=:r,sort_order=:s WHERE id=:id AND menu_item_id=:mid")
                 ->execute([':n'=>$name,':t'=>$type,':r'=>$required,':s'=>$sortOrder,':id'=>$gid,':mid'=>$itemId]);
@@ -500,6 +546,15 @@ if($_SERVER['REQUEST_METHOD']==='POST' && isset($_FILES['og_image']) && ($_GET['
         $b = json_decode(file_get_contents('php://input'), true);
         $gid = (int)($b['id'] ?? 0);
         if (!$gid) { echo json_encode(['ok'=>false,'msg'=>'No id']); exit; }
+
+        // Tenant ownership check via the parent menu item.
+        $tid = $GLOBALS['_SESS_TENANT_ID'] ?? 0;
+        if ($tid > 0) {
+            $own = db()->prepare("SELECT mg.id FROM modifier_groups mg JOIN menu_items mi ON mi.id=mg.menu_item_id WHERE mg.id=? AND mi.tenant_id=?");
+            $own->execute([$gid, $tid]);
+            if (!$own->fetch()) { echo json_encode(['ok'=>false,'msg'=>'Not authorized']); exit; }
+        }
+
         db()->prepare("DELETE FROM modifier_groups WHERE id=:id")->execute([':id'=>$gid]);
         echo json_encode(['ok'=>true]);
         exit;
@@ -515,6 +570,15 @@ if($_SERVER['REQUEST_METHOD']==='POST' && isset($_FILES['og_image']) && ($_GET['
         $sortOrder = (int)($b['sort_order'] ?? 0);
         $oid       = (int)($b['id'] ?? 0);
         if (!$gid || !$label) { echo json_encode(['ok'=>false,'msg'=>'Missing fields']); exit; }
+
+        // Tenant ownership check via the group's parent menu item.
+        $tid = $GLOBALS['_SESS_TENANT_ID'] ?? 0;
+        if ($tid > 0) {
+            $own = db()->prepare("SELECT mg.id FROM modifier_groups mg JOIN menu_items mi ON mi.id=mg.menu_item_id WHERE mg.id=? AND mi.tenant_id=?");
+            $own->execute([$gid, $tid]);
+            if (!$own->fetch()) { echo json_encode(['ok'=>false,'msg'=>'Not authorized']); exit; }
+        }
+
         if ($oid) {
             db()->prepare("UPDATE modifier_options SET label=:l,price_add=:p,is_default=:d,sort_order=:s WHERE id=:id AND group_id=:gid")
                 ->execute([':l'=>$label,':p'=>$priceAdd,':d'=>$isDefault,':s'=>$sortOrder,':id'=>$oid,':gid'=>$gid]);
@@ -532,6 +596,15 @@ if($_SERVER['REQUEST_METHOD']==='POST' && isset($_FILES['og_image']) && ($_GET['
         $b = json_decode(file_get_contents('php://input'), true);
         $oid = (int)($b['id'] ?? 0);
         if (!$oid) { echo json_encode(['ok'=>false,'msg'=>'No id']); exit; }
+
+        // Tenant ownership check via option -> group -> menu item.
+        $tid = $GLOBALS['_SESS_TENANT_ID'] ?? 0;
+        if ($tid > 0) {
+            $own = db()->prepare("SELECT mo.id FROM modifier_options mo JOIN modifier_groups mg ON mg.id=mo.group_id JOIN menu_items mi ON mi.id=mg.menu_item_id WHERE mo.id=? AND mi.tenant_id=?");
+            $own->execute([$oid, $tid]);
+            if (!$own->fetch()) { echo json_encode(['ok'=>false,'msg'=>'Not authorized']); exit; }
+        }
+
         db()->prepare("DELETE FROM modifier_options WHERE id=:id")->execute([':id'=>$oid]);
         echo json_encode(['ok'=>true]);
         exit;
@@ -545,6 +618,15 @@ if($_SERVER['REQUEST_METHOD']==='POST' && isset($_FILES['og_image']) && ($_GET['
         if (!$id) { echo json_encode(['ok'=>false,'msg'=>'No id']); exit; }
         $allowed = ['kitchen','counter','bar','all'];
         if (!in_array($station, $allowed)) $station = 'kitchen';
+
+        // Tenant ownership check — was missing, same pattern as toggle/restock above.
+        $tid = $GLOBALS['_SESS_TENANT_ID'] ?? 0;
+        if ($tid > 0) {
+            $own = db()->prepare("SELECT id FROM menu_items WHERE id=? AND tenant_id=?");
+            $own->execute([$id, $tid]);
+            if (!$own->fetch()) { echo json_encode(['ok'=>false,'msg'=>'Not authorized']); exit; }
+        }
+
         db()->prepare("UPDATE menu_items SET station=:s WHERE id=:id")->execute([':s'=>$station,':id'=>$id]);
         echo json_encode(['ok'=>true]);
         exit;
@@ -624,9 +706,15 @@ if($_SERVER['REQUEST_METHOD']==='POST' && isset($_FILES['og_image']) && ($_GET['
         if ($id <= 0 || !$reason) { echo json_encode(['ok'=>false,'msg'=>'ID နဲ့ reason လိုသည်']); exit; }
 
         $pdo = db();
-        // 1. order + items snapshot ယူ
-        $order = $pdo->prepare("SELECT * FROM orders WHERE id=:id AND deleted_at IS NULL");
-        $order->execute([':id'=>$id]);
+        $tid = $GLOBALS['_SESS_TENANT_ID'] ?? 0;
+        // 1. order + items snapshot ယူ — tenant ownership check included when
+        // a tenant session (was missing entirely before, letting a tenant
+        // delete any other tenant's order by ID).
+        $order = $tid > 0
+            ? $pdo->prepare("SELECT * FROM orders WHERE id=:id AND tenant_id=:tid AND deleted_at IS NULL")
+            : $pdo->prepare("SELECT * FROM orders WHERE id=:id AND deleted_at IS NULL");
+        $orderParams = $tid > 0 ? [':id'=>$id, ':tid'=>$tid] : [':id'=>$id];
+        $order->execute($orderParams);
         $o = $order->fetch();
         if (!$o) { echo json_encode(['ok'=>false,'msg'=>'Order not found']); exit; }
 
@@ -1012,6 +1100,17 @@ if($_SERVER['REQUEST_METHOD']==='POST' && isset($_FILES['og_image']) && ($_GET['
     if ($_GET['api'] === 'remove_image') {
         $b  = json_decode(file_get_contents('php://input'), true);
         $id = (int)($b['id'] ?? 0);
+
+        // Tenant ownership check — this action deletes a file from disk, so
+        // the missing check let a tenant session delete another tenant's
+        // uploaded image, not just modify a DB row.
+        $tid = $GLOBALS['_SESS_TENANT_ID'] ?? 0;
+        if ($tid > 0) {
+            $own = db()->prepare("SELECT id FROM menu_items WHERE id=? AND tenant_id=?");
+            $own->execute([$id, $tid]);
+            if (!$own->fetch()) { echo json_encode(['ok'=>false,'msg'=>'Not authorized']); exit; }
+        }
+
         $row = db()->prepare("SELECT image_path FROM menu_items WHERE id=:id");
         $row->execute([':id'=>$id]);
         $r = $row->fetch();
