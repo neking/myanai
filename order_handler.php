@@ -313,7 +313,7 @@ hookCrmUpsert($pdo, $tenantId, $customerPhone ?? '', sanitizeStr($customer['name
 
 hookShiftAssign($pdo, $orderId);
 
-hookStockDeduct($pdo, $orderId, $items);
+hookStockDeduct($pdo, $tenantId, $orderId, $items);
 
 hookDeliveryTrack($pdo, $orderId, $orderType);
 

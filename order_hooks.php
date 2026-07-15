@@ -86,7 +86,7 @@ function hookShiftAssign(PDO $pdo, int $orderId): void {
  * added. Now it only reads the already-correct stock_qty and writes the
  * stock_log entry, since the transaction itself doesn't log.
  */
-function hookStockDeduct(PDO $pdo, int $orderId, array $items): void {
+function hookStockDeduct(PDO $pdo, int $tenantId, int $orderId, array $items): void {
     try {
         foreach ($items as $item) {
             $itemId = (int)($item['item_id'] ?? 0);
@@ -97,9 +97,9 @@ function hookStockDeduct(PDO $pdo, int $orderId, array $items): void {
             $newQty = (int)$pdo->query("SELECT stock_qty FROM menu_items WHERE id = $itemId")->fetchColumn();
 
             $pdo->prepare("
-                INSERT INTO stock_log (menu_item_id, item_name, change_qty, new_qty, reason, order_id, staff_name)
-                VALUES (?, ?, ?, ?, 'order_deduct', ?, 'System (Auto)')
-            ")->execute([$itemId, $name, -$qty, $newQty, $orderId]);
+                INSERT INTO stock_log (menu_item_id, item_name, change_qty, new_qty, reason, order_id, staff_name, tenant_id)
+                VALUES (?, ?, ?, ?, 'order_deduct', ?, 'System (Auto)', ?)
+            ")->execute([$itemId, $name, -$qty, $newQty, $orderId, $tenantId]);
         }
     } catch (Exception $e) { /* stock fail — order unaffected */ }
 }
