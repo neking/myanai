@@ -20,7 +20,12 @@ if (isset($_GET['api'])) {
         $row = $pdo->prepare("SELECT id, name FROM tenants WHERE owner_email=? AND is_active=1");
         $row->execute([$email]);
         $tenant = $row->fetch();
-        if (!$tenant) { echo json_encode(['ok'=>true,'msg'=>'Reset link ပို့ပြီးပါပြီ']); exit; }
+        // SECURITY FIX: this message must be byte-for-byte identical to the
+        // success message below (after sendMail), or the response itself
+        // becomes an email-enumeration oracle - an attacker could tell which
+        // emails have a tenant account just by comparing the exact response
+        // text, even though both paths already correctly returned ok:true.
+        if (!$tenant) { echo json_encode(['ok'=>true,'msg'=>'Reset link ပို့ပြီးပါပြီ — Email စစ်ပါ']); exit; }
         $token = bin2hex(random_bytes(32));
         $expires = date('Y-m-d H:i:s', strtotime('+1 hour'));
         $pdo->prepare("DELETE FROM password_reset_tokens WHERE tenant_id=?")->execute([$tenant['id']]);

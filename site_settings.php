@@ -51,7 +51,17 @@ if ($action === 'get') {
     try {
         $rows = db()->query("SELECT setting_key, setting_value FROM site_settings")->fetchAll();
         $out  = [];
-        foreach ($rows as $r) $out[$r['setting_key']] = $r['setting_value'];
+        // CRITICAL SECURITY FIX: this table also holds admin credentials
+        // (admin_password_hash, admin_temp_pass, demo_password) alongside
+        // landing-page customization data - confirmed live that this public,
+        // unauthenticated endpoint (called by every visitor to the landing
+        // page) returned the super-admin's bcrypt password hash directly.
+        // Same pattern-based denylist fix applied to menu_api.php.
+        $sensitivePattern = '/pass|secret|token|hash|_key$|apikey|api_key/i';
+        foreach ($rows as $r) {
+            if (preg_match($sensitivePattern, $r['setting_key'])) continue;
+            $out[$r['setting_key']] = $r['setting_value'];
+        }
         echo json_encode(['ok'=>true,'settings'=>$out]);
     } catch (PDOException $e) {
         // Table not yet created — return defaults

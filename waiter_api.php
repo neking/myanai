@@ -25,6 +25,7 @@
  * selector to the login screen.
  */
 require_once __DIR__ . '/db_connect.php';
+require_once __DIR__ . '/pin_ratelimit.php';
 header('Content-Type: application/json');
 $allowedOrigins = ['https://myanai.net','https://www.myanai.net','http://localhost','http://127.0.0.1'];
 $origin = $_SERVER['HTTP_ORIGIN'] ?? '';
@@ -47,6 +48,24 @@ function resolveTenantFromBranch(PDO $pdo, int $branchId): ?int {
 
 // ── PIN login ──
 if ($action === 'login' && $_SERVER['REQUEST_METHOD'] === 'POST') {
+    // RATE LIMITING FIX: this login previously had NO rate limiting at all —
+    // confirmed live, 8 wrong PINs in a row with zero lockout/delay. PINs
+    // are only 4-6 digits, making this brute-forceable. pin_ratelimit.php
+    // already existed with well-built lockout logic but was never wired up
+    // anywhere in the codebase. Its function signature assumes a known
+    // staff_id up front (like a username+password flow), which doesn't fit
+    // here since PIN alone determines identity — an attacker guessing PINs
+    // blindly doesn't know which staff_id each guess might match. Using
+    // staff_id=0 as a shared bucket for "no match yet" so IP-based brute
+    // force is still caught regardless of which staff account is targeted.
+    $ip = $_SERVER['HTTP_X_FORWARDED_FOR'] ?? $_SERVER['REMOTE_ADDR'] ?? 'unknown';
+    $rl = checkPINRateLimit($pdo, 0, $ip);
+    if ($rl['limited']) {
+        http_response_code(429);
+        echo json_encode(['ok'=>false,'msg'=>'ကြိုးစားမှု များနေသည်။ '.ceil($rl['retry_after_seconds']/60).' မိနစ်အကြာမှ ထပ်ကြိုးစားပါ']);
+        exit;
+    }
+
     $d   = json_decode(file_get_contents('php://input'), true) ?? [];
     $pin = trim($d['pin'] ?? '');
     if (!$pin) { echo json_encode(['ok'=>false,'msg'=>'PIN မထည့်ရသေး']); exit; }
@@ -57,7 +76,12 @@ if ($action === 'login' && $_SERVER['REQUEST_METHOD'] === 'POST') {
     $stmt = $pdo->prepare($sql);
     $stmt->execute($bid ? [$pin, $bid] : [$pin]);
     $staff = $stmt->fetch(PDO::FETCH_ASSOC);
-    if (!$staff) { echo json_encode(['ok'=>false,'msg'=>'PIN မှားနေသည်']); exit; }
+    if (!$staff) {
+        recordPINAttempt($pdo, 0, $ip, false);
+        echo json_encode(['ok'=>false,'msg'=>'PIN မှားနေသည်']);
+        exit;
+    }
+    recordPINAttempt($pdo, (int)$staff['id'], $ip, true);
     echo json_encode(['ok'=>true,'staff'=>$staff]);
     exit;
 }

@@ -1,6 +1,7 @@
 <?php
 declare(strict_types=1);
 require_once __DIR__ . '/db_connect.php';
+require_once __DIR__ . '/tenant_helper.php';
 $pdo = getPDO();
 if(session_status()===PHP_SESSION_NONE) session_start();
 header('Content-Type: application/json; charset=utf-8');
@@ -13,16 +14,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') { http_response_code(204); exit; }
 
 function ok(array $d): never { echo json_encode(['ok'=>true]+$d); exit; }
 function fail(string $m, int $c=400): never { http_response_code($c); echo json_encode(['ok'=>false,'msg'=>$m]); exit; }
-function tenantId(): int {
-    $tid = (int)($_GET['tenant_id'] ?? $_SESSION['tenant_id'] ?? 1);
-    return $tid > 0 ? $tid : 1;
-}
+// tenantId() removed - collided with tenant_helper.php's own function of the same name.
+// Call requireTenantAccess() directly instead (see below).
 
 $action = $_GET['action'] ?? '';
 
 // ── Branch Analytics ─────────────────────────────────────────
 if ($action === 'branches') {
-    $tid  = tenantId();
+    $tid  = requireTenantAccess((int)($_GET['tenant_id'] ?? 0));
     $from = $_GET['from'] ?? date('Y-m-d', strtotime('-30 days'));
     $to   = $_GET['to']   ?? date('Y-m-d');
     $rows = $pdo->prepare("
@@ -49,7 +48,7 @@ if ($action === 'branches') {
 
 // ── Daily Summary ────────────────────────────────────────────
 if ($action === 'daily') {
-    $tid  = tenantId();
+    $tid  = requireTenantAccess((int)($_GET['tenant_id'] ?? 0));
     $date = $_GET['date'] ?? date('Y-m-d');
     $rows = $pdo->prepare("
         SELECT
@@ -68,7 +67,7 @@ if ($action === 'daily') {
 
 // ── Top Items ────────────────────────────────────────────────
 if ($action === 'top_items') {
-    $tid  = tenantId();
+    $tid  = requireTenantAccess((int)($_GET['tenant_id'] ?? 0));
     $from = $_GET['from'] ?? date('Y-m-d', strtotime('-30 days'));
     $to   = $_GET['to']   ?? date('Y-m-d');
     $rows = $pdo->prepare("

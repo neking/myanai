@@ -15,6 +15,7 @@ $csrfToken = generateCsrfToken();
 define('ADMIN_USER', 'admin');
 // bcrypt hash of 'myanai2024' — genhash.php သုံးပြီး ပြောင်းနိုင်
 define('ADMIN_PASS_HASH', getenv('ADMIN_PASS_HASH') ?: '');  // ← reads from /etc/myanai.env
+define('DEMO_PASS_HASH', getenv('DEMO_PASS_HASH') ?: '');  // ← reads from /etc/myanai.env
 
 /* ── DB ── */
 
@@ -216,10 +217,33 @@ if($_SERVER['REQUEST_METHOD']==='POST' && isset($_FILES['og_image']) && ($_GET['
         }
         // ────────────────────────────────────────────────────
 
-        $hash = ADMIN_PASS_HASH ?: password_hash('noodlehaus2024', PASSWORD_BCRYPT);
+        // SECURITY FIX: previously fell back to a hardcoded plaintext password
+        // ('noodlehaus2024') if ADMIN_PASS_HASH was ever empty/misconfigured -
+        // meaning a misconfigured env file would silently open a known-password
+        // backdoor instead of failing safely. Now fails closed: if the env var
+        // isn't set, login is refused entirely rather than falling back to a
+        // known password.
+        // ARCHITECTURE FIX: DB is now authoritative for login, matching what
+        // change_password writes to - .env's ADMIN_PASS_HASH is only used as
+        // a one-time bootstrap value if no DB row exists yet (e.g. brand new
+        // install). Previously login always read .env, but change_password
+        // only reliably updates the DB row live (updating .env requires a
+        // PHP-FPM restart to take effect, since getenv() is cached at worker
+        // startup) - so a password change would report success but the new
+        // password wouldn't work until someone manually restarted PHP-FPM.
+        $dbHashRow = $pdo->query("SELECT setting_value FROM site_settings WHERE setting_key='admin_password_hash'")->fetchColumn();
+        $hash = $dbHashRow ?: ADMIN_PASS_HASH;
+        if (!$hash) {
+            echo json_encode(['ok'=>false,'msg'=>'Server misconfigured - contact support']);
+            exit;
+        }
         // Demo user (read-only demo access)
-        $demoHash = '$2y$12$m/erGB4KFb4H/x/f6EA/zuri0Ekl8aXe88FF6nk2kpwppTuYI0kFq';
-        if ($inputUser === 'demo' && password_verify($inputPass, $demoHash)) {
+        // SECURITY FIX: was a hardcoded bcrypt hash directly in source code
+        // (visible in git history to anyone with repo access). Now reads from
+        // the env-backed constant, matching the pattern already used for
+        // ADMIN_PASS_HASH.
+        $demoHash = DEMO_PASS_HASH;
+        if ($inputUser === 'demo' && $demoHash && password_verify($inputPass, $demoHash)) {
             $_SESSION['admin'] = ['user'=>'admin','role'=>'superadmin'];
             $_SESSION['demo_mode'] = true;
             $_SESSION['login_time'] = time();
@@ -1209,22 +1233,51 @@ if($_SERVER['REQUEST_METHOD']==='POST' && isset($_FILES['og_image']) && ($_GET['
         if (!$current || !$new || strlen($new) < 8) {
             echo json_encode(['ok'=>false,'msg'=>'Invalid input']); exit;
         }
-        // Verify current password
-        if ($current !== 'GGttgg123!' && !password_verify($current, '$2y$12$admin_hash_placeholder')) {
-            // Check against hardcoded or DB stored password
-            $storedRow = $pdo->query("SELECT setting_value FROM site_settings WHERE setting_key='admin_password_hash'")->fetchColumn();
-            if ($storedRow) {
-                if (!password_verify($current, $storedRow)) {
-                    echo json_encode(['ok'=>false,'msg'=>'Current password incorrect']); exit;
-                }
-            } elseif ($current !== 'GGttgg123!') {
-                echo json_encode(['ok'=>false,'msg'=>'Current password incorrect']); exit;
-            }
+        // Verify current password — CRITICAL FIX: this previously checked
+        // site_settings.admin_password_hash (a DB row), while login checks
+        // ADMIN_PASS_HASH (the env-backed constant). These two drifted out
+        // of sync repeatedly (this exact bug is why earlier password change
+        // attempts reported success but then couldn't be used to log in, or
+        // reported "Current password incorrect" for the password that had
+        // just been used to log in seconds before). Now checks against the
+        // SAME source login uses, so verification can never disagree with
+        // what actually works for logging in.
+        $currentHashRow = $pdo->query("SELECT setting_value FROM site_settings WHERE setting_key='admin_password_hash'")->fetchColumn();
+        $currentHash = $currentHashRow ?: ADMIN_PASS_HASH;
+        if (!$currentHash || !password_verify($current, $currentHash)) {
+            echo json_encode(['ok'=>false,'msg'=>'Current password incorrect']); exit;
         }
         // Save new password hash
         $hash = password_hash($new, PASSWORD_BCRYPT);
         $pdo->prepare("INSERT INTO site_settings (setting_key,setting_value) VALUES ('admin_password_hash',?) ON DUPLICATE KEY UPDATE setting_value=?")
             ->execute([$hash,$hash]);
+
+        // CRITICAL FIX: login reads the password hash from ADMIN_PASS_HASH
+        // (an env var loaded from /etc/myanai.env), but this save path only
+        // ever wrote to the site_settings DB row - the two were never kept
+        // in sync, so using this form always reported "success" while the
+        // new password silently could not be used to log in (login kept
+        // checking the OLD env value). Now updates /etc/myanai.env too.
+        $envPath = '/etc/myanai.env';
+        $envSynced = false;
+        if (is_writable($envPath)) {
+            $envContent = file_get_contents($envPath);
+            if (preg_match('/^ADMIN_PASS_HASH=.*$/m', $envContent)) {
+                $envContent = preg_replace('/^ADMIN_PASS_HASH=.*$/m', 'ADMIN_PASS_HASH=' . $hash, $envContent);
+            } else {
+                $envContent = rtrim($envContent) . "
+ADMIN_PASS_HASH=" . $hash . "
+";
+            }
+            $envSynced = (bool)@file_put_contents($envPath, $envContent);
+        }
+        if (!$envSynced) {
+            // Best-effort only now - login checks the DB row first (updated
+            // above), so the password change is already fully effective even
+            // if this particular sync fails. Logged so /etc/myanai.env doesn't
+            // silently drift from the DB as a bootstrap fallback value.
+            error_log("change_password: could not write /etc/myanai.env (non-fatal - DB is authoritative for login)");
+        }
         echo json_encode(['ok'=>true,'msg'=>'Password changed']);
         exit;
     }

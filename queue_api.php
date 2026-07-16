@@ -19,8 +19,17 @@ else header('Access-Control-Allow-Origin: https://myanai.net');
 
 $pdo = getPDO();
 
+// SECURITY FIX: this file had NO tenant scoping and NO auth requirement at
+// all - confirmed it was showing every tenant's customer names, order
+// details, and table numbers mixed together to anyone who reached this
+// public URL (meant for an unattended TV display, no login). Not currently
+// linked from any page, but a reachable public URL with no filter is not a
+// real security boundary. Now requires tenant_id explicitly.
+$tid = (int)($_GET['tenant_id'] ?? 0);
+if (!$tid) { echo json_encode(['ok'=>false,'msg'=>'tenant_id required']); exit; }
+
 // NOW SERVING: ready orders (just completed)
-$ready = $pdo->query("
+$ready = $pdo->prepare("
     SELECT
         kq.order_id,
         o.customer_name,
@@ -34,14 +43,16 @@ $ready = $pdo->query("
     LEFT JOIN order_items oi ON oi.order_id = o.id
     WHERE kq.status = 'ready'
       AND o.deleted_at IS NULL
+      AND kq.tenant_id = ?
       AND kq.pushed_at >= NOW() - INTERVAL 2 HOUR
     GROUP BY kq.id
     ORDER BY kq.pushed_at DESC
     LIMIT 8
-")->fetchAll(PDO::FETCH_ASSOC);
+");
+$_tmp0 = $ready; $_tmp0->execute([$tid]); $ready = $_tmp0->fetchAll(PDO::FETCH_ASSOC);
 
 // PREPARING: pending + preparing orders
-$preparing = $pdo->query("
+$preparing = $pdo->prepare("
     SELECT
         kq.order_id,
         o.customer_name,
@@ -55,14 +66,16 @@ $preparing = $pdo->query("
     LEFT JOIN order_items oi ON oi.order_id = o.id
     WHERE kq.status IN ('pending','preparing')
       AND o.deleted_at IS NULL
+      AND kq.tenant_id = ?
       AND kq.pushed_at >= NOW() - INTERVAL 2 HOUR
     GROUP BY kq.id
     ORDER BY kq.pushed_at ASC
     LIMIT 12
-")->fetchAll(PDO::FETCH_ASSOC);
+");
+$_tmp1 = $preparing; $_tmp1->execute([$tid]); $preparing = $_tmp1->fetchAll(PDO::FETCH_ASSOC);
 
 // SERVED: recently served (last 30 min)
-$served = $pdo->query("
+$served = $pdo->prepare("
     SELECT
         kq.order_id,
         o.customer_name,
@@ -72,16 +85,23 @@ $served = $pdo->query("
     JOIN orders o ON o.id = kq.order_id
     WHERE kq.status = 'served'
       AND o.deleted_at IS NULL
+      AND kq.tenant_id = ?
       AND kq.pushed_at >= NOW() - INTERVAL 30 MINUTE
     ORDER BY kq.pushed_at DESC
     LIMIT 6
-")->fetchAll(PDO::FETCH_ASSOC);
+");
+$_tmp2 = $served; $_tmp2->execute([$tid]); $served = $_tmp2->fetchAll(PDO::FETCH_ASSOC);
 
-// Settings for branding
-$settings = $pdo->query("
-    SELECT setting_key, setting_value FROM site_settings
-    WHERE setting_key IN ('restaurant_name','logo_url')
-")->fetchAll(PDO::FETCH_KEY_PAIR) ?: [];
+// Settings for branding — tenant's own storefront name, not the global default
+$tRow = $pdo->prepare("SELECT name, settings FROM tenants WHERE id=?");
+$tRow->execute([$tid]);
+$tRowData = $tRow->fetch(PDO::FETCH_ASSOC);
+$tSettingsData = json_decode($tRowData['settings'] ?? '{}', true) ?: [];
+$storefront = $tSettingsData['storefront'] ?? [];
+$settings = [
+    'restaurant_name' => $storefront['store_name'] ?? $tRowData['name'] ?? 'NoodleHaus',
+    'logo_url' => $storefront['logo_url'] ?? '',
+];
 
 echo json_encode([
     'ok'        => true,

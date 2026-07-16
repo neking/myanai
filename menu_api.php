@@ -213,7 +213,17 @@ try {
     $sRows = $pdo->query(
         "SELECT setting_key, setting_value FROM site_settings"
     )->fetchAll();
+    // CRITICAL SECURITY FIX: this table also holds admin credentials
+    // (admin_password_hash, admin_temp_pass, demo_password) alongside
+    // storefront customization data - confirmed live that a plain,
+    // unauthenticated request to this public endpoint returned the
+    // super-admin's bcrypt password hash directly in the JSON response.
+    // Pattern-based denylist (not just the 3 known keys) so any future
+    // setting with a credential-like name is automatically excluded too,
+    // rather than relying on remembering to blocklist it by exact name.
+    $sensitivePattern = '/pass|secret|token|hash|_key$|apikey|api_key/i';
     foreach ($sRows as $s) {
+        if (preg_match($sensitivePattern, $s['setting_key'])) continue;
         $settings[$s['setting_key']] = $s['setting_value'];
     }
 } catch (PDOException $e) {
