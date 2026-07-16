@@ -57,6 +57,26 @@ if ($action === 'add' && $_SERVER['REQUEST_METHOD'] === 'POST') {
     if (empty($d['name'])) fail('Name required');
     if (empty($d['pin']) || strlen($d['pin']) < 4) fail('PIN min 4 digits');
     if (!preg_match('/^\d+$/', $d['pin'])) fail('PIN numbers only');
+
+    // Plan limit check - was completely missing (confirmed: menu items
+    // already enforce this, staff never did). Resolve tenant via branch_id
+    // since staff has no tenant_id column of its own.
+    $branchIdForLimit = (int)($d['branch_id'] ?? 1);
+    $tidRow = $pdo->prepare("SELECT tenant_id FROM branches WHERE id=?");
+    $tidRow->execute([$branchIdForLimit]);
+    $tidForLimit = (int)$tidRow->fetchColumn();
+    if ($tidForLimit > 0) {
+        $limitRow = $pdo->prepare("SELECT max_staff FROM tenants WHERE id=?");
+        $limitRow->execute([$tidForLimit]);
+        $maxStaff = (int)($limitRow->fetchColumn() ?: 3);
+        $cntStmt = $pdo->prepare("SELECT COUNT(*) FROM staff s JOIN branches b ON b.id=s.branch_id WHERE b.tenant_id=? AND s.is_active=1");
+        $cntStmt->execute([$tidForLimit]);
+        $curStaffCount = (int)$cntStmt->fetchColumn();
+        if ($curStaffCount >= $maxStaff) {
+            fail("Plan limit reached ({$curStaffCount}/{$maxStaff} staff). Please upgrade your plan.");
+        }
+    }
+
     // Check duplicate PIN in same branch
     $dup = $pdo->prepare("SELECT id FROM staff WHERE pin=:p AND branch_id=:b");
     $dup->execute([':p'=>$d['pin'],':b'=>(int)($d['branch_id']??1)]);

@@ -118,6 +118,23 @@ if ($action === 'create' && $_SERVER['REQUEST_METHOD'] === 'POST') {
 
     $d    = json_decode(file_get_contents('php://input'), true) ?? [];
     $tid  = (int)($d['tenant_id'] ?? 0);
+
+    // Plan limit check - was completely missing. Super-admin-gated already,
+    // but still worth enforcing so a plan's branch cap means something even
+    // when the person creating it is trusted (avoids accidental
+    // over-provisioning, e.g. via a support workflow that forgets to check).
+    if ($tid > 0) {
+        $limitRow = $pdo->prepare("SELECT max_branches FROM tenants WHERE id=?");
+        $limitRow->execute([$tid]);
+        $maxBranches = (int)($limitRow->fetchColumn() ?: 1);
+        $cntStmt = $pdo->prepare("SELECT COUNT(*) FROM branches WHERE tenant_id=?");
+        $cntStmt->execute([$tid]);
+        $curBranchCount = (int)$cntStmt->fetchColumn();
+        if ($curBranchCount >= $maxBranches) {
+            fail("Plan limit reached ({$curBranchCount}/{$maxBranches} branches). Please upgrade your plan.");
+        }
+    }
+
     $name = trim($d['name'] ?? '');
     $code = strtoupper(trim($d['code'] ?? ''));
     $addr = trim($d['address'] ?? '') ?: null;
