@@ -1013,7 +1013,7 @@ window.BIZ_LAYOUTS.other = null;
 <div class="cat-wrap" id="cat-wrap">
   <div style="padding:.4rem .75rem .2rem;width:100%;box-sizing:border-box">
     <div style="position:relative">
-      <input id="menu-search-input" type="search" placeholder="Search menu..." 
+      <input id="menu-search-input" type="search" aria-label="Search menu" placeholder="Search menu..." 
         oninput="menuSearch(this.value)"
         style="width:100%;padding:.45rem .75rem;border:1px solid var(--border);border-radius:20px;background:var(--surface);color:var(--ink);font-size:.83rem;box-sizing:border-box;outline:none">
     </div>
@@ -1062,7 +1062,7 @@ window.BIZ_LAYOUTS.other = null;
           <div class="total-row"><span>Delivery fee</span><span id="ct-fee">$0</span></div>
           <div class="total-row" id="promo-row" style="display:none"><span id="promo-label">Promo</span><span id="ct-discount" style="color:#16a34a">-$0</span></div>
           <div style="display:flex;gap:8px;margin:.4rem 0">
-            <input id="promo-input" placeholder="Promo code" style="flex:1;padding:.5rem .75rem;border:1px solid var(--border);border-radius:8px;background:var(--bg2);color:var(--text);font-size:.85rem">
+            <input id="promo-input" aria-label="Promo code" placeholder="Promo code" style="flex:1;padding:.5rem .75rem;border:1px solid var(--border);border-radius:8px;background:var(--bg2);color:var(--text);font-size:.85rem">
             <button type="button" onclick="applyPromo()" style="padding:.5rem 1rem;background:var(--accent);color:#fff;border:none;border-radius:8px;font-size:.85rem;cursor:pointer">Apply</button>
           </div>
           <div class="total-row grand"><span>Total</span><span id="ct-total">$0</span></div>
@@ -1079,8 +1079,8 @@ window.BIZ_LAYOUTS.other = null;
         </div>
         <div style="font-size:.75rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);margin-bottom:.8rem">🏠 Delivery Details</div>
         <div class="form-row">
-          <div class="form-group"><label data-en="Full Name *" data-mm="အမည် *">Full Name *</label><input id="f-name" placeholder="Ma Su Su"></div>
-          <div class="form-group"><label data-en="Phone *" data-mm="ဖုန်းနံပါတ် *">Phone *</label><input id="f-phone" placeholder="09-xxxx-xxxxx" oninput="crmPhoneInput(this.value)" autocomplete="tel"></div>
+          <div class="form-group"><label for="f-name" data-en="Full Name *" data-mm="အမည် *">Full Name *</label><input id="f-name" placeholder="Ma Su Su"></div>
+          <div class="form-group"><label for="f-phone" data-en="Phone *" data-mm="ဖုန်းနံပါတ် *">Phone *</label><input id="f-phone" placeholder="09-xxxx-xxxxx" oninput="crmPhoneInput(this.value)" autocomplete="tel"></div>
         </div>
         <div id="crm-reorder-box" style="display:none;margin-bottom:.8rem">
           <button id="crm-reorder-btn" onclick="crmDoReorder()"
@@ -1088,14 +1088,14 @@ window.BIZ_LAYOUTS.other = null;
             🔁 <span id="crm-reorder-label">Reorder လုပ်မည်</span>
           </button>
         </div>
-        <div class="form-group" id="address-row"><label data-en="Address *" data-mm="လိပ်စာ *">Address *</label><input id="f-address" placeholder="Street, Township, City"></div>
+        <div class="form-group" id="address-row"><label for="f-address" data-en="Address *" data-mm="လိပ်စာ *">Address *</label><input id="f-address" placeholder="Street, Township, City"></div>
         <div class="form-row" id="township-row">
-          <div class="form-group"><label data-en="Township" data-mm="မြို့နယ်">Township</label>
+          <div class="form-group"><label for="f-township" data-en="Township" data-mm="မြို့နယ်">Township</label>
             <select id="f-township" onchange="onTownshipChange()">
               <option value="">-- ရွေးပါ --</option>
             </select>
           </div>
-          <div class="form-group"><label data-en="City" data-mm="မြို့">City</label>
+          <div class="form-group"><label for="f-city" data-en="City" data-mm="မြို့">City</label>
             <select id="f-city">
               <option>Yangon</option><option>Mandalay</option>
               <option>Naypyitaw</option><option>Bago</option>
@@ -1103,7 +1103,7 @@ window.BIZ_LAYOUTS.other = null;
             </select>
           </div>
         </div>
-        <div class="form-group"><label data-en="Special Instructions" data-mm="အထူးမှာကြားချက်">Special Instructions</label>
+        <div class="form-group"><label for="f-notes" data-en="Special Instructions" data-mm="အထူးမှာကြားချက်">Special Instructions</label>
           <textarea id="f-notes" rows="2" placeholder="No spicy, extra sauce..."></textarea>
         </div>
         <div style="font-size:.75rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);margin:.8rem 0 .5rem">💳 Payment Method</div>
@@ -1146,7 +1146,7 @@ window.BIZ_LAYOUTS.other = null;
             <span data-star="4" onclick="setReviewStar(4)">☆</span>
             <span data-star="5" onclick="setReviewStar(5)">☆</span>
           </div>
-          <textarea id="review-comment" placeholder="Comment (optional)" rows="2"
+          <textarea id="review-comment" aria-label="Review comment" placeholder="Comment (optional)" rows="2"
             style="width:100%;padding:.5rem;border:1px solid #ddd;border-radius:8px;font-size:.83rem;box-sizing:border-box;resize:none"></textarea>
           <button onclick="submitReview()" id="review-submit-btn"
             style="margin-top:.4rem;width:100%;padding:.6rem;background:#f59e0b;color:#fff;border:none;border-radius:10px;font-size:.88rem;cursor:pointer;font-weight:600">
@@ -1157,7 +1157,7 @@ window.BIZ_LAYOUTS.other = null;
         <!-- Inline Order History -->
         <div id="inline-hist" style="display:none;margin-top:1rem;text-align:left;border-top:1px solid #eee;padding-top:1rem">
           <div style="display:flex;gap:.5rem;margin-bottom:.75rem">
-            <input type="text" id="ih-phone" placeholder="09xxxxxxxxx" style="flex:1;padding:.45rem .7rem;border:1px solid #ddd;border-radius:8px;font-size:.85rem">
+            <input type="text" id="ih-phone" aria-label="Phone number to look up order history" placeholder="09xxxxxxxxx" style="flex:1;padding:.45rem .7rem;border:1px solid #ddd;border-radius:8px;font-size:.85rem">
             <button onclick="loadInlineHist()" style="padding:.45rem .8rem;background:#e84c2b;color:#fff;border:none;border-radius:8px;cursor:pointer;font-size:.82rem">Search</button>
           </div>
           <div id="ih-result" style="font-size:.82rem;max-height:220px;overflow-y:auto"></div>
@@ -2647,6 +2647,12 @@ function toggleLang() {
   applyLang();
 }
 function applyLang() {
+  // ACCESSIBILITY FIX: <html lang="..."> was hardcoded to "en" and never
+  // updated when the user toggles to Burmese - meaning screen readers would
+  // try to pronounce Burmese text using English phonetic/pronunciation
+  // rules for the entire rest of the session after switching languages.
+  // This keeps the lang attribute honest about what's actually on screen.
+  document.documentElement.lang = currentLang === 'mm' ? 'my' : 'en';
   var catMM={'All':'အကုန်လုံး','Starters':'ဆိုင်ဖွင့်မုန့်','Drinks':'အဖျော်ယမကာ','Desserts':'နှစ်သက်ဖွယ်','Noodles':'ခေါက်ဆွဲ','Rice':'ထမင်းတွဲ','Soups':'ဟင်းရည်','Snacks':'သရေစာ','Beverages':'အဖျော်','Coffee':'ကော်ဖီ','Tea':'လက်ဖက်ရည်'};
   var catEN={'အကုန်လုံး':'All','ဆိုင်ဖွင့်မုန့်':'Starters','အဖျော်ယမကာ':'Drinks','နှစ်သက်ဖွယ်':'Desserts','ခေါက်ဆွဲ':'Noodles','ထမင်းတွဲ':'Rice','ဟင်းရည်':'Soups','သရေစာ':'Snacks','အဖျော်':'Beverages','ကော်ဖီ':'Coffee','လက်ဖက်ရည်':'Tea'};
   window._catT = currentLang === 'mm' ? catMM : catEN;
@@ -2907,7 +2913,7 @@ async function loadInlineHist(){
     <button onclick="document.getElementById('cust-hist-modal').style.display='none'" style="position:absolute;top:1rem;right:1rem;background:none;border:none;font-size:1.3rem;cursor:pointer;color:var(--muted)">✕</button>
     <div style="font-weight:600;font-size:1rem;margin-bottom:1rem">📋 Order History</div>
     <div style="display:flex;gap:.5rem;margin-bottom:1rem">
-      <input type="text" id="ch-phone" placeholder="09xxxxxxxxx" style="flex:1;padding:.5rem .75rem;border:1px solid #ddd;border-radius:8px;font-size:.88rem">
+      <input type="text" id="ch-phone" aria-label="Customer phone number" placeholder="09xxxxxxxxx" style="flex:1;padding:.5rem .75rem;border:1px solid #ddd;border-radius:8px;font-size:.88rem">
       <button onclick="loadCustHist()" style="padding:.5rem .9rem;background:#e84c2b;color:#fff;border:none;border-radius:8px;cursor:pointer;font-size:.85rem">Search</button>
     </div>
     <div id="ch-result"></div>
