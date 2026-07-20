@@ -2290,11 +2290,26 @@ async function fetchAllTrackers() {
   if (orders.length === 0) return;
   for (const o of orders) {
     try {
-      const r = await fetch('track.php?id=' + o.id);
+      // FIX: this never sent device_id, but track.php's legacy id-based
+      // lookup REQUIRES it to match (WHERE id=:id AND device_id=:did AND
+      // (deleted_at IS NULL OR status='cancelled')) - meaning this periodic
+      // status refresh has always failed for every order regardless of its
+      // actual status, leaving the tracker widget frozen at whatever status
+      // it captured right after the order was placed (never updating to
+      // preparing/ready/served, and never detecting a cancellation either).
+      const r = await fetch('track.php?id=' + o.id + '&device_id=' + encodeURIComponent(DEVICE_ID));
       const d = await r.json();
       if (d.success && d.order) {
         o.data = d.order;
         o.kds  = d.order.kds_status || 'pending';
+      } else if (d.success === false) {
+        // DEFENSIVE FIX: previously a failed/not-found lookup was silently
+        // ignored, leaving o.data/o.kds at whatever was last successfully
+        // fetched (i.e. stale pre-cancellation status shown forever, since
+        // the removal filter below only triggers on o.data.status ===
+        // 'cancelled', which a never-updated o.data can never satisfy).
+        // Mark it explicitly so the filter below removes it.
+        o.notFound = true;
       }
     } catch(e){}
   }
@@ -2306,6 +2321,11 @@ async function fetchAllTrackers() {
     }
     // Remove cancelled orders after 2 min (customer already saw message)
     if (o.data?.status === 'cancelled') {
+      return (Date.now() - o.ts) / 60000 < 2;
+    }
+    // DEFENSIVE FIX: order no longer found server-side (see fetchAllTrackers
+    // above) - don't keep displaying it forever with stale data.
+    if (o.notFound) {
       return (Date.now() - o.ts) / 60000 < 2;
     }
     return true;

@@ -46,7 +46,13 @@ if (($_GET['action'] ?? '') === 'cancel') {
     if (!$o) jsonError('Order not found or cancel window expired (2 min)');
 
     // Soft delete
-    $pdo->prepare("UPDATE orders SET deleted_at=NOW(), delete_reason='Customer cancelled', deleted_by='customer' WHERE id=?")
+    // FIX: status was never set to 'cancelled', only deleted_at - meaning
+    // track.php's own query (WHERE deleted_at IS NULL OR status='cancelled')
+    // could never match a customer-cancelled order, so it returned "not
+    // found" instead of a proper cancelled status. The customer-facing order
+    // tracker widget has no fallback for a failed/not-found lookup, so it
+    // just kept displaying the stale pre-cancellation status forever.
+    $pdo->prepare("UPDATE orders SET status='cancelled', deleted_at=NOW(), delete_reason='Customer cancelled', deleted_by='customer' WHERE id=?")
         ->execute([$orderId]);
 
     // Reverse hooks

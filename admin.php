@@ -770,7 +770,7 @@ if($_SERVER['REQUEST_METHOD']==='POST' && isset($_FILES['og_image']) && ($_GET['
 
         // 3. orders table မှာ soft delete
         $pdo->prepare("
-            UPDATE orders SET deleted_at=NOW(), delete_reason=:reason, deleted_by='admin'
+            UPDATE orders SET status='cancelled', deleted_at=NOW(), delete_reason=:reason, deleted_by='admin'
             WHERE id=:id
         ")->execute([':reason'=>$reason, ':id'=>$id]);
 
