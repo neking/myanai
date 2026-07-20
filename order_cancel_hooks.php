@@ -54,6 +54,16 @@ function hookCrmReverse(PDO $pdo, int $tenantId, string $phone, int $totalAmount
             END
             WHERE phone = ? AND tenant_id = ? AND tag NOT IN ('blocked')
         ")->execute([$phone, $tenantId]);
+        // FIX: this previously only touched the customers table -
+        // loyalty_cards.stamps was never reversed, so a cancelled order
+        // still left the customer with a loyalty stamp they never should
+        // have earned. Confirmed via a cleanup audit (cancel an order,
+        // check every related table) - this was the one still showing
+        // stale data.
+        $pdo->prepare("
+            UPDATE loyalty_cards SET stamps = GREATEST(0, stamps - 1)
+            WHERE phone = ? AND tenant_id = ?
+        ")->execute([$phone, $tenantId]);
     } catch (Exception $e) { /* CRM reverse fail */ }
 }
 
@@ -81,6 +91,19 @@ function hookDeliveryCancel(PDO $pdo, int $orderId): void {
 /**
  * Remove from shift tracking
  */
+function hookKdsCancel(PDO $pdo, int $orderId): void {
+    // FIX: there was no hook at all for kds_queue on order cancellation -
+    // confirmed live that cancelling an order left its kds_queue row
+    // permanently stuck at status='pending'. Status enum has no 'cancelled'
+    // value (pending/preparing/ready/served only), so 'served' is used,
+    // matching the same "done, stop treating as active" meaning it has
+    // elsewhere (e.g. table_api.php's close_table).
+    try {
+        $pdo->prepare("UPDATE kds_queue SET status='served' WHERE order_id=? AND status!='served'")
+            ->execute([$orderId]);
+    } catch (Exception $e) { /* kds cancel fail */ }
+}
+
 function hookShiftRemove(PDO $pdo, int $orderId): void {
     try {
         $pdo->prepare("DELETE FROM shift_orders WHERE order_id = ?")->execute([$orderId]);

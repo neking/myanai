@@ -54,6 +54,7 @@ if (($_GET['action'] ?? '') === 'cancel') {
     hookStockRestore($pdo, (int)$o['tenant_id'], $orderId);
     hookCrmReverse($pdo, (int)$o['tenant_id'], $o['customer_phone'], (int)$o['total_amount']);
     hookDeliveryCancel($pdo, $orderId);
+    hookKdsCancel($pdo, $orderId);
     hookShiftRemove($pdo, $orderId);
 
     echo json_encode(['success' => true, 'message' => 'Order cancelled']);

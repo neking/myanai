@@ -779,6 +779,7 @@ if($_SERVER['REQUEST_METHOD']==='POST' && isset($_FILES['og_image']) && ($_GET['
         hookStockRestore($pdo, (int)$o['tenant_id'], $id);
         hookCrmReverse($pdo, (int)$o['tenant_id'], $o['customer_phone'] ?? '', (int)($o['total_amount'] ?? 0));
         hookDeliveryCancel($pdo, $id);
+    hookKdsCancel($pdo, $id);
         hookShiftRemove($pdo, $id);
 
         echo json_encode(['ok'=>true]);
