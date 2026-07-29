@@ -645,9 +645,10 @@ window.fetch = async function(...args) {
           const banner = document.createElement('div');
           banner.id = 'session-expired-banner';
           banner.style.cssText = 'position:fixed;top:0;left:0;right:0;z-index:99999;background:#dc3545;color:#fff;text-align:center;padding:.75rem;font-size:.9rem;font-weight:500';
-          banner.innerHTML = '⚠️ Session expired — <a href="admin.php" style="color:#fff;text-decoration:underline">Click here to login again</a>';
+          const loginPage = window.__IS_TENANT ? 'tenant.php' : 'admin.php';
+          banner.innerHTML = '⚠️ Session expired — <a href="' + loginPage + '" style="color:#fff;text-decoration:underline">Click here to login again</a>';
           document.body.prepend(banner);
-          setTimeout(()=>{ window.location.href = 'admin.php'; }, 3000);
+          setTimeout(()=>{ window.location.href = loginPage; }, 3000);
         }
       }
     } catch(e) {}
@@ -1963,7 +1964,7 @@ function escHtml(s) {
   return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
 
-setTimeout(()=>{ showPage('dashboard'); }, 100);
+if (window.__IS_TENANT || document.getElementById('app')) { setTimeout(()=>{ showPage('dashboard'); }, 100); }
 // Check 2FA status and warn if not enabled
 setTimeout(async ()=>{
   try{
@@ -2468,6 +2469,12 @@ function previewKpayQR(input) {
 
 /* ── Platform Dashboard ── */
 async function loadPlatformDashboard() {
+  // FIX: was missing the same __IS_TENANT guard loadSaas() already has -
+  // this super-admin-only function was running unconditionally even on a
+  // tenant session, causing a legitimate 401 from tenant_api.php that the
+  // global fetch interceptor below then misread as a genuine session
+  // expiry, redirecting tenants to admin.php after clicking the demo button.
+  if(window.__IS_TENANT) return;
   const date = document.getElementById('dash-date');
   if(date) date.textContent = new Date().toLocaleDateString('en-GB',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
 
