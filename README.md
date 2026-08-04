@@ -51,13 +51,13 @@ Storefront, Upgrade, Settings
 | Enterprise | 300,000 Ks/mo | 10 | 50 | 500 |
 
 ## Demo Accounts
-| Tenant | Email | Password | URL |
-|--------|-------|----------|-----|
-| MyanAi Demo | demo@myanai.net | demo1234 | ?t=demo |
-| More Tea | moretea@myanai.net | moretea2026 | ?t=moretea |
-| Boba Star | bobastar@myanai.net | boba2026 | ?t=bobastar |
+| Tenant | Email | URL |
+|--------|-------|-----|
+| MyanAi Demo | demo@myanai.net | ?t=demo |
+| More Tea | moretea@myanai.net | ?t=moretea |
+| Boba Star | bobastar@myanai.net | ?t=bobastar |
 
-Admin: admin / GGttgg123!
+Admin login: credentials are kept outside this repo — see the team's private credentials manager.
 
 ## Key Features Completed
 - ✅ Online ordering page (PWA, KBZPay/Wave/Cash)

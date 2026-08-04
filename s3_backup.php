@@ -12,6 +12,7 @@
  * Or trigger manually: ?action=backup&secret=myanai_s3_backup_2026
  */
 declare(strict_types=1);
+require_once __DIR__ . '/db_connect.php';
 
 $secret = $_GET['secret'] ?? '';
 $isCLI  = php_sapi_name() === 'cli';
@@ -21,10 +22,10 @@ if (!$isCLI && !hash_equals($s3Secret, $secret)) {
 }
 
 // ── CONFIG ──
-$DB_HOST = 'localhost';
-$DB_USER = 'myanai_user';
-$DB_PASS = 'i0It2cUUSHiIbr3v1wZquVWOIZaHuudY';
-$DB_NAME = 'noodlehaus';
+$DB_HOST = DB_HOST;
+$DB_USER = DB_USER;
+$DB_PASS = DB_PASS;
+$DB_NAME = DB_NAME;
 $S3_BUCKET = 'myanai-backups';
 $S3_PREFIX = 'db/' . date('Y/m'); // Organized by year/month
 $LOCAL_TMP = sys_get_temp_dir();
